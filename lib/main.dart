@@ -40,10 +40,7 @@ class _CraveeFoodAppState extends State<CraveeFoodApp> {
       title: 'Food Court — Food & Grocery Delivery',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: HomeScreen(
-        cartState: _cartState,
-        userState: _userState,
-      ),
+      home: HomeScreen(cartState: _cartState, userState: _userState),
     );
   }
 }
