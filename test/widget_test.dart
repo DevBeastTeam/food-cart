@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_delivery/data/sample_data.dart';
 import 'package:food_delivery/main.dart';
+import 'package:food_delivery/screens/orders_screen.dart';
+import 'package:food_delivery/screens/user_dashboard_screen.dart';
 import 'package:food_delivery/state/cart_state.dart';
 
 // 1x1 transparent PNG data
@@ -276,14 +278,15 @@ void main() {
   group('CartState Unit Tests', () {
     test('Cart calculations, items and promo code verification', () {
       final cart = CartState();
-      final item1 = SampleData.restaurants[0].menu[0]; // 890 PKR
-      final item2 = SampleData.restaurants[0].menu[1]; // 680 PKR
+      final rest1 = SampleData.restaurants[0];
+      final item1 = rest1.menu[0]; // 890 PKR
+      final item2 = rest1.menu[1]; // 680 PKR
 
       expect(cart.totalItemCount, 0);
       expect(cart.subtotal, 0.0);
 
       // Add item 1
-      final added = cart.addItem(item1, 'rest_1', 'The Flame Grill Burger Co.');
+      final added = cart.addItem(item1, rest1.id, rest1.name);
       expect(added, true);
       expect(cart.totalItemCount, 1);
       expect(cart.subtotal, 890.0);
@@ -294,7 +297,7 @@ void main() {
       expect(cart.subtotal, 1780.0);
 
       // Add item 2
-      cart.addItem(item2, 'rest_1', 'The Flame Grill Burger Co.');
+      cart.addItem(item2, rest1.id, rest1.name);
       expect(cart.totalItemCount, 3);
       expect(cart.subtotal, 2460.0);
 
@@ -338,6 +341,36 @@ void main() {
       expect(find.textContaining('Pakwan'), findsWidgets);
       expect(find.text('Cuisines for you'), findsWidgets);
       expect(find.text('Your daily deals'), findsWidgets);
+    });
+
+    testWidgets('CraveeFoodApp renders cleanly on narrow mobile devices (360x740) without overflow', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(360, 740);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(const CraveeFoodApp());
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Test Tab 0 (Home)
+      expect(find.text('Food Court'), findsWidgets);
+
+      // Switch to Tab 1 (Cart)
+      await tester.tap(find.text('Cart'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Your cart is empty'), findsWidgets);
+
+      // Switch to Tab 2 (Orders)
+      await tester.tap(find.text('Orders'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(OrdersScreen), findsOneWidget);
+      expect(find.text('My Orders'), findsWidgets);
+
+      // Switch to Tab 3 (Account)
+      await tester.tap(find.text('Account'));
+      await tester.pumpAndSettle();
+      expect(find.byType(UserDashboardScreen), findsOneWidget);
+      expect(find.text('Hassan Raza'), findsWidgets);
     });
   });
 }

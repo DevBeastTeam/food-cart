@@ -28,30 +28,93 @@ class UserAddress {
   }
 }
 
+enum UserRole {
+  client, // Customer ordering food
+  rider,  // Delivery Rider
+  admin,  // Kitchen and Restaurant Manager
+}
+
 class UserOrder {
   final String id;
   final String restaurantName;
   final String restaurantImage;
   final List<String> items;
   final double totalAmount;
+  final double? originalAmount;
+  final String? discountInfo;
   final DateTime orderDate;
-  final String status; // 'Delivered', 'On the Way', 'Preparing'
+  String status; // 'Accepted', 'Preparing', 'On the Way', 'Delivered', 'Cancelled'
   final bool isDaigBooking;
   final String? occasion;
   final int? rating;
+  final String deliveryAddress;
+  String prepTime;
+  final String? foodItemId;
+  String? notes;
+  String? riderName;
+  String? riderPhone;
+  final String customerName;
+  final String customerPhone;
 
-  const UserOrder({
+  String get address => deliveryAddress;
+
+  UserOrder({
     required this.id,
     required this.restaurantName,
     required this.restaurantImage,
     required this.items,
     required this.totalAmount,
+    this.originalAmount,
+    this.discountInfo,
     required this.orderDate,
     required this.status,
     this.isDaigBooking = false,
     this.occasion,
     this.rating,
+    this.deliveryAddress = 'Home • Gulberg III, Main Blvd, Lahore',
+    this.prepTime = '25-35 mins',
+    this.foodItemId,
+    this.notes,
+    this.riderName,
+    this.riderPhone,
+    this.customerName = 'Hassan Raza',
+    this.customerPhone = '+92 300 8472910',
   });
+
+  UserOrder copyWith({
+    String? status,
+    String? notes,
+    int? rating,
+    String? prepTime,
+    String? riderName,
+    String? riderPhone,
+    String? discountInfo,
+    String? customerName,
+    String? customerPhone,
+  }) {
+    return UserOrder(
+      id: id,
+      restaurantName: restaurantName,
+      restaurantImage: restaurantImage,
+      items: items,
+      totalAmount: totalAmount,
+      originalAmount: originalAmount,
+      discountInfo: discountInfo ?? this.discountInfo,
+      orderDate: orderDate,
+      status: status ?? this.status,
+      isDaigBooking: isDaigBooking,
+      occasion: occasion,
+      rating: rating ?? this.rating,
+      deliveryAddress: deliveryAddress,
+      prepTime: prepTime ?? this.prepTime,
+      foodItemId: foodItemId,
+      notes: notes ?? this.notes,
+      riderName: riderName ?? this.riderName,
+      riderPhone: riderPhone ?? this.riderPhone,
+      customerName: customerName ?? this.customerName,
+      customerPhone: customerPhone ?? this.customerPhone,
+    );
+  }
 }
 
 class UserVoucher {
@@ -128,12 +191,16 @@ class UserState extends ChangeNotifier {
   final List<UserOrder> _orders = [
     UserOrder(
       id: 'FC-9481',
-      restaurantName: 'Bundu Khan Desi Grill',
+      restaurantName: 'Dawat Khana Desi Heritage',
       restaurantImage: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80',
-      items: ['1x Mutton Seekh Kabab (4 pcs)', '2x Roghani Naan', '1x Mint Raita'],
+      items: ['1x Shahi Qorma Special', '2x Roghani Naan', '1x Kheer'],
       totalAmount: 1850.0,
-      orderDate: DateTime.now().subtract(const Duration(minutes: 25)),
-      status: 'On the Way',
+      originalAmount: 2150.0,
+      discountInfo: '40% OFF applied (Saved Rs. 300)',
+      orderDate: DateTime.now().subtract(const Duration(minutes: 15)),
+      status: 'Preparing',
+      prepTime: '20 mins',
+      deliveryAddress: 'Home • House 42, Block H, Phase 5, DHA, Lahore',
       isDaigBooking: false,
     ),
     UserOrder(
@@ -142,33 +209,45 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80',
       items: ['1x Full Shahi Mutton Daig (12 KG)', '4L Zeera Raita', 'Fresh Garden Salad'],
       totalAmount: 26500.0,
-      orderDate: DateTime.now().subtract(const Duration(days: 2)),
-      status: 'Delivered',
+      originalAmount: 27500.0,
+      discountInfo: 'Rs. 1,000 OFF Voucher applied',
+      orderDate: DateTime.now().subtract(const Duration(minutes: 50)),
+      status: 'Accepted',
+      prepTime: '2 hours',
+      deliveryAddress: 'Home • House 42, Block H, Phase 5, DHA, Lahore',
       isDaigBooking: true,
       occasion: 'Family Dawat & Khatam',
-      rating: 5,
     ),
     UserOrder(
       id: 'FC-8419',
-      restaurantName: 'The Flame Grill Burger Co.',
-      restaurantImage: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80',
-      items: ['2x Double Smoky Beef Cheddar', '1x Curly Cheesy Fries', '2x Coke Zero'],
-      totalAmount: 2240.0,
-      orderDate: DateTime.now().subtract(const Duration(days: 4)),
-      status: 'Delivered',
+      restaurantName: 'Bannu Beef Pulao & Nalli Nihari',
+      restaurantImage: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=300&q=80',
+      items: ['1x Special Bannu Beef Pulao (Double Nalli)', '2x Shami Kabab'],
+      totalAmount: 1450.0,
+      originalAmount: 1750.0,
+      discountInfo: 'Flat 40% OFF applied',
+      orderDate: DateTime.now().subtract(const Duration(minutes: 35)),
+      status: 'On the Way',
+      prepTime: 'Rider on route',
+      riderName: 'Ali Raza (Rider #R-41)',
+      riderPhone: '+92 301 5551234',
+      deliveryAddress: 'Office • Tower B, 4th Floor, Gulberg III, Lahore',
       isDaigBooking: false,
-      rating: 5,
     ),
     UserOrder(
       id: 'FC-7910',
-      restaurantName: 'FoodCourt Mart',
-      restaurantImage: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&q=80',
-      items: ['2x Olpers Milk 1L', '1x Farm Fresh Eggs (12 pcs)', '1x Dawn Bran Bread'],
-      totalAmount: 940.0,
-      orderDate: DateTime.now().subtract(const Duration(days: 6)),
+      restaurantName: 'Butt Karahi & Shinwari Dera',
+      restaurantImage: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=300&q=80',
+      items: ['1x Desi Ghee Mutton Shinwari (1 KG)', '4x Roghani Naan', '1x Zeera Raita'],
+      totalAmount: 3200.0,
+      originalAmount: 3500.0,
+      discountInfo: 'Free Delivery coupon applied',
+      orderDate: DateTime.now().subtract(const Duration(days: 2)),
       status: 'Delivered',
+      prepTime: 'Completed',
+      deliveryAddress: 'Home • House 42, Block H, Phase 5, DHA, Lahore',
       isDaigBooking: false,
-      rating: 4,
+      rating: 5,
     ),
   ];
 
@@ -208,6 +287,10 @@ class UserState extends ChangeNotifier {
   // Getters
   bool get isLoggedIn => _isLoggedIn;
   UserProfile? get user => _user;
+  String get userName => _user?.name ?? 'Hassan Raza';
+  String get userPhone => _user?.phone ?? '+92 300 8472910';
+  String get riderName => 'Captain Ali Raza';
+  String get riderPhone => '+92 302 9988776';
   List<UserAddress> get addresses => List.unmodifiable(_addresses);
   List<UserOrder> get orders => List.unmodifiable(_orders);
   List<UserVoucher> get vouchers => List.unmodifiable(_vouchers);
@@ -219,28 +302,123 @@ class UserState extends ChangeNotifier {
     );
   }
 
-  int get activeOrdersCount {
-    return _orders.where((o) => o.status != 'Delivered').length;
+  UserRole _currentRole = UserRole.client;
+  UserRole get currentRole => _currentRole;
+
+  void setRole(UserRole role) {
+    _currentRole = role;
+    notifyListeners();
   }
 
-  // Local / Mock Login (Any email/password works as requested)
+  void sendSupportMessage({
+    required String subject,
+    required String message,
+    String? customerName,
+    String? phone,
+  }) {
+    notifyListeners();
+  }
+
+  int get activeOrdersCount {
+    return _orders.where((o) => o.status != 'Delivered' && o.status != 'Cancelled').length;
+  }
+
+  void placeOrder({
+    required String restaurantName,
+    required String restaurantImage,
+    required List<String> items,
+    required double totalAmount,
+    double? originalAmount,
+    String? discountInfo,
+    required String deliveryAddress,
+    required String prepTime,
+    bool isDaigBooking = false,
+    String? occasion,
+    String? foodItemId,
+    String? notes,
+  }) {
+    final newId = 'FC-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}';
+    final newOrder = UserOrder(
+      id: newId,
+      restaurantName: restaurantName,
+      restaurantImage: restaurantImage,
+      items: items,
+      totalAmount: totalAmount,
+      originalAmount: originalAmount,
+      discountInfo: discountInfo,
+      orderDate: DateTime.now(),
+      status: 'Accepted',
+      isDaigBooking: isDaigBooking,
+      occasion: occasion,
+      deliveryAddress: deliveryAddress,
+      prepTime: prepTime,
+      foodItemId: foodItemId,
+      notes: notes,
+    );
+    _orders.insert(0, newOrder);
+    notifyListeners();
+  }
+
+  void updateOrderStatus(String orderId, String newStatus, {String? prepTime}) {
+    final idx = _orders.indexWhere((o) => o.id == orderId);
+    if (idx >= 0) {
+      _orders[idx].status = newStatus;
+      if (prepTime != null && prepTime.isNotEmpty) {
+        _orders[idx].prepTime = prepTime;
+      }
+      notifyListeners();
+    }
+  }
+
+  void assignRider(String orderId, {String? riderName, String? riderPhone}) {
+    final idx = _orders.indexWhere((o) => o.id == orderId);
+    if (idx >= 0) {
+      _orders[idx].riderName = riderName ?? 'Ali Raza (Rider #R-41)';
+      _orders[idx].riderPhone = riderPhone ?? '+92 301 5551234';
+      _orders[idx].status = 'On the Way';
+      notifyListeners();
+    }
+  }
+
+  void updateOrderNotes(String orderId, String notes) {
+    final idx = _orders.indexWhere((o) => o.id == orderId);
+    if (idx >= 0) {
+      _orders[idx].notes = notes;
+      notifyListeners();
+    }
+  }
+
+  // Local / Mock Login with Role support
   void login({
     required String email,
     required String password,
     String? name,
     String? phone,
+    UserRole? role,
   }) {
     final cleanEmail = email.trim();
     final detectedName = name != null && name.trim().isNotEmpty
         ? name.trim()
         : _extractNameFromEmail(cleanEmail);
 
+    if (role != null) {
+      _currentRole = role;
+    } else if (cleanEmail == 'admin@foodcourt.pk') {
+      _currentRole = UserRole.admin;
+    } else if (cleanEmail.contains('rider')) {
+      _currentRole = UserRole.rider;
+    } else {
+      _currentRole = UserRole.client;
+    }
+
     _user = UserProfile(
       name: detectedName,
       email: cleanEmail.isNotEmpty ? cleanEmail : 'user@foodcourt.pk',
       phone: phone != null && phone.trim().isNotEmpty ? phone.trim() : '+92 300 1234567',
       city: 'Lahore',
-      membershipTier: 'FoodCourt Pro ⭐',
+      membershipTier: _currentRole == UserRole.admin
+          ? 'Admin Manager 🛠️'
+          : (_currentRole == UserRole.rider ? 'Delivery Rider 🛵' : 'FoodCourt Pro ⭐'),
       walletBalance: 2450.0,
       loyaltyCoins: 580,
     );
@@ -254,14 +432,16 @@ class UserState extends ChangeNotifier {
     required String email,
     required String phone,
     required String password,
+    UserRole role = UserRole.client,
   }) {
+    _currentRole = role;
     _user = UserProfile(
       name: name.trim().isNotEmpty ? name.trim() : 'Foodie Member',
       email: email.trim().isNotEmpty ? email.trim() : 'member@foodcourt.pk',
       phone: phone.trim().isNotEmpty ? phone.trim() : '+92 300 0000000',
       city: 'Lahore & Islamabad',
-      membershipTier: 'FoodCourt Pro ⭐',
-      walletBalance: 500.0, // Welcome bonus!
+      membershipTier: role == UserRole.rider ? 'Delivery Rider 🛵' : 'FoodCourt Pro ⭐',
+      walletBalance: 500.0,
       loyaltyCoins: 100,
     );
     _isLoggedIn = true;

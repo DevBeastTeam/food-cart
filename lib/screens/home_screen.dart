@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import '../data/sample_data.dart';
 import '../models/restaurant.dart';
 import '../state/cart_state.dart';
-import '../theme/app_theme.dart';
-import '../widgets/custom_image.dart';
-import 'cart_screen.dart';
-import 'restaurant_details_screen.dart';
 import '../state/user_state.dart';
+import '../theme/app_theme.dart';
+import '../widgets/category_chip.dart';
+import '../widgets/daig_card.dart';
+import '../widgets/promo_banner.dart';
+import '../widgets/restaurant_card.dart';
+import 'admin_dashboard_screen.dart';
 import 'auth_screen.dart';
+import 'cart_screen.dart';
+import 'orders_screen.dart';
+import 'restaurant_details_screen.dart';
+import 'rider_dashboard_screen.dart';
 import 'user_dashboard_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,13 +32,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
+  bool _showPromoBanner = true;
   String _selectedCategory = 'All';
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+  String _quickFilter = 'All'; // 'All', 'Top Rated', 'Fast Delivery', 'Free Delivery'
+  final TextEditingController _homeSearchController = TextEditingController();
+  String _homeSearchQuery = '';
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _homeSearchController.dispose();
     super.dispose();
   }
 
@@ -40,12 +48,18 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const Text(
                     'Select Delivery Address',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.w800,
                       color: AppTheme.textPrimary,
                     ),
@@ -64,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   IconButton(
                     onPressed: () => Navigator.pop(ctx),
                     icon: const Icon(Icons.close, size: 20),
+                    visualDensity: VisualDensity.compact,
                   ),
                 ],
               ),
@@ -87,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   title: Text(
                     address,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13.5,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
                     ),
@@ -120,27 +135,76 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openCart() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CartScreen(cartState: widget.cartState),
-      ),
-    );
+    setState(() {
+      _currentNavIndex = 1;
+    });
   }
 
-  // _getFilteredRestaurants removed - using mobile filter approach instead
+  List<Restaurant> get _filteredRestaurants {
+    return SampleData.restaurants.where((rest) {
+      if (_homeSearchQuery.isNotEmpty) {
+        final query = _homeSearchQuery.toLowerCase();
+        final matchName = rest.name.toLowerCase().contains(query);
+        final matchCuisine = rest.cuisine.toLowerCase().contains(query);
+        final matchDish = rest.menu.any((item) =>
+            item.name.toLowerCase().contains(query) ||
+            item.description.toLowerCase().contains(query));
+        if (!matchName && !matchCuisine && !matchDish) return false;
+      }
+
+      if (_selectedCategory != 'All') {
+        final cat = _selectedCategory.toLowerCase();
+        final matchesCat = rest.categories.any((c) {
+              final cl = c.toLowerCase();
+              return cl == cat || cl.contains(cat) || cat.contains(cl);
+            }) ||
+            rest.cuisine.toLowerCase().contains(cat) ||
+            rest.menu.any((m) {
+              final mc = m.category.toLowerCase();
+              final mn = m.name.toLowerCase();
+              return mc == cat || mc.contains(cat) || cat.contains(mc) || mn.contains(cat);
+            });
+        if (!matchesCat) return false;
+      }
+
+      if (_quickFilter == 'Top Rated' && rest.rating < 4.7) return false;
+      if (_quickFilter == 'Free Delivery' && rest.deliveryFee > 0) return false;
+      if (_quickFilter == 'Fast Delivery') {
+        final timeStr = rest.deliveryTime.split('-').first.replaceAll(RegExp(r'[^0-9]'), '');
+        final timeInt = int.tryParse(timeStr) ?? 30;
+        if (timeInt > 25) return false;
+      }
+
+      return true;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: Listenable.merge([widget.cartState, widget.userState]),
       builder: (context, _) {
-        final isNarrow = MediaQuery.of(context).size.width < 600;
+        if (widget.userState.isLoggedIn && widget.userState.currentRole == UserRole.admin) {
+          return AdminDashboardScreen(
+            userState: widget.userState,
+            onSwitchToCustomer: () => widget.userState.setRole(UserRole.client),
+          );
+        }
+
+        if (widget.userState.isLoggedIn && widget.userState.currentRole == UserRole.rider) {
+          return RiderDashboardScreen(
+            userState: widget.userState,
+            onSwitchToCustomer: () => widget.userState.setRole(UserRole.client),
+          );
+        }
 
         return Scaffold(
           backgroundColor: AppTheme.background,
-          body: _buildMobileBody(isNarrow),
-          bottomNavigationBar: _buildBottomNavigationBar(isNarrow),
-          floatingActionButton: widget.cartState.totalItemCount > 0 && _currentNavIndex != 2
+          body: SafeArea(
+            child: _buildBody(),
+          ),
+          bottomNavigationBar: _buildBottomNavigationBar(),
+          floatingActionButton: widget.cartState.totalItemCount > 0 && _currentNavIndex != 1
               ? _buildFloatingCartButton()
               : null,
         );
@@ -150,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFloatingCartButton() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       child: FloatingActionButton.extended(
         onPressed: _openCart,
         backgroundColor: AppTheme.primary,
@@ -158,458 +222,647 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Badge(
           label: Text(
             '${widget.cartState.totalItemCount}',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
           ),
           backgroundColor: Colors.white,
           textColor: AppTheme.primary,
           child: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 20),
         ),
         label: Text(
-          'Cart • Rs. ${widget.cartState.subtotal.toInt()}',
+          'View Cart • Rs. ${widget.cartState.subtotal.toInt()}',
           style: const TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.w700,
-            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            fontSize: 13,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildMobileBody([bool isNarrow = false]) {
+  Widget _buildBody() {
     switch (_currentNavIndex) {
       case 0:
-        return _buildHomeMobile(isNarrow);
+        return _buildHomeTab();
       case 1:
-        return _buildSearchMobile(isNarrow);
+        return CartScreen(
+          cartState: widget.cartState,
+          userState: widget.userState,
+          isEmbedded: true,
+          onNavigateToOrders: () {
+            setState(() {
+              _currentNavIndex = 2;
+            });
+          },
+          onStartShopping: () {
+            setState(() {
+              _currentNavIndex = 0;
+            });
+          },
+        );
       case 2:
-        return _buildCartScreenMobile();
+        return OrdersScreen(
+          userState: widget.userState,
+          cartState: widget.cartState,
+          isEmbedded: true,
+          onStartShopping: () {
+            setState(() {
+              _currentNavIndex = 0;
+            });
+          },
+        );
       case 3:
-        return _buildProfileMobile(isNarrow);
+        return UserDashboardScreen(
+          userState: widget.userState,
+          cartState: widget.cartState,
+          isEmbedded: true,
+        );
       default:
-        return _buildHomeMobile(isNarrow);
+        return _buildHomeTab();
     }
   }
 
-  Widget _buildHomeMobile([bool isNarrow = false]) {
+  // ===========================================================================
+  // TAB 1: HOME TAB
+  // ===========================================================================
+  Widget _buildHomeTab() {
     final isLoggedIn = widget.userState.isLoggedIn;
     final user = widget.userState.user;
+    final restaurants = _filteredRestaurants;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top Bar with Greeting & User Auth/Avatar
-          Padding(
-            padding: const EdgeInsets.only(bottom: 14.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InkWell(
-                        onTap: _showAddressSelector,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.location_on, size: 16, color: AppTheme.primary),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                widget.cartState.deliveryAddress.split('•').first.trim(),
-                                style: const TextStyle(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.textPrimary,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+          // 1. Top Bar: Brand & Profile Pill
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Food Court',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.primary,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      isLoggedIn
+                          ? 'Welcome back, ${user?.name.split(' ').first ?? 'Foodie'}! 👋'
+                          : 'Order food, groceries & Deg catering',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (isLoggedIn && user != null)
+                InkWell(
+                  onTap: () => setState(() => _currentNavIndex = 3),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryLight,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: AppTheme.primary,
+                          child: Text(
+                            user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
-                            const Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textSecondary),
-                          ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          user.name.split(' ').first,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AuthScreen(
+                          userState: widget.userState,
+                          initialIsSignUp: false,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isLoggedIn
-                            ? 'Welcome back, ${user?.name.split(' ').first ?? 'Foodie'}! 👋'
-                            : 'Sign in to order faster & get discounts',
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          color: AppTheme.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                    );
+                  },
+                  icon: const Icon(Icons.login, size: 14),
+                  label: const Text('Login / Sign Up'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    minimumSize: Size.zero,
+                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
-                if (isLoggedIn && user != null)
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _currentNavIndex = 3; // Switch to Profile/Dashboard Tab
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25)),
-                      ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 12,
-                            backgroundColor: AppTheme.primary,
-                            child: Text(
-                              user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            user.name.split(' ').first,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => AuthScreen(
-                            userState: widget.userState,
-                            initialIsSignUp: false,
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.login, size: 14),
-                    label: const Text('Log In'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      minimumSize: Size.zero,
-                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                  ),
-              ],
-            ),
+            ],
           ),
 
-          // Search bar
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (val) => setState(() => _searchQuery = val),
-              decoration: InputDecoration(
-                hintText: 'Search food, dishes, restaurants...',
-                prefixIcon: const Icon(Icons.search, color: AppTheme.primary),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          const SizedBox(height: 10),
+
+          // Address Delivery Chip Bar
+          InkWell(
+            onTap: _showAddressSelector,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceMuted,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on, size: 15, color: AppTheme.primary),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Deliver to: ',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      widget.cartState.deliveryAddress.split('•').first.trim(),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Icon(Icons.keyboard_arrow_down, size: 16, color: AppTheme.textSecondary),
+                ],
               ),
             ),
           ),
 
-          // Category chips (mobile grid)
-          const SizedBox(height: 16),
-          const Text(
-            'Popular Cuisines',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: SampleData.categories.map((cat) {
-              final isSelected = _selectedCategory == cat['name'] as String;
-              return FilterChip(
-                selected: isSelected,
-                label: Text(cat['name'] as String, style: const TextStyle(fontSize: 13)),
-                onSelected: (val) {
-                  setState(() {
-                    _selectedCategory = cat['name'] as String;
-                    _searchQuery = '';
-                    _searchController.clear();
-                  });
-                },
-                selectedColor: AppTheme.primaryLight,
-                checkmarkColor: AppTheme.primary,
-                backgroundColor: Colors.white,
-                labelStyle: TextStyle(
-                  color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
-                  fontWeight: FontWeight.w700,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: isSelected ? AppTheme.primary : AppTheme.border),
-                ),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Restaurants grid
-          const Text(
-            'Top Restaurants',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
-          ),
           const SizedBox(height: 12),
 
-          // Restaurant grid - 2 columns on mobile
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 0.85,
+          // 2. Search Bar
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            itemCount: SampleData.restaurants.length,
-            itemBuilder: (context, index) {
-              return _buildRestaurantCardMobile(SampleData.restaurants[index]);
-            },
+            child: TextField(
+              controller: _homeSearchController,
+              onChanged: (val) => setState(() => _homeSearchQuery = val),
+              decoration: InputDecoration(
+                hintText: 'Search Pulao, Biryani, Mutton, Beef, Karahi, Daig...',
+                prefixIcon: const Icon(Icons.search, color: AppTheme.primary, size: 20),
+                suffixIcon: _homeSearchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _homeSearchController.clear();
+                          setState(() => _homeSearchQuery = '');
+                        },
+                      )
+                    : null,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+            ),
           ),
+
+          const SizedBox(height: 14),
+
+          // 3. Deals Section
+          if (_showPromoBanner) ...[
+            const Text(
+              'Your daily deals',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            PromoBanner(
+              onDismiss: () {
+                setState(() {
+                  _showPromoBanner = false;
+                });
+              },
+              onOrderNow: () {
+                final specialItem = SampleData.allTrendingFoodItems.first;
+                widget.cartState.addItem(
+                  specialItem,
+                  specialItem.restaurantId,
+                  'Dawat Khana Desi Heritage',
+                );
+                widget.cartState.applyPromo('CRAVEE40');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Added "${specialItem.name}" with 40% OFF to Cart!'),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: AppTheme.primary,
+                  ),
+                );
+                setState(() {
+                  _currentNavIndex = 1;
+                });
+              },
+              onApplyPromo: () {
+                final success = widget.cartState.applyPromo('CRAVEE40');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success
+                        ? 'Applied CRAVEE40 for 40% OFF!'
+                        : 'Coupon CRAVEE40 ready for checkout!'),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: AppTheme.primary,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 18),
+          ],
+
+          // 4. Cuisines for you (Horizontal Carousel)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Cuisines for you',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              if (_selectedCategory != 'All')
+                InkWell(
+                  onTap: () => setState(() => _selectedCategory = 'All'),
+                  child: const Text(
+                    'Reset',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 42,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: SampleData.categories.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final cat = SampleData.categories[index];
+                final name = cat['name'] as String;
+                final icon = cat['icon'] as String;
+                return CategoryChip(
+                  label: name,
+                  icon: icon,
+                  isSelected: _selectedCategory == name,
+                  onTap: () {
+                    setState(() {
+                      _selectedCategory = name;
+                    });
+                  },
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // 5. Quick Filter Pills (Horizontal)
+          SizedBox(
+            height: 28,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _buildQuickFilterPill('All'),
+                const SizedBox(width: 6),
+                _buildQuickFilterPill('Top Rated', icon: Icons.star_rounded),
+                const SizedBox(width: 6),
+                _buildQuickFilterPill('Fast Delivery', icon: Icons.electric_bolt_rounded),
+                const SizedBox(width: 6),
+                _buildQuickFilterPill('Free Delivery', icon: Icons.delivery_dining_rounded),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // 6. Shahi Daig Catering Spotlight
+          _buildDaigSpotlightCard(),
+
+          const SizedBox(height: 20),
+
+          // 7. Restaurants Section Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  _selectedCategory == 'All'
+                      ? 'Top Restaurants (${restaurants.length})'
+                      : '$_selectedCategory Restaurants (${restaurants.length})',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // 8. Restaurants List (Full-Width Responsive Cards)
+          if (restaurants.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(28),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.search_off_rounded, size: 40, color: AppTheme.textLight),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'No restaurants match your search or filter',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () {
+                      setState(() {
+                        _homeSearchQuery = '';
+                        _homeSearchController.clear();
+                        _selectedCategory = 'All';
+                        _quickFilter = 'All';
+                      });
+                    },
+                    child: const Text('Clear Filters'),
+                  ),
+                ],
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: restaurants.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 14),
+              itemBuilder: (context, index) {
+                final restaurant = restaurants[index];
+                return RestaurantCard(
+                  restaurant: restaurant,
+                  onTap: () => _openRestaurant(restaurant),
+                );
+              },
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildRestaurantCardMobile(Restaurant restaurant) {
-    return Card(
-      color: Colors.white,
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () => _openRestaurant(restaurant),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Restaurant image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: CustomImage(
-                  imageUrl: restaurant.imageUrl,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                ),
+  Widget _buildQuickFilterPill(String filterName, {IconData? icon}) {
+    final isSelected = _quickFilter == filterName;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _quickFilter = filterName;
+        });
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primary : Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? AppTheme.primary : AppTheme.border,
+            width: 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 13,
+                color: isSelected ? Colors.white : (filterName == 'Top Rated' ? const Color(0xFFF59E0B) : AppTheme.primary),
               ),
-              const SizedBox(width: 12),
-              // Restaurant info
-              Expanded(
+              const SizedBox(width: 3),
+            ],
+            Text(
+              filterName,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? Colors.white : AppTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDaigSpotlightCard() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2E1065), Color(0xFF4C1D95), Color(0xFF6D28D9)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4C1D95).withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.soup_kitchen_rounded, color: Color(0xFFFBBF24), size: 22),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      restaurant.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
+                      'Shahi Daig Catering & Pakwan Center',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 2),
                     Text(
-                      restaurant.cuisine,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
-                      ),
+                      'Sealed hot cauldrons for Dawats, Weddings & Niyaz',
+                      style: TextStyle(color: Colors.white70, fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.star, color: AppTheme.starGold, size: 12),
-                        const SizedBox(width: 2),
-                        Text(
-                          restaurant.rating.toStringAsFixed(1),
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                        ),
-                        const Spacer(),
-                        Text(
-                          restaurant.deliveryTime,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchMobile([bool isNarrow = false]) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Search & Discover',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _searchController,
-            onChanged: (val) => setState(() => _searchQuery = val),
-            decoration: InputDecoration(
-              hintText: 'Search food, dishes, restaurants...',
-              prefixIcon: const Icon(Icons.search, color: AppTheme.primary),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, size: 18),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _searchQuery = '');
-                      },
-                    )
-                  : null,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: AppTheme.border),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Categories',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
-          ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: SampleData.categories.map((cat) {
-              return FilterChip(
-                label: Text(cat['name'] as String, style: const TextStyle(fontSize: 13)),
-                onSelected: (val) {
-                  setState(() {
-                    _selectedCategory = cat['name'] as String;
-                    _searchQuery = '';
-                    _searchController.clear();
-                  });
-                },
-                selected: _selectedCategory == (cat['name'] as String),
-                selectedColor: AppTheme.primaryLight,
-                checkmarkColor: AppTheme.primary,
-                backgroundColor: Colors.white,
-                labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: AppTheme.border),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Popular Restaurants',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
-          ),
-          const SizedBox(height: 12),
-          // Placeholder - would show filtered restaurants
-          const Text(
-            'Search to find restaurants',
-            style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+          // Preview Daig Item Card
+          DaigCard(
+            daig: SampleData.daigDishes.first,
+            cartState: widget.cartState,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProfileMobile([bool isNarrow = false]) {
-    return UserDashboardScreen(
-      userState: widget.userState,
-      cartState: widget.cartState,
-      isEmbedded: true,
-    );
-  }
-
-  Widget _buildCartScreenMobile() {
-    return CartScreen(cartState: widget.cartState);
-  }
-
-
-  Widget _buildBottomNavigationBar([bool isNarrow = false]) {
+  // ===========================================================================
+  // BOTTOM NAVIGATION BAR
+  // ===========================================================================
+  Widget _buildBottomNavigationBar() {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
+      backgroundColor: Colors.white,
       selectedItemColor: AppTheme.primary,
       unselectedItemColor: AppTheme.textSecondary,
       currentIndex: _currentNavIndex,
+      selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
+      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 11),
       onTap: (idx) {
         setState(() {
           _currentNavIndex = idx;
         });
       },
-      items: const [
-        BottomNavigationBarItem(
+      items: [
+        const BottomNavigationBarItem(
           icon: Icon(Icons.home_outlined),
           activeIcon: Icon(Icons.home_filled, color: AppTheme.primary),
           label: 'Home',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.search_outlined),
-          activeIcon: Icon(Icons.search, color: AppTheme.primary),
-          label: 'Search',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_bag_outlined),
-          activeIcon: Icon(Icons.shopping_bag, color: AppTheme.primary),
+          icon: Badge(
+            isLabelVisible: widget.cartState.totalItemCount > 0,
+            label: Text(
+              '${widget.cartState.totalItemCount}',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: AppTheme.primary,
+            child: const Icon(Icons.shopping_bag_outlined),
+          ),
+          activeIcon: Badge(
+            isLabelVisible: widget.cartState.totalItemCount > 0,
+            label: Text(
+              '${widget.cartState.totalItemCount}',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: AppTheme.primary,
+            child: const Icon(Icons.shopping_bag, color: AppTheme.primary),
+          ),
           label: 'Cart',
         ),
         BottomNavigationBarItem(
+          icon: Badge(
+            isLabelVisible: widget.userState.activeOrdersCount > 0,
+            label: Text(
+              '${widget.userState.activeOrdersCount}',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Colors.orangeAccent,
+            child: const Icon(Icons.receipt_long_outlined),
+          ),
+          activeIcon: Badge(
+            isLabelVisible: widget.userState.activeOrdersCount > 0,
+            label: Text(
+              '${widget.userState.activeOrdersCount}',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Colors.orangeAccent,
+            child: const Icon(Icons.receipt_long, color: AppTheme.primary),
+          ),
+          label: 'Orders',
+        ),
+        const BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
           activeIcon: Icon(Icons.person, color: AppTheme.primary),
-          label: 'Profile',
+          label: 'Account',
         ),
       ],
     );

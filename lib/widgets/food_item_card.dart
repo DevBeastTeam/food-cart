@@ -168,7 +168,10 @@ class FoodItemCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     Text(
                       item.formattedPrice,
@@ -178,21 +181,22 @@ class FoodItemCard extends StatelessWidget {
                         color: AppTheme.primary,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.local_fire_department,
-                            size: 13, color: AppTheme.textLight),
-                        const SizedBox(width: 2),
-                        Text(
-                          '${item.calories} kcal',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.textLight,
+                    if (item.calories > 0)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.local_fire_department,
+                              size: 13, color: AppTheme.textLight),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${item.calories} kcal',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.textLight,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                   ],
                 ),
               ],
@@ -302,7 +306,7 @@ class FoodItemCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
             ],
           ),
         ],

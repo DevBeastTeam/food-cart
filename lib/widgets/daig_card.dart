@@ -618,31 +618,38 @@ class _DaigCardState extends State<DaigCard> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Price per Daig',
-                          style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary),
-                        ),
-                        Text(
-                          'Rs. ${widget.daig.fullDaigPrice.toInt()}',
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.primary,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Price per Daig',
+                            style: TextStyle(fontSize: 10.5, color: AppTheme.textSecondary),
                           ),
-                        ),
-                      ],
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Rs. ${widget.daig.fullDaigPrice.toInt()}',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: _openBookingSheet,
-                      icon: const Icon(Icons.soup_kitchen_rounded, size: 16),
+                      icon: const Icon(Icons.soup_kitchen_rounded, size: 15),
                       label: const Text('Book Daig'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         elevation: 1,
                       ),

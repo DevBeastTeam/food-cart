@@ -547,12 +547,15 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
       children: [
         Icon(icon, size: 18, color: AppTheme.textSecondary),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w700,
-            color: valueColor ?? AppTheme.textPrimary,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: valueColor ?? AppTheme.textPrimary,
+            ),
           ),
         ),
         const SizedBox(height: 2),
@@ -562,6 +565,8 @@ class _RestaurantDetailsScreenState extends State<RestaurantDetailsScreen> {
             fontSize: 10.5,
             color: AppTheme.textSecondary,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
