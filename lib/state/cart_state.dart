@@ -8,19 +8,14 @@ class CartState extends ChangeNotifier {
   String? _restaurantName;
   String _deliveryAddress = 'Home • Gulberg III, Main Blvd, Lahore';
   String _specialInstructions = '';
-  String? _promoCode;
-  double _promoDiscount = 0.0;
   double _deliveryFee = 49.0;
   final double _serviceFee = 29.0;
 
-  // Getters
   List<CartItem> get items => List.unmodifiable(_items);
   String? get restaurantId => _restaurantId;
   String? get restaurantName => _restaurantName;
   String get deliveryAddress => _deliveryAddress;
   String get specialInstructions => _specialInstructions;
-  String? get promoCode => _promoCode;
-  double get promoDiscount => _promoDiscount;
   double get deliveryFee => _items.isEmpty ? 0.0 : _deliveryFee;
   double get serviceFee => _items.isEmpty ? 0.0 : _serviceFee;
 
@@ -32,8 +27,7 @@ class CartState extends ChangeNotifier {
 
   double get grandTotal {
     if (_items.isEmpty) return 0.0;
-    final total = subtotal + deliveryFee + serviceFee - _promoDiscount;
-    return total > 0 ? total : 0.0;
+    return subtotal + deliveryFee + serviceFee;
   }
 
   int getItemQuantity(String foodItemId) {
@@ -45,11 +39,8 @@ class CartState extends ChangeNotifier {
     return 0;
   }
 
-  // Add Item to cart. Returns true if added directly,
-  // returns false if there is a conflict with a different restaurant.
   bool addItem(FoodItem foodItem, String restId, String restName) {
     if (_items.isNotEmpty && _restaurantId != null && _restaurantId != restId) {
-      // Different restaurant conflict
       return false;
     }
 
@@ -70,7 +61,6 @@ class CartState extends ChangeNotifier {
       ));
     }
 
-    _recalculatePromo();
     notifyListeners();
     return true;
   }
@@ -87,7 +77,6 @@ class CartState extends ChangeNotifier {
       restaurantName: restName,
       quantity: 1,
     ));
-    _recalculatePromo();
     notifyListeners();
   }
 
@@ -96,7 +85,6 @@ class CartState extends ChangeNotifier {
         _items.indexWhere((element) => element.foodItem.id == foodItemId);
     if (index >= 0) {
       _items[index].quantity += 1;
-      _recalculatePromo();
       notifyListeners();
     }
   }
@@ -109,14 +97,11 @@ class CartState extends ChangeNotifier {
         _items[index].quantity -= 1;
       } else {
         _items.removeAt(index);
-        if (_items.isEmpty) {
-          _restaurantId = null;
-          _restaurantName = null;
-          _promoCode = null;
-          _promoDiscount = 0.0;
-        }
       }
-      _recalculatePromo();
+      if (_items.isEmpty) {
+        _restaurantId = null;
+        _restaurantName = null;
+      }
       notifyListeners();
     }
   }
@@ -126,10 +111,7 @@ class CartState extends ChangeNotifier {
     if (_items.isEmpty) {
       _restaurantId = null;
       _restaurantName = null;
-      _promoCode = null;
-      _promoDiscount = 0.0;
     }
-    _recalculatePromo();
     notifyListeners();
   }
 
@@ -137,44 +119,8 @@ class CartState extends ChangeNotifier {
     _items.clear();
     _restaurantId = null;
     _restaurantName = null;
-    _promoCode = null;
-    _promoDiscount = 0.0;
     _specialInstructions = '';
     notifyListeners();
-  }
-
-  bool applyPromo(String code) {
-    final clean = code.trim().toUpperCase();
-    if (clean == 'FOODCOURT40' || clean == 'CRAVEE40') {
-      _promoCode = clean;
-      _recalculatePromo();
-      notifyListeners();
-      return true;
-    } else if (clean == 'FREE' || clean == 'FREEDEL') {
-      _promoCode = clean;
-      _promoDiscount = _deliveryFee;
-      notifyListeners();
-      return true;
-    }
-    return false;
-  }
-
-  void removePromo() {
-    _promoCode = null;
-    _promoDiscount = 0.0;
-    notifyListeners();
-  }
-
-  void _recalculatePromo() {
-    if (_promoCode == 'FOODCOURT40' || _promoCode == 'CRAVEE40') {
-      // 40% discount on subtotal capped at Rs. 300
-      final calculated = subtotal * 0.40;
-      _promoDiscount = calculated > 300 ? 300.0 : calculated;
-    } else if (_promoCode == 'FREE' || _promoCode == 'FREEDEL') {
-      _promoDiscount = _deliveryFee;
-    } else {
-      _promoDiscount = 0.0;
-    }
   }
 
   void setAddress(String address) {

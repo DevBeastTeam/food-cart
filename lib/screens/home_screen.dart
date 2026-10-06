@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import '../data/sample_data.dart';
 import '../models/food_item.dart';
-import '../models/restaurant.dart';
 import '../state/cart_state.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/daig_card.dart';
-import '../widgets/promo_banner.dart';
-import '../widgets/restaurant_card.dart';
 import '../widgets/shahi_dish_card.dart';
 import 'admin_dashboard_screen.dart';
 import 'auth_screen.dart';
 import 'cart_screen.dart';
 import 'orders_screen.dart';
-import 'restaurant_details_screen.dart';
 import 'rider_dashboard_screen.dart';
 import 'user_dashboard_screen.dart';
 
@@ -34,7 +30,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
-  bool _showPromoBanner = true;
   String _selectedCategory = 'All';
   String _quickFilter = 'All'; // 'All', 'Top Rated', 'Fast Delivery', 'Free Delivery'
   final TextEditingController _homeSearchController = TextEditingController();
@@ -125,60 +120,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _openRestaurant(Restaurant restaurant) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => RestaurantDetailsScreen(
-          restaurant: restaurant,
-          cartState: widget.cartState,
-        ),
-      ),
-    );
-  }
-
   void _openCart() {
     setState(() {
       _currentNavIndex = 1;
     });
-  }
-
-  List<Restaurant> get _filteredRestaurants {
-    return SampleData.restaurants.where((rest) {
-      if (_homeSearchQuery.isNotEmpty) {
-        final query = _homeSearchQuery.toLowerCase();
-        final matchName = rest.name.toLowerCase().contains(query);
-        final matchCuisine = rest.cuisine.toLowerCase().contains(query);
-        final matchDish = rest.menu.any((item) =>
-            item.name.toLowerCase().contains(query) ||
-            item.description.toLowerCase().contains(query));
-        if (!matchName && !matchCuisine && !matchDish) return false;
-      }
-
-      if (_selectedCategory != 'All') {
-        final cat = _selectedCategory.toLowerCase();
-        final matchesCat = rest.categories.any((c) {
-              final cl = c.toLowerCase();
-              return cl == cat || cl.contains(cat) || cat.contains(cl);
-            }) ||
-            rest.cuisine.toLowerCase().contains(cat) ||
-            rest.menu.any((m) {
-              final mc = m.category.toLowerCase();
-              final mn = m.name.toLowerCase();
-              return mc == cat || mc.contains(cat) || cat.contains(mc) || mn.contains(cat);
-            });
-        if (!matchesCat) return false;
-      }
-
-      if (_quickFilter == 'Top Rated' && rest.rating < 4.7) return false;
-      if (_quickFilter == 'Free Delivery' && rest.deliveryFee > 0) return false;
-      if (_quickFilter == 'Fast Delivery') {
-        final timeStr = rest.deliveryTime.split('-').first.replaceAll(RegExp(r'[^0-9]'), '');
-        final timeInt = int.tryParse(timeStr) ?? 30;
-        if (timeInt > 25) return false;
-      }
-
-      return true;
-    }).toList();
   }
 
   @override
@@ -290,7 +235,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHomeTab() {
     final isLoggedIn = widget.userState.isLoggedIn;
     final user = widget.userState.user;
-    final restaurants = _filteredRestaurants;
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       child: Column(
@@ -477,57 +421,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 14),
 
-          // 3. Deals Section
-          if (_showPromoBanner) ...[
-            const Text(
-              'Your daily deals',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            PromoBanner(
-              onDismiss: () {
-                setState(() {
-                  _showPromoBanner = false;
-                });
-              },
-              onOrderNow: () {
-                final specialItem = SampleData.allTrendingFoodItems.first;
-                widget.cartState.addItem(
-                  specialItem,
-                  specialItem.restaurantId,
-                  'Dawat Khana Desi Heritage',
-                );
-                widget.cartState.applyPromo('CRAVEE40');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Added "${specialItem.name}" with 40% OFF to Cart!'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: AppTheme.primary,
-                  ),
-                );
-                setState(() {
-                  _currentNavIndex = 1;
-                });
-              },
-              onApplyPromo: () {
-                final success = widget.cartState.applyPromo('CRAVEE40');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(success
-                        ? 'Applied CRAVEE40 for 40% OFF!'
-                        : 'Coupon CRAVEE40 ready for checkout!'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: AppTheme.primary,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 18),
-          ],
+          const SizedBox(height: 14),
 
           // 4. Cuisines for you (Horizontal Carousel)
           Row(
@@ -611,79 +505,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 20),
 
-          // 8. Restaurants Section Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  _selectedCategory == 'All'
-                      ? 'Top Restaurants (${restaurants.length})'
-                      : '$_selectedCategory Restaurants (${restaurants.length})',
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textPrimary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // 9. Restaurants List
-          if (restaurants.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(28),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.border),
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.search_off_rounded, size: 40, color: AppTheme.textLight),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'No restaurants match your search or filter',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () {
-                      setState(() {
-                        _homeSearchQuery = '';
-                        _homeSearchController.clear();
-                        _selectedCategory = 'All';
-                        _quickFilter = 'All';
-                      });
-                    },
-                    child: const Text('Clear Filters'),
-                  ),
-                ],
-              ),
-            )
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: restaurants.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 14),
-              itemBuilder: (context, index) {
-                final restaurant = restaurants[index];
-                return RestaurantCard(
-                  restaurant: restaurant,
-                  onTap: () => _openRestaurant(restaurant),
-                );
-              },
-            ),
         ],
       ),
     );

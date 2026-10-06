@@ -301,14 +301,8 @@ void main() {
       expect(cart.totalItemCount, 3);
       expect(cart.subtotal, 2460.0);
 
-      // Apply CRAVEE40 promo
-      final promoSuccess = cart.applyPromo('CRAVEE40');
-      expect(promoSuccess, true);
-      // 40% of 2460 is 984, capped at 300
-      expect(cart.promoDiscount, 300.0);
-
-      // Check Grand Total: subtotal (2460) + delivery (49) + service (29) - discount (300) = 2238
-      expect(cart.grandTotal, 2238.0);
+      // No promo codes are supported, so the grand total is fees plus subtotal.
+      expect(cart.grandTotal, 2538.0);
 
       // Decrement item 1
       cart.decrement(item1.id);
@@ -340,7 +334,6 @@ void main() {
       expect(find.text('Food Court'), findsWidgets);
       expect(find.textContaining('Pakwan'), findsWidgets);
       expect(find.text('Cuisines for you'), findsWidgets);
-      expect(find.text('Your daily deals'), findsWidgets);
     });
 
     testWidgets('CraveeFoodApp renders cleanly on narrow mobile devices (360x740) without overflow', (WidgetTester tester) async {

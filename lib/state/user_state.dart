@@ -117,24 +117,6 @@ class UserOrder {
   }
 }
 
-class UserVoucher {
-  final String code;
-  final String title;
-  final String discount;
-  final String minSpend;
-  final String expiry;
-  final bool isExclusive;
-
-  const UserVoucher({
-    required this.code,
-    required this.title,
-    required this.discount,
-    required this.minSpend,
-    required this.expiry,
-    this.isExclusive = false,
-  });
-}
-
 class UserProfile {
   String name;
   String email;
@@ -195,8 +177,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80',
       items: ['1x Shahi Qorma Special', '2x Roghani Naan', '1x Kheer'],
       totalAmount: 1850.0,
-      originalAmount: 2150.0,
-      discountInfo: '40% OFF applied (Saved Rs. 300)',
       orderDate: DateTime.now().subtract(const Duration(minutes: 15)),
       status: 'Preparing',
       prepTime: '20 mins',
@@ -211,8 +191,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80',
       items: ['1x Full Shahi Mutton Daig (12 KG)', '4L Zeera Raita', 'Fresh Garden Salad'],
       totalAmount: 26500.0,
-      originalAmount: 27500.0,
-      discountInfo: 'Rs. 1,000 OFF Voucher applied',
       orderDate: DateTime.now().subtract(const Duration(minutes: 50)),
       status: 'Accepted',
       prepTime: '2 hours',
@@ -228,8 +206,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=300&q=80',
       items: ['1x Special Bannu Beef Pulao (Double Nalli)', '2x Shami Kabab'],
       totalAmount: 1450.0,
-      originalAmount: 1750.0,
-      discountInfo: 'Flat 40% OFF applied',
       orderDate: DateTime.now().subtract(const Duration(minutes: 35)),
       status: 'On the Way',
       prepTime: 'Rider on route',
@@ -246,8 +222,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=300&q=80',
       items: ['2x Degi Mutton Biryani (Single Platter)', '1x Mint Margarita'],
       totalAmount: 2100.0,
-      originalAmount: 2400.0,
-      discountInfo: 'CRAVEE40 applied',
       orderDate: DateTime.now().subtract(const Duration(minutes: 10)),
       status: 'Accepted',
       prepTime: '15 mins',
@@ -262,8 +236,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80',
       items: ['1x Maghaz Nalli Nihari', '3x Kulcha Naan'],
       totalAmount: 1350.0,
-      originalAmount: 1550.0,
-      discountInfo: 'Free Delivery',
       orderDate: DateTime.now().subtract(const Duration(minutes: 25)),
       status: 'Preparing',
       prepTime: '18 mins',
@@ -278,8 +250,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80',
       items: ['2x Double Chicken Biryani', '2x Cold Drink (500ml)'],
       totalAmount: 1100.0,
-      originalAmount: 1300.0,
-      discountInfo: 'Rs. 200 OFF applied',
       orderDate: DateTime.now().subtract(const Duration(minutes: 40)),
       status: 'On the Way',
       prepTime: '5 mins away',
@@ -296,8 +266,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80',
       items: ['1x Half Beef Degi Yakhni Pulao (6 KG)', '2L Podina Raita'],
       totalAmount: 7400.0,
-      originalAmount: 8400.0,
-      discountInfo: 'DAWAT1000 applied (Saved Rs. 1,000)',
       orderDate: DateTime.now().subtract(const Duration(hours: 1, minutes: 20)),
       status: 'Preparing',
       prepTime: '45 mins',
@@ -313,8 +281,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=300&q=80',
       items: ['1x Desi Ghee Mutton Shinwari (1 KG)', '4x Roghani Naan', '1x Zeera Raita'],
       totalAmount: 3200.0,
-      originalAmount: 3500.0,
-      discountInfo: 'Free Delivery coupon applied',
       orderDate: DateTime.now().subtract(const Duration(days: 2)),
       status: 'Delivered',
       prepTime: 'Completed',
@@ -330,8 +296,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=300&q=80',
       items: ['1x Chicken Reshmi Kabab (4 Pcs)', '1x Malai Boti', '2x Paratha'],
       totalAmount: 1680.0,
-      originalAmount: 1880.0,
-      discountInfo: 'Saved Rs. 200',
       orderDate: DateTime.now().subtract(const Duration(days: 3)),
       status: 'Delivered',
       prepTime: 'Completed',
@@ -347,8 +311,6 @@ class UserState extends ChangeNotifier {
       restaurantImage: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=300&q=80',
       items: ['1 KG Shahi Motichoor Laddu', '1x Pistachio Kulfi Tub'],
       totalAmount: 1250.0,
-      originalAmount: 1400.0,
-      discountInfo: 'Weekend Sweet Deal applied',
       orderDate: DateTime.now().subtract(const Duration(days: 5)),
       status: 'Delivered',
       prepTime: 'Completed',
@@ -357,39 +319,6 @@ class UserState extends ChangeNotifier {
       deliveryAddress: 'House 7, Eden City, Airport Road, Lahore',
       isDaigBooking: false,
       rating: 4,
-    ),
-  ];
-
-  final List<UserVoucher> _vouchers = [
-    const UserVoucher(
-      code: 'CRAVEE40',
-      title: '40% Flat Discount',
-      discount: '40% OFF',
-      minSpend: 'Min. order Rs. 500',
-      expiry: 'Valid till 30 Nov 2026',
-      isExclusive: true,
-    ),
-    const UserVoucher(
-      code: 'MARTFREE',
-      title: 'Free Mart Delivery',
-      discount: 'FREE DELIVERY',
-      minSpend: 'On FoodCourt Mart above Rs. 399',
-      expiry: 'Valid all month',
-    ),
-    const UserVoucher(
-      code: 'PICKUP15',
-      title: 'Takeaway Special',
-      discount: '15% OFF',
-      minSpend: 'On all Self Pick-up orders',
-      expiry: 'Unlimited use',
-    ),
-    const UserVoucher(
-      code: 'DAWAT1000',
-      title: 'Shahi Deg Booking Voucher',
-      discount: 'Rs. 1,000 OFF',
-      minSpend: 'On orders of 2 or more Daigs',
-      expiry: 'Valid till year-end',
-      isExclusive: true,
     ),
   ];
 
@@ -402,8 +331,6 @@ class UserState extends ChangeNotifier {
   String get riderPhone => '+92 302 9988776';
   List<UserAddress> get addresses => List.unmodifiable(_addresses);
   List<UserOrder> get orders => List.unmodifiable(_orders);
-  List<UserVoucher> get vouchers => List.unmodifiable(_vouchers);
-
   UserAddress get defaultAddress {
     return _addresses.firstWhere(
       (a) => a.isDefault,
