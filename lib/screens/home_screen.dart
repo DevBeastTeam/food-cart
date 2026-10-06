@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/sample_data.dart';
+import '../models/food_item.dart';
 import '../models/restaurant.dart';
 import '../state/cart_state.dart';
 import '../state/user_state.dart';
@@ -8,6 +9,7 @@ import '../widgets/category_chip.dart';
 import '../widgets/daig_card.dart';
 import '../widgets/promo_banner.dart';
 import '../widgets/restaurant_card.dart';
+import '../widgets/shahi_dish_card.dart';
 import 'admin_dashboard_screen.dart';
 import 'auth_screen.dart';
 import 'cart_screen.dart';
@@ -289,7 +291,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final isLoggedIn = widget.userState.isLoggedIn;
     final user = widget.userState.user;
     final restaurants = _filteredRestaurants;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       child: Column(
@@ -600,12 +601,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 20),
 
-          // 6. Shahi Daig Catering Spotlight
+          // 6. Category Menu Dishes (Shahi Daig Design)
+          _buildCategoryDishesSection(),
+
+          const SizedBox(height: 20),
+
+          // 7. Shahi Daig Catering Spotlight
           _buildDaigSpotlightCard(),
 
           const SizedBox(height: 20),
 
-          // 7. Restaurants Section Header
+          // 8. Restaurants Section Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -626,7 +632,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 12),
 
-          // 8. Restaurants List (Full-Width Responsive Cards)
+          // 9. Restaurants List
           if (restaurants.isEmpty)
             Container(
               padding: const EdgeInsets.all(28),
@@ -724,6 +730,68 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCategoryDishesSection() {
+    final List<FoodItem> dishes;
+    final String title;
+    final String subtitle;
+
+    if (_selectedCategory == 'All') {
+      title = '👑 Shahi Menu Dishes (Signature Selection)';
+      subtitle = 'Popular dishes cooked in pure desi ghee & authentic secret spices';
+      dishes = SampleData.allTrendingFoodItems.take(4).toList();
+    } else {
+      title = '👑 $_selectedCategory Specials (Signature Selection)';
+      subtitle = '2-3 signature items prepared fresh at FoodCourt Central Kitchen';
+      dishes = SampleData.getDishesForCategory(_selectedCategory).take(3).toList();
+    }
+
+    if (dishes.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...dishes.map(
+          (dish) => ShahiDishCard(
+            item: dish,
+            cartState: widget.cartState,
+          ),
+        ),
+      ],
     );
   }
 

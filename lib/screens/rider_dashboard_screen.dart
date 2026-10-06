@@ -396,19 +396,22 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isOnTheWay ? Colors.blue.shade300 : AppTheme.border,
-          width: isOnTheWay ? 1.5 : 1,
+          color: isOnTheWay
+              ? const Color(0xFF2563EB)
+              : (isDelivered ? const Color(0xFF16A34A).withAlpha(160) : const Color(0xFFCBD5E1)),
+          width: isOnTheWay ? 2.0 : 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(6),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: (isOnTheWay ? const Color(0xFF2563EB) : Colors.black).withAlpha(22),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
           ),
         ],
       ),

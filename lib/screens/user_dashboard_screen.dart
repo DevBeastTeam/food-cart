@@ -185,9 +185,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       onTap: _showUpdateLocationSheet,
                     ),
 
-                    const Divider(height: 1, indent: 56, color: AppTheme.border),
-
-                    // Switch Role / Portal Mode Tile
+                    // My Saved Address List Tile
                     ListTile(
                       leading: Container(
                         padding: const EdgeInsets.all(8),
@@ -195,41 +193,20 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                           color: const Color(0xFFFFF3E0),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.swap_horiz_rounded, color: Color(0xFFE65100), size: 20),
+                        child: const Icon(Icons.home_work_rounded, color: Color(0xFFE65100), size: 20),
                       ),
-                      title: Row(
-                        children: [
-                          const Flexible(
-                            child: Text(
-                              'Switch Role / Portal',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: widget.userState.currentRole == UserRole.admin
-                                  ? const Color(0xFF6B21A8)
-                                  : (widget.userState.currentRole == UserRole.rider
-                                      ? const Color(0xFF1B2A4A)
-                                      : AppTheme.primary),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              widget.userState.currentRole.name.toUpperCase(),
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                        ],
+                      title: const Text(
+                        'My Saved Address',
+                        style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
                       ),
-                      subtitle: const Text(
-                        'Switch between Customer, Rider Console & Admin Dashboard',
-                        style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                      subtitle: Text(
+                        widget.userState.defaultAddress.fullAddress,
+                        style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textSecondary),
-                      onTap: _showRoleSwitchSheet,
+                      onTap: _showUpdateLocationSheet,
                     ),
                   ],
                 ),
@@ -316,116 +293,142 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   Widget _buildProfileCard(UserProfile user) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF2E1065),
+            Color(0xFF6C3CE9),
+            Color(0xFF7C3AED),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(6),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF6C3CE9).withAlpha(80),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            setState(() {
-              _isEditingProfile = !_isEditingProfile;
-              if (_isEditingProfile) {
-                _populateFields();
-              }
-            });
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Avatar
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: AppTheme.primaryLight,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Avatar
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(40),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: Center(
                   child: Text(
                     user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
                     style: const TextStyle(
-                      fontSize: 22,
+                      fontSize: 24,
                       fontWeight: FontWeight.w900,
                       color: AppTheme.primary,
                     ),
                   ),
                 ),
-                const SizedBox(width: 14),
-                // User Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              user.name,
-                              style: const TextStyle(
-                                fontSize: 16.5,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textPrimary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF3E0),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'Pro ⭐',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFFE65100),
-                              ),
-                            ),
-                          ),
-                        ],
+              ),
+              const SizedBox(width: 14),
+              // User Details (Pro badge removed!)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -0.3,
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        user.email,
-                        style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      user.email,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: Colors.white.withAlpha(220),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        user.phone,
-                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      user.phone,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withAlpha(200),
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                // Toggle Edit Indicator
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: _isEditingProfile ? AppTheme.primary : AppTheme.surfaceMuted,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _isEditingProfile ? Icons.close_rounded : Icons.edit_rounded,
-                    size: 16,
-                    color: _isEditingProfile ? Colors.white : AppTheme.primary,
-                  ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Glassmorphic collapse/uncollapse button at bottom right
+          Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _isEditingProfile = !_isEditingProfile;
+                  if (_isEditingProfile) {
+                    _populateFields();
+                  }
+                });
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(45),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withAlpha(70)),
                 ),
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _isEditingProfile
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isEditingProfile ? 'Collapse' : 'Update Profile',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -639,8 +642,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   // Update My Location Bottom Sheet
   void _showUpdateLocationSheet() {
     final currentAddress = widget.cartState?.deliveryAddress ?? 'Gulberg III, Main Blvd, Lahore';
-    final controller = TextEditingController(text: currentAddress);
-    String selectedCity = 'Lahore';
+    final currentCity = widget.userState.user?.city ?? 'Lahore';
+    final addressController = TextEditingController(text: currentAddress);
+    final cityController = TextEditingController(text: currentCity);
 
     showModalBottomSheet(
       context: context,
@@ -678,46 +682,43 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             const Text('Full Address', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
             const SizedBox(height: 5),
             TextField(
-              controller: controller,
+              controller: addressController,
               maxLines: 2,
               decoration: InputDecoration(
-                hintText: 'e.g. House 42, Block H, Phase 5, DHA, Lahore',
+                hintText: 'e.g. House 42, Block H, Phase 5, DHA',
                 isDense: true,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
             const SizedBox(height: 12),
-            const Text('City', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+            const Text('City (شہر کا نام لکھیں)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
             const SizedBox(height: 5),
-            DropdownButtonFormField<String>(
-              initialValue: selectedCity,
+            TextField(
+              controller: cityController,
               decoration: InputDecoration(
+                hintText: 'Enter city name (e.g. Lahore, Islamabad, Rawalpindi)',
                 isDense: true,
+                prefixIcon: const Icon(Icons.location_city_rounded, size: 18),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              items: const [
-                DropdownMenuItem(value: 'Lahore', child: Text('Lahore')),
-                DropdownMenuItem(value: 'Islamabad', child: Text('Islamabad')),
-                DropdownMenuItem(value: 'Rawalpindi', child: Text('Rawalpindi')),
-                DropdownMenuItem(value: 'Karachi', child: Text('Karachi')),
-                DropdownMenuItem(value: 'Faisalabad', child: Text('Faisalabad')),
-              ],
-              onChanged: (val) {
-                if (val != null) selectedCity = val;
-              },
             ),
             const SizedBox(height: 18),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  final text = controller.text.trim();
-                  if (text.isNotEmpty) {
-                    widget.cartState?.setAddress(text);
+                  final addrText = addressController.text.trim();
+                  final cityText = cityController.text.trim();
+                  if (addrText.isNotEmpty) {
+                    final combined = cityText.isNotEmpty ? '$addrText, $cityText' : addrText;
+                    widget.cartState?.setAddress(combined);
+                    if (cityText.isNotEmpty && widget.userState.user != null) {
+                      widget.userState.user!.city = cityText;
+                    }
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Delivery location updated to "$text"!'),
+                        content: Text('Delivery location updated to "$combined"!'),
                         behavior: SnackBarBehavior.floating,
                         backgroundColor: AppTheme.primary,
                       ),
@@ -771,73 +772,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               },
               icon: const Icon(Icons.login_rounded),
               label: const Text('Log In / Register'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showRoleSwitchSheet() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Switch Active Role Portal',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Choose which interface you want to work with:',
-              style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.restaurant_rounded, color: AppTheme.primary),
-              title: const Text('Customer / Client App', style: TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: const Text('Browse Pakistani food, orders & checkout'),
-              selected: widget.userState.currentRole == UserRole.client,
-              trailing: widget.userState.currentRole == UserRole.client
-                  ? const Icon(Icons.check, color: AppTheme.primary)
-                  : null,
-              onTap: () {
-                widget.userState.setRole(UserRole.client);
-                Navigator.pop(ctx);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.two_wheeler_rounded, color: Color(0xFF1B2A4A)),
-              title: const Text('Rider Delivery Console', style: TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: const Text('Pickups, dropoff navigation & order statuses'),
-              selected: widget.userState.currentRole == UserRole.rider,
-              trailing: widget.userState.currentRole == UserRole.rider
-                  ? const Icon(Icons.check, color: Color(0xFF1B2A4A))
-                  : null,
-              onTap: () {
-                widget.userState.setRole(UserRole.rider);
-                Navigator.pop(ctx);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFF6B21A8)),
-              title: const Text('Admin & Kitchen Dashboard', style: TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: const Text('Process orders, set prep time, assign riders'),
-              selected: widget.userState.currentRole == UserRole.admin,
-              trailing: widget.userState.currentRole == UserRole.admin
-                  ? const Icon(Icons.check, color: Color(0xFF6B21A8))
-                  : null,
-              onTap: () {
-                widget.userState.setRole(UserRole.admin);
-                Navigator.pop(ctx);
-              },
             ),
           ],
         ),

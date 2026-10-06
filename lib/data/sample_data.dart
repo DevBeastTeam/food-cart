@@ -379,6 +379,20 @@ class SampleData {
     return items;
   }
 
+  static List<FoodItem> getDishesForCategory(String category) {
+    if (category == 'All') {
+      return allTrendingFoodItems;
+    }
+    final matched = allTrendingFoodItems.where((item) => item.category == category || item.name.toLowerCase().contains(category.toLowerCase())).toList();
+    if (matched.isNotEmpty) return matched;
+    final fromMenus = restaurants
+        .expand((r) => r.menu)
+        .where((item) => item.category == category || item.name.toLowerCase().contains(category.toLowerCase()))
+        .toList();
+    if (fromMenus.isNotEmpty) return fromMenus;
+    return allTrendingFoodItems.take(3).toList();
+  }
+
   // =========================================================================
   // PAKWAN CENTER — 8-9 TRADITIONAL DEGI DISHES (SOLD PER DAIG)
   // =========================================================================

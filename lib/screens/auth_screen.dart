@@ -51,11 +51,11 @@ class _AuthScreenState extends State<AuthScreen> {
       _nameController.text = 'Captain Ali Raza';
       _phoneController.text = '+92 302 9988776';
     } else {
-      // Admin: Explicit instruction from user - DO NOT display admin credentials on screen!
       _emailController.clear();
       _passwordController.clear();
-      _nameController.text = 'Kitchen Super Admin';
-      _phoneController.text = '+92 42 111-CRAVEE';
+      _nameController.clear();
+      _phoneController.clear();
+      _isSignUp = false; // Admin cannot sign up
     }
   }
 
@@ -278,127 +278,70 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   const SizedBox(height: 14),
 
-                  // Mode Switcher (Log in / Sign up)
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () => setState(() => _isSignUp = false),
-                            borderRadius: BorderRadius.circular(9),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 9),
-                              decoration: BoxDecoration(
-                                color: !_isSignUp ? AppTheme.primary : Colors.transparent,
-                                borderRadius: BorderRadius.circular(9),
-                              ),
-                              child: Text(
-                                'Log In',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: !_isSignUp ? Colors.white : AppTheme.textSecondary,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: InkWell(
-                            onTap: () => setState(() => _isSignUp = true),
-                            borderRadius: BorderRadius.circular(9),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 9),
-                              decoration: BoxDecoration(
-                                color: _isSignUp ? AppTheme.primary : Colors.transparent,
-                                borderRadius: BorderRadius.circular(9),
-                              ),
-                              child: Text(
-                                'Sign Up',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: _isSignUp ? Colors.white : AppTheme.textSecondary,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Credential Notice Card
-                  if (_selectedRole == UserRole.client)
-                    _buildDemoInfoCard(
-                      title: 'Customer Demo Account',
-                      subtitle: 'Email: hassan.raza@foodcourt.pk | Pass: 123456',
-                      icon: Icons.account_circle_outlined,
-                      color: Colors.blue.shade700,
-                      bgColor: Colors.blue.shade50,
-                      borderColor: Colors.blue.shade200,
-                      onTapFill: () => _applyRoleDefaults(UserRole.client),
-                    )
-                  else if (_selectedRole == UserRole.rider)
-                    _buildDemoInfoCard(
-                      title: 'Rider Demo Account',
-                      subtitle: 'Email: rider.ali@foodcourt.pk | Pass: 123456',
-                      icon: Icons.two_wheeler_rounded,
-                      color: Colors.teal.shade800,
-                      bgColor: Colors.teal.shade50,
-                      borderColor: Colors.teal.shade200,
-                      onTapFill: () => _applyRoleDefaults(UserRole.rider),
-                    )
-                  else
-                    // Admin: User constraint - DO NOT display admin credentials on screen!
+                  // Mode Switcher (Log in / Sign up) - Only for Customer and Rider!
+                  if (_selectedRole != UserRole.admin) ...[
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.purple.shade200),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.border),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.lock_person_rounded, size: 20, color: Colors.purple.shade800),
-                          const SizedBox(width: 10),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Confidential Admin Access',
+                            child: InkWell(
+                              onTap: () => setState(() => _isSignUp = false),
+                              borderRadius: BorderRadius.circular(9),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(vertical: 9),
+                                decoration: BoxDecoration(
+                                  color: !_isSignUp ? AppTheme.primary : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(9),
+                                ),
+                                child: Text(
+                                  'Log In',
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    color: !_isSignUp ? Colors.white : AppTheme.textSecondary,
                                     fontWeight: FontWeight.w800,
-                                    color: Colors.purple.shade900,
+                                    fontSize: 13,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Admin credentials are confidential. Enter your assigned master login credentials.',
-                                  style: TextStyle(fontSize: 11, color: Colors.purple.shade700),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => setState(() => _isSignUp = true),
+                              borderRadius: BorderRadius.circular(9),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(vertical: 9),
+                                decoration: BoxDecoration(
+                                  color: _isSignUp ? AppTheme.primary : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(9),
                                 ),
-                              ],
+                                child: Text(
+                                  'Sign Up',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: _isSignUp ? Colors.white : AppTheme.textSecondary,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 14),
+                  ] else ...[
+                    const SizedBox(height: 4),
+                  ],
 
                   // Form Container
                   Container(
@@ -524,64 +467,6 @@ class _AuthScreenState extends State<AuthScreen> {
                       ],
                     ),
                   ),
-
-                  // Quick Demo Autofills for Client and Rider
-                  if (_selectedRole != UserRole.admin) ...[
-                    const SizedBox(height: 18),
-                    const Row(
-                      children: [
-                        Expanded(child: Divider(color: AppTheme.border)),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Text(
-                            'QUICK DEMO ONE-TAP',
-                            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
-                          ),
-                        ),
-                        Expanded(child: Divider(color: AppTheme.border)),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _selectedRole = UserRole.client;
-                                _applyRoleDefaults(UserRole.client);
-                              });
-                            },
-                            icon: const Icon(Icons.person, size: 15, color: AppTheme.primary),
-                            label: const Text('Fill Customer', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              side: const BorderSide(color: AppTheme.primary),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _selectedRole = UserRole.rider;
-                                _applyRoleDefaults(UserRole.rider);
-                              });
-                            },
-                            icon: const Icon(Icons.two_wheeler, size: 15, color: Color(0xFF1B2A4A)),
-                            label: const Text('Fill Rider', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF1B2A4A))),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              side: const BorderSide(color: Color(0xFF1B2A4A)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -611,6 +496,9 @@ class _AuthScreenState extends State<AuthScreen> {
         onTap: () {
           setState(() {
             _selectedRole = role;
+            if (role == UserRole.admin) {
+              _isSignUp = false;
+            }
             _applyRoleDefaults(role);
           });
         },
@@ -654,60 +542,6 @@ class _AuthScreenState extends State<AuthScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDemoInfoCard({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required Color bgColor,
-    required Color borderColor,
-    required VoidCallback onTapFill,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: borderColor),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: color),
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 11, color: color.withAlpha(200)),
-                ),
-              ],
-            ),
-          ),
-          InkWell(
-            onTap: onTapFill,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Text(
-                'Auto Fill',
-                style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w700),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -10,6 +10,9 @@ class FoodItem {
   final int calories;
   final bool isPopular;
   final bool isVegetarian;
+  final String locationAddress;
+  final List<String> badges;
+  final String badge;
 
   const FoodItem({
     required this.id,
@@ -19,10 +22,13 @@ class FoodItem {
     required this.price,
     required this.imageUrl,
     required this.category,
-    this.rating = 4.7,
+    this.rating = 4.9,
     this.calories = 420,
-    this.isPopular = false,
+    this.isPopular = true,
     this.isVegetarian = false,
+    this.locationAddress = 'FoodCourt Central Kitchen, 14-C Gulberg III, Lahore',
+    this.badges = const ['Single Platter (1kg)', 'Family Pack (3kg)', 'Desi Ghee', 'Special Raita Included'],
+    this.badge = 'Most Ordered',
   });
 
   String get formattedPrice => 'Rs. ${price.toInt()}';

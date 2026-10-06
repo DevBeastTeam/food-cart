@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/cart_item.dart';
+import '../data/sample_data.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
 import '../state/user_state.dart';
@@ -488,9 +489,8 @@ class _CartScreenState extends State<CartScreen> {
 
         const SizedBox(height: 16),
 
-        // Items Section
         const Text(
-          'Your Items',
+          'Order Items',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w800,
@@ -499,143 +499,67 @@ class _CartScreenState extends State<CartScreen> {
         ),
         const SizedBox(height: 10),
 
-        ...widget.cartState.items.map((cartItem) => _buildCartItemTile(cartItem)),
+        ...widget.cartState.items.map(_buildCartItemTile),
 
         const SizedBox(height: 14),
 
-        // Cooking / Delivery Notes Field
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
+        _buildOrderModificationTile(
+          icon: Icons.location_on_outlined,
+          title: 'Delivery Address',
+          subtitle: widget.cartState.deliveryAddress,
+          onTap: () => _updateDeliveryAddress(),
+        ),
+        Card(
+          margin: const EdgeInsets.only(bottom: 10),
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.border),
+            side: const BorderSide(color: AppTheme.border),
           ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.edit_note_rounded, size: 18, color: AppTheme.textSecondary),
-                  SizedBox(width: 6),
-                  Text(
-                    'Order Notes / Special Requests',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _notesController,
-                onChanged: (text) => widget.cartState.setSpecialInstructions(text),
-                decoration: const InputDecoration(
-                  hintText: 'e.g. Extra napkins, less spicy, ring doorbell...',
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                ),
-                maxLines: 2,
-              ),
-            ],
+          elevation: 0,
+          child: ListTile(
+            leading: const Icon(Icons.sticky_note_2_outlined),
+            title: const Text(
+              'Order Notes',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+            subtitle: Text(
+              _notesController.text.isEmpty
+                  ? 'e.g. Less spicy, extra napkins'
+                  : _notesController.text,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: const Icon(Icons.edit_outlined, size: 18),
+            onTap: () => _showNotesDialog(),
           ),
         ),
 
-        const SizedBox(height: 14),
-
-        // Promo Voucher Code Input
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
+        Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.border),
+            side: const BorderSide(color: AppTheme.border),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.confirmation_number_outlined,
-                      size: 18, color: AppTheme.primary),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'Promo Code / Voucher',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                  ),
-                  const Spacer(),
-                  if (widget.cartState.promoCode != null)
-                    InkWell(
-                      onTap: () => widget.cartState.removePromo(),
-                      child: const Text(
-                        'Remove',
-                        style: TextStyle(
-                          color: AppTheme.primary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (widget.cartState.promoCode != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEDFBF5),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF28A745).withAlpha(80)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Color(0xFF28A745), size: 16),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Coupon applied: ${widget.cartState.promoCode}',
-                        style: const TextStyle(
-                          color: Color(0xFF28A745),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '-Rs. ${widget.cartState.promoDiscount.toInt()}',
-                        style: const TextStyle(
-                          color: Color(0xFF28A745),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _promoController,
-                        textCapitalization: TextCapitalization.characters,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter coupon (e.g. CRAVEE40)',
-                          isDense: true,
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _handlePromoApply,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                      ),
-                      child: const Text('Apply'),
-                    ),
-                  ],
-                ),
-            ],
+          elevation: 0,
+          child: ListTile(
+            leading: const Icon(Icons.confirmation_number_outlined),
+            title: const Text(
+              'Promo Code',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+            subtitle: Text(
+              widget.cartState.promoCode != null
+                  ? '${widget.cartState.promoCode} — Save Rs. ${widget.cartState.promoDiscount.toStringAsFixed(0)}'
+                  : 'Add CRAVEE40 or FREE',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            trailing: TextButton(
+              onPressed: widget.cartState.promoCode != null
+                  ? widget.cartState.removePromo
+                  : _showPromoDialog,
+              child: Text(widget.cartState.promoCode != null ? 'Remove' : 'Apply'),
+            ),
           ),
         ),
 
@@ -884,6 +808,131 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildOrderModificationTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: AppTheme.border),
+      ),
+      elevation: 0,
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        subtitle: Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+        trailing: const Icon(Icons.edit_outlined, size: 18),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Future<void> _updateDeliveryAddress() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Select Delivery Address',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+              ),
+            ),
+            ...SampleData.sampleAddresses.map(
+              (address) => ListTile(
+                leading: const Icon(Icons.location_on_outlined),
+                title: Text(address),
+                selected: widget.cartState.deliveryAddress == address,
+                onTap: () => Navigator.pop(sheetContext, address),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (selected != null) widget.cartState.setAddress(selected);
+  }
+
+  void _showNotesDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final controller = TextEditingController(text: _notesController.text);
+        return AlertDialog(
+          title: const Text('Order Notes'),
+          content: TextField(
+            controller: controller,
+            maxLines: 3,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'e.g. Less spicy, extra napkins',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _notesController.text = controller.text.trim();
+                widget.cartState.setSpecialInstructions(_notesController.text);
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showPromoDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final controller = TextEditingController(text: _promoController.text);
+        return AlertDialog(
+          title: const Text('Apply Promo'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textCapitalization: TextCapitalization.characters,
+            decoration: const InputDecoration(
+              hintText: 'CRAVEE40 or FREE',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _promoController.text = controller.text.trim();
+                _handlePromoApply();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
