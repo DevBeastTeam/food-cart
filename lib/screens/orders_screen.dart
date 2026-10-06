@@ -68,6 +68,9 @@ class _OrdersScreenState extends State<OrdersScreen>
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
+              child: _buildHeadOfficeCard(context),
+            ),
+            SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
                 child: Column(
@@ -83,9 +86,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // Head Office & Central Kitchen Card
-                    _buildHeadOfficeCard(context),
-                    const SizedBox(height: 14),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -959,7 +959,6 @@ class _OrdersScreenState extends State<OrdersScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white.withAlpha(35)),
           boxShadow: [
             BoxShadow(
@@ -1027,7 +1026,6 @@ class _OrdersScreenState extends State<OrdersScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Colors.white.withAlpha(40),
           width: 1.5,
