@@ -320,15 +320,42 @@ class UserState extends ChangeNotifier {
       isDaigBooking: false,
       rating: 4,
     ),
+    UserOrder(
+      id: 'FC-7610',
+      restaurantName: 'Butt Karahi & Shinwari Dera',
+      restaurantImage: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=300&q=80',
+      items: ['1x Chicken Shinwari (Half KG)', '2x Naan'],
+      totalAmount: 1450.0,
+      orderDate: DateTime.now().subtract(const Duration(days: 6)),
+      status: 'Cancelled',
+      prepTime: 'Cancelled by customer',
+      customerName: 'Usman Farooq',
+      customerPhone: '+92 300 1122334',
+      deliveryAddress: 'Sector G, DHA Phase 1, Lahore',
+      isDaigBooking: false,
+    ),
   ];
+
+  String _riderName = 'Captain Ali Raza';
+  String _riderPhone = '+92 302 9988776';
+  String _riderVehicle = 'Honda CG 125 (LED-4921)';
 
   // Getters
   bool get isLoggedIn => _isLoggedIn;
   UserProfile? get user => _user;
   String get userName => _user?.name ?? 'Hassan Raza';
   String get userPhone => _user?.phone ?? '+92 300 8472910';
-  String get riderName => 'Captain Ali Raza';
-  String get riderPhone => '+92 302 9988776';
+  String get riderName => _riderName;
+  String get riderPhone => _riderPhone;
+  String get riderVehicle => _riderVehicle;
+
+  void updateRiderProfile({String? name, String? phone, String? vehicle}) {
+    if (name != null && name.trim().isNotEmpty) _riderName = name.trim();
+    if (phone != null && phone.trim().isNotEmpty) _riderPhone = phone.trim();
+    if (vehicle != null && vehicle.trim().isNotEmpty) _riderVehicle = vehicle.trim();
+    notifyListeners();
+  }
+
   List<UserAddress> get addresses => List.unmodifiable(_addresses);
   List<UserOrder> get orders => List.unmodifiable(_orders);
   UserAddress get defaultAddress {
