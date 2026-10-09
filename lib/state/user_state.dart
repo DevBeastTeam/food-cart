@@ -322,15 +322,52 @@ class UserState extends ChangeNotifier {
     ),
   ];
 
+  String _riderName = 'Captain Ali Raza';
+  String _riderPhone = '+92 302 9988776';
+  String _riderVehicle = 'Honda CG 125 (LED-4921)';
+  String _riderCity = 'Lahore (Gulberg & DHA)';
+  String _riderCnic = '35202-8492019-1';
+  bool _riderIsOnline = true;
+
   // Getters
   bool get isLoggedIn => _isLoggedIn;
   UserProfile? get user => _user;
   String get userName => _user?.name ?? 'Hassan Raza';
   String get userPhone => _user?.phone ?? '+92 300 8472910';
-  String get riderName => 'Captain Ali Raza';
-  String get riderPhone => '+92 302 9988776';
+  String get riderName => _riderName;
+  String get riderPhone => _riderPhone;
+  String get riderVehicle => _riderVehicle;
+  String get riderCity => _riderCity;
+  String get riderCnic => _riderCnic;
+  bool get riderIsOnline => _riderIsOnline;
   List<UserAddress> get addresses => List.unmodifiable(_addresses);
   List<UserOrder> get orders => List.unmodifiable(_orders);
+
+  void updateRiderProfile({
+    String? name,
+    String? phone,
+    String? vehicle,
+    String? city,
+    String? cnic,
+  }) {
+    if (name != null && name.trim().isNotEmpty) _riderName = name.trim();
+    if (phone != null && phone.trim().isNotEmpty) _riderPhone = phone.trim();
+    if (vehicle != null && vehicle.trim().isNotEmpty) _riderVehicle = vehicle.trim();
+    if (city != null && city.trim().isNotEmpty) _riderCity = city.trim();
+    if (cnic != null && cnic.trim().isNotEmpty) _riderCnic = cnic.trim();
+    notifyListeners();
+  }
+
+  void setRiderOnlineStatus(bool isOnline) {
+    _riderIsOnline = isOnline;
+    notifyListeners();
+  }
+
+  void toggleRiderOnlineStatus() {
+    _riderIsOnline = !_riderIsOnline;
+    notifyListeners();
+  }
+
   UserAddress get defaultAddress {
     return _addresses.firstWhere(
       (a) => a.isDefault,

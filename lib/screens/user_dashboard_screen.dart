@@ -208,6 +208,38 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textSecondary),
                       onTap: _showUpdateLocationSheet,
                     ),
+
+                    const Divider(height: 1, indent: 56, color: AppTheme.border),
+
+                    // Switch to Rider Console
+                    ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B2A4A).withAlpha(15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFF1B2A4A), size: 20),
+                      ),
+                      title: const Text(
+                        'Switch to Rider Delivery Console',
+                        style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: const Text(
+                        'Access GPS Google Map, Analytics & Ride tasks',
+                        style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textSecondary),
+                      onTap: () {
+                        widget.userState.setRole(UserRole.rider);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Switched to Rider Delivery Console'),
+                            backgroundColor: Color(0xFF1B2A4A),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
