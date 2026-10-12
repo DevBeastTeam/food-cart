@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/sample_data.dart';
 import '../models/food_item.dart';
+import '../models/restaurant.dart';
 import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../state/user_state.dart';
@@ -9,11 +10,13 @@ import '../theme/app_theme.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/daig_card.dart';
 import '../widgets/promo_banner.dart';
+import '../widgets/restaurant_card.dart';
 import '../widgets/shahi_dish_card.dart';
 import 'admin_dashboard_screen.dart';
 import 'auth_screen.dart';
 import 'cart_screen.dart';
 import 'orders_screen.dart';
+import 'restaurant_details_screen.dart';
 import 'rider_dashboard_screen.dart';
 import 'user_dashboard_screen.dart';
 
@@ -40,6 +43,57 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _searchDebounce;
   bool _isSearching = false;
   List<FoodItem> _searchResults = [];
+  bool _showAllDaigs = false;
+
+  void _openRestaurant(Restaurant restaurant) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RestaurantDetailsScreen(
+          restaurant: restaurant,
+          cartState: widget.cartState,
+        ),
+      ),
+    );
+  }
+
+  List<Restaurant> get _filteredRestaurants {
+    return SampleData.restaurants.where((rest) {
+      if (_homeSearchQuery.isNotEmpty) {
+        final query = _homeSearchQuery.toLowerCase();
+        final matchName = rest.name.toLowerCase().contains(query);
+        final matchCuisine = rest.cuisine.toLowerCase().contains(query);
+        final matchDish = rest.menu.any((item) =>
+            item.name.toLowerCase().contains(query) ||
+            item.description.toLowerCase().contains(query));
+        if (!matchName && !matchCuisine && !matchDish) return false;
+      }
+
+      if (_selectedCategory != 'All') {
+        final cat = _selectedCategory.toLowerCase();
+        final matchesCat = rest.categories.any((c) {
+              final cl = c.toLowerCase();
+              return cl == cat || cl.contains(cat) || cat.contains(cl);
+            }) ||
+            rest.cuisine.toLowerCase().contains(cat) ||
+            rest.menu.any((m) {
+              final mc = m.category.toLowerCase();
+              final mn = m.name.toLowerCase();
+              return mc == cat || mc.contains(cat) || cat.contains(mc) || mn.contains(cat);
+            });
+        if (!matchesCat) return false;
+      }
+
+      if (_quickFilter == 'Top Rated' && rest.rating < 4.7) return false;
+      if (_quickFilter == 'Free Delivery' && rest.deliveryFee > 0) return false;
+      if (_quickFilter == 'Fast Delivery') {
+        final timeStr = rest.deliveryTime.split('-').first.replaceAll(RegExp(r'[^0-9]'), '');
+        final timeInt = int.tryParse(timeStr) ?? 30;
+        if (timeInt > 25) return false;
+      }
+
+      return true;
+    }).toList();
+  }
 
   void _onSearchChanged(String query) {
     setState(() {
@@ -596,8 +650,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 20),
 
-            // 7. Shahi Daig Catering Spotlight
+            // 7. Shahi Daig Catering Spotlight (Pakwan Center)
             _buildDaigSpotlightCard(),
+
+            const SizedBox(height: 22),
+
+            // 8. Top Restaurants Section
+            _buildRestaurantsSection(),
 
             const SizedBox(height: 20),
           ],
@@ -813,6 +872,35 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+
+        // Matching Restaurants if any
+        if (_filteredRestaurants.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              const Icon(Icons.storefront_rounded, color: AppTheme.primary, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                'Matching Restaurants (${_filteredRestaurants.length})',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ..._filteredRestaurants.map(
+            (rest) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: RestaurantCard(
+                restaurant: rest,
+                onTap: () => _openRestaurant(rest),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -926,6 +1014,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDaigSpotlightCard() {
+    final allDaigs = SampleData.daigDishes;
+    final displayedDaigs = _showAllDaigs ? allDaigs : allDaigs.take(2).toList();
+
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -962,7 +1053,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      ApiService.instance.appContent['daigSpotlightTitle'] ?? 'Shahi Daig Catering & Pakwan Center',
+                      ApiService.instance.appContent['daigSpotlightTitle'] ?? '🍲 Pakwan Center & Shahi Daig Catering',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
@@ -971,7 +1062,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      ApiService.instance.appContent['daigSpotlightSubtitle'] ?? 'Sealed hot cauldrons for Dawats, Weddings & Niyaz',
+                      ApiService.instance.appContent['daigSpotlightSubtitle'] ?? 'Sealed hot cauldrons for Dawats, Weddings & Niyaz (${allDaigs.length} Degs available)',
                       style: const TextStyle(color: Colors.white70, fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -979,16 +1070,134 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+              if (allDaigs.length > 2)
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showAllDaigs = !_showAllDaigs;
+                    });
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.18),
+                    foregroundColor: const Color(0xFFFBBF24),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    minimumSize: Size.zero,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: Text(
+                    _showAllDaigs ? 'Show Less' : 'View All (${allDaigs.length})',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 12),
-          // Preview Daig Item Card
-          DaigCard(
-            daig: SampleData.daigDishes.first,
-            cartState: widget.cartState,
+          // Daig Item Cards
+          ...displayedDaigs.map(
+            (daig) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: DaigCard(
+                daig: daig,
+                cartState: widget.cartState,
+              ),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildRestaurantsSection() {
+    final restaurants = _filteredRestaurants;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _selectedCategory == 'All'
+                        ? '🍽️ Top Restaurants (${restaurants.length})'
+                        : '🍽️ $_selectedCategory Restaurants (${restaurants.length})',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Order directly from popular partner restaurants & kitchens',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (restaurants.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.store_mall_directory_outlined, size: 36, color: AppTheme.textLight),
+                const SizedBox(height: 8),
+                const Text(
+                  'No restaurants match your search or filter',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedCategory = 'All';
+                      _quickFilter = 'All';
+                      _homeSearchQuery = '';
+                      _homeSearchController.clear();
+                    });
+                  },
+                  child: const Text('Reset Filters'),
+                ),
+              ],
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: restaurants.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
+            itemBuilder: (context, index) {
+              final restaurant = restaurants[index];
+              return RestaurantCard(
+                restaurant: restaurant,
+                onTap: () => _openRestaurant(restaurant),
+              );
+            },
+          ),
+      ],
     );
   }
 
