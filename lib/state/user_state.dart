@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../services/api_service.dart';
 
 class UserAddress {
   final String label;
@@ -430,6 +431,29 @@ class UserState extends ChangeNotifier {
     );
     _orders.insert(0, newOrder);
     notifyListeners();
+
+    // Persist new order to backend
+    ApiService.instance.sendOrderToBackend({
+      'restaurantName': restaurantName,
+      'restaurantImage': restaurantImage,
+      'items': items,
+      'totalAmount': totalAmount,
+      'originalAmount': originalAmount,
+      'discountInfo': discountInfo,
+      'deliveryAddress': deliveryAddress,
+      'prepTime': prepTime,
+      'customerName': _user?.name ?? 'Guest User',
+      'customerPhone': _user?.phone ?? '+92 300 0000000',
+      'isDaigBooking': isDaigBooking,
+      'occasion': occasion,
+      'notes': notes ?? '',
+    });
+  }
+
+  void syncOrdersFromBackend(List<UserOrder> syncedOrders) {
+    _orders.clear();
+    _orders.addAll(syncedOrders);
+    notifyListeners();
   }
 
   void updateOrderStatus(String orderId, String newStatus, {String? prepTime}) {
@@ -440,6 +464,7 @@ class UserState extends ChangeNotifier {
         _orders[idx].prepTime = prepTime;
       }
       notifyListeners();
+      ApiService.instance.updateOrderStatusOnBackend(orderId, newStatus, prepTime: prepTime);
     }
   }
 

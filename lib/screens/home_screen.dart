@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/sample_data.dart';
 import '../models/food_item.dart';
+import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/daig_card.dart';
+import '../widgets/promo_banner.dart';
 import '../widgets/shahi_dish_card.dart';
 import 'admin_dashboard_screen.dart';
 import 'auth_screen.dart';
@@ -34,9 +37,55 @@ class _HomeScreenState extends State<HomeScreen> {
   String _quickFilter = 'All'; // 'All', 'Top Rated', 'Fast Delivery', 'Free Delivery'
   final TextEditingController _homeSearchController = TextEditingController();
   String _homeSearchQuery = '';
+  Timer? _searchDebounce;
+  bool _isSearching = false;
+  List<FoodItem> _searchResults = [];
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _homeSearchQuery = query;
+    });
+
+    _searchDebounce?.cancel();
+    final clean = query.trim().toLowerCase();
+    if (clean.isEmpty) {
+      setState(() {
+        _isSearching = false;
+        _searchResults = [];
+      });
+      return;
+    }
+
+    // Immediate local match for zero perceived latency
+    final localInitial = SampleData.restaurants
+        .expand((r) => r.menu)
+        .where((item) =>
+            item.name.toLowerCase().contains(clean) ||
+            item.description.toLowerCase().contains(clean) ||
+            item.category.toLowerCase().contains(clean))
+        .toSet()
+        .toList();
+
+    setState(() {
+      _isSearching = true;
+      _searchResults = localInitial;
+    });
+
+    // Query backend dynamically with 300ms debounce
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
+      final backendResults = await ApiService.instance.searchFoodItems(query);
+      if (mounted && _homeSearchQuery.trim() == query.trim()) {
+        setState(() {
+          _searchResults = backendResults;
+          _isSearching = false;
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _homeSearchController.dispose();
     super.dispose();
   }
@@ -235,11 +284,45 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHomeTab() {
     final isLoggedIn = widget.userState.isLoggedIn;
     final user = widget.userState.user;
+    final appContent = ApiService.instance.appContent;
+    final appSettings = ApiService.instance.appSettings;
+    final emergencyAlert = appSettings['emergencyAlert'] as Map<String, dynamic>?;
+    final isEmergencyActive = emergencyAlert != null && emergencyAlert['enabled'] == true;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Emergency Announcement Banner if enabled by Admin
+          if (isEmergencyActive) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFF59E0B)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: Color(0xFFD97706), size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      emergencyAlert['message'] ?? 'Service alert',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF92400E),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           // 1. Top Bar: Brand & Profile Pill
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -248,9 +331,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Food Court',
-                      style: TextStyle(
+                    Text(
+                      appContent['heroTitle'] ?? 'Food Court',
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
                         color: AppTheme.primary,
@@ -261,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       isLoggedIn
                           ? 'Welcome back, ${user?.name.split(' ').first ?? 'Foodie'}! 👋'
-                          : 'Order food, groceries & Deg catering',
+                          : (appContent['heroSubtitle'] ?? 'Order food, groceries & Deg catering'),
                       style: const TextStyle(
                         fontSize: 11.5,
                         color: AppTheme.textSecondary,
@@ -272,6 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(width: 8),
               if (isLoggedIn && user != null)
                 InkWell(
@@ -398,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: TextField(
               controller: _homeSearchController,
-              onChanged: (val) => setState(() => _homeSearchQuery = val),
+              onChanged: _onSearchChanged,
               decoration: InputDecoration(
                 hintText: 'Search Pulao, Biryani, Mutton, Beef, Karahi, Daig...',
                 prefixIcon: const Icon(Icons.search, color: AppTheme.primary, size: 20),
@@ -407,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: const Icon(Icons.clear, size: 18),
                         onPressed: () {
                           _homeSearchController.clear();
-                          setState(() => _homeSearchQuery = '');
+                          _onSearchChanged('');
                         },
                       )
                     : null,
@@ -419,94 +503,317 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
-          const SizedBox(height: 14),
+          if (_homeSearchQuery.trim().isNotEmpty) ...[
+            _buildSearchResultsSection(),
+          ] else ...[
+            if (appContent['showPromoBanner'] != false) ...[
+              PromoBanner(
+                onOrderNow: () {
+                  setState(() {
+                    _selectedCategory = 'Biryani';
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
 
-          // 4. Cuisines for you (Horizontal Carousel)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // 4. Cuisines for you (Horizontal Carousel)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  appContent['cuisinesSectionTitle'] ?? 'Cuisines for you',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                if (_selectedCategory != 'All')
+                  InkWell(
+                    onTap: () => setState(() => _selectedCategory = 'All'),
+                    child: const Text(
+                      'Reset',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 42,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: SampleData.categories.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final cat = SampleData.categories[index];
+                  final name = cat['name'] as String;
+                  final icon = cat['icon'] as String;
+                  return CategoryChip(
+                    label: name,
+                    icon: icon,
+                    isSelected: _selectedCategory == name,
+                    onTap: () {
+                      setState(() {
+                        _selectedCategory = name;
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // 5. Quick Filter Pills (Horizontal)
+            SizedBox(
+              height: 28,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _buildQuickFilterPill('All'),
+                  const SizedBox(width: 6),
+                  _buildQuickFilterPill('Top Rated', icon: Icons.star_rounded),
+                  const SizedBox(width: 6),
+                  _buildQuickFilterPill('Fast Delivery', icon: Icons.electric_bolt_rounded),
+                  const SizedBox(width: 6),
+                  _buildQuickFilterPill('Free Delivery', icon: Icons.delivery_dining_rounded),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // 6. Category Menu Dishes (Shahi Daig Design)
+            _buildCategoryDishesSection(),
+
+            const SizedBox(height: 20),
+
+            // 7. Shahi Daig Catering Spotlight
+            _buildDaigSpotlightCard(),
+
+            const SizedBox(height: 20),
+          ],
+
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResultsSection() {
+    final query = _homeSearchQuery.trim();
+    final clean = query.toLowerCase();
+
+    // Filter matching daig items as well
+    final matchingDaigs = SampleData.daigDishes
+        .where((d) =>
+            d.name.toLowerCase().contains(clean) ||
+            d.urduName.contains(clean) ||
+            d.category.toLowerCase().contains(clean))
+        .toList();
+
+    List<FoodItem> filteredResults = List.from(_searchResults);
+    if (_quickFilter == 'Top Rated') {
+      filteredResults = filteredResults.where((i) => i.rating >= 4.8).toList();
+    } else if (_quickFilter == 'Fast Delivery') {
+      filteredResults = filteredResults.where((i) => i.isPopular).toList();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Results header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'Search Results',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryLight,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${filteredResults.length} found',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ),
+                      if (_isSearching) ...[
+                        const SizedBox(width: 8),
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primary),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Dishes matching "$query"',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () {
+                _homeSearchController.clear();
+                _onSearchChanged('');
+              },
+              icon: const Icon(Icons.close, size: 16),
+              label: const Text('Clear', style: TextStyle(fontSize: 12)),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.textSecondary,
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        // Quick Filter Pills within search
+        SizedBox(
+          height: 28,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
             children: [
-              const Text(
-                'Cuisines for you',
-                style: TextStyle(
-                  fontSize: 17,
+              _buildQuickFilterPill('All'),
+              const SizedBox(width: 6),
+              _buildQuickFilterPill('Top Rated', icon: Icons.star_rounded),
+              const SizedBox(width: 6),
+              _buildQuickFilterPill('Fast Delivery', icon: Icons.electric_bolt_rounded),
+              const SizedBox(width: 6),
+              _buildQuickFilterPill('Free Delivery', icon: Icons.delivery_dining_rounded),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        if (filteredResults.isEmpty && !_isSearching) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: AppTheme.surfaceMuted,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.search_off_rounded, size: 36, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'No food items match "$query"',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Try searching for Biryani, Pulao, Nihari, Karahi, Haleem, or Naan',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 14),
+                OutlinedButton(
+                  onPressed: () {
+                    _homeSearchController.clear();
+                    _onSearchChanged('');
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primary,
+                    side: const BorderSide(color: AppTheme.primary),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('View All Menu Items', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                ),
+              ],
+            ),
+          ),
+        ] else ...[
+          ...filteredResults.map(
+            (dish) => ShahiDishCard(
+              item: dish,
+              cartState: widget.cartState,
+            ),
+          ),
+        ],
+
+        // Matching Daig items if any
+        if (matchingDaigs.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              const Icon(Icons.soup_kitchen_rounded, color: AppTheme.primary, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                'Matching Daig Catering (${matchingDaigs.length})',
+                style: const TextStyle(
+                  fontSize: 15,
                   fontWeight: FontWeight.w800,
                   color: AppTheme.textPrimary,
                 ),
               ),
-              if (_selectedCategory != 'All')
-                InkWell(
-                  onTap: () => setState(() => _selectedCategory = 'All'),
-                  child: const Text(
-                    'Reset',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.primary,
-                    ),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            height: 42,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: SampleData.categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final cat = SampleData.categories[index];
-                final name = cat['name'] as String;
-                final icon = cat['icon'] as String;
-                return CategoryChip(
-                  label: name,
-                  icon: icon,
-                  isSelected: _selectedCategory == name,
-                  onTap: () {
-                    setState(() {
-                      _selectedCategory = name;
-                    });
-                  },
-                );
-              },
+          ...matchingDaigs.map(
+            (daig) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: DaigCard(
+                daig: daig,
+                cartState: widget.cartState,
+              ),
             ),
           ),
-
-          const SizedBox(height: 16),
-
-          // 5. Quick Filter Pills (Horizontal)
-          SizedBox(
-            height: 28,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildQuickFilterPill('All'),
-                const SizedBox(width: 6),
-                _buildQuickFilterPill('Top Rated', icon: Icons.star_rounded),
-                const SizedBox(width: 6),
-                _buildQuickFilterPill('Fast Delivery', icon: Icons.electric_bolt_rounded),
-                const SizedBox(width: 6),
-                _buildQuickFilterPill('Free Delivery', icon: Icons.delivery_dining_rounded),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // 6. Category Menu Dishes (Shahi Daig Design)
-          _buildCategoryDishesSection(),
-
-          const SizedBox(height: 20),
-
-          // 7. Shahi Daig Catering Spotlight
-          _buildDaigSpotlightCard(),
-
-          const SizedBox(height: 20),
-
         ],
-      ),
+      ],
     );
   }
 
@@ -558,10 +865,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<FoodItem> dishes;
     final String title;
     final String subtitle;
+    final content = ApiService.instance.appContent;
 
     if (_selectedCategory == 'All') {
-      title = '👑 Shahi Menu Dishes (Signature Selection)';
-      subtitle = 'Popular dishes cooked in pure desi ghee & authentic secret spices';
+      title = content['shahiMenuTitle'] ?? '👑 Shahi Menu Dishes (Signature Selection)';
+      subtitle = content['shahiMenuSubtitle'] ?? 'Popular dishes cooked in pure desi ghee & authentic secret spices';
       dishes = SampleData.allTrendingFoodItems.take(4).toList();
     } else {
       title = '👑 $_selectedCategory Specials (Signature Selection)';
@@ -570,6 +878,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (dishes.isEmpty) return const SizedBox.shrink();
+
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -648,22 +957,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const Icon(Icons.soup_kitchen_rounded, color: Color(0xFFFBBF24), size: 22),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Shahi Daig Catering & Pakwan Center',
-                      style: TextStyle(
+                      ApiService.instance.appContent['daigSpotlightTitle'] ?? 'Shahi Daig Catering & Pakwan Center',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Sealed hot cauldrons for Dawats, Weddings & Niyaz',
-                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                      ApiService.instance.appContent['daigSpotlightSubtitle'] ?? 'Sealed hot cauldrons for Dawats, Weddings & Niyaz',
+                      style: const TextStyle(color: Colors.white70, fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

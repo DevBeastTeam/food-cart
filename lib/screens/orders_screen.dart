@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
@@ -64,9 +65,14 @@ class _OrdersScreenState extends State<OrdersScreen>
           return true;
         }).toList();
 
-        final content = CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
+        final content = RefreshIndicator(
+          onRefresh: () async {
+            await ApiService.instance.syncWithBackend(userState: widget.userState);
+          },
+          color: AppTheme.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
             SliverToBoxAdapter(
               child: _buildHeadOfficeCard(context),
             ),
@@ -125,8 +131,11 @@ class _OrdersScreenState extends State<OrdersScreen>
                   ),
                 ),
               ),
-          ],
+            ],
+          ),
         );
+
+
 
         if (widget.isEmbedded) {
           return Scaffold(

@@ -1,29 +1,78 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class PromoBanner extends StatelessWidget {
   final VoidCallback? onApplyPromo;
   final VoidCallback? onOrderNow;
   final VoidCallback? onDismiss;
+  final String? tagText;
+  final String? title;
+  final String? dishesText;
+  final String? buttonText;
+  final String? imageUrl;
+  final List<Color>? bgGradientColors;
 
   const PromoBanner({
     super.key,
     this.onApplyPromo,
     this.onOrderNow,
     this.onDismiss,
+    this.tagText,
+    this.title,
+    this.dishesText,
+    this.buttonText,
+    this.imageUrl,
+    this.bgGradientColors,
   });
+
+  static Color _parseHex(dynamic hex, Color fallback) {
+    if (hex == null || hex is! String) return fallback;
+    try {
+      String clean = hex.replaceAll('#', '');
+      if (clean.length == 6) clean = 'FF$clean';
+      return Color(int.parse(clean, radix: 16));
+    } catch (_) {
+      return fallback;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Check if backend provided active banners
+    final banners = ApiService.instance.promoBanners;
+    final activeBanner = banners.isNotEmpty ? banners.first : null;
+
+    final effectiveTag = tagText ?? activeBanner?['tagText'] ?? 'SPECIAL OFFER';
+    final effectiveTitle = title ?? activeBanner?['title'] ?? '40% OFF';
+    final effectiveDishes = dishesText ??
+        activeBanner?['dishesText'] ??
+        'Shahi Qorma, Beef Kabab, Degi Biryani, Mutton Karahi, Zarda';
+    final effectiveButton = buttonText ?? activeBanner?['buttonText'] ?? 'Order Now';
+    final effectiveImage = imageUrl ??
+        activeBanner?['imageUrl'] ??
+        'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80';
+
+    List<Color> effectiveColors = bgGradientColors ?? const [
+      Color(0xFF6C3CE9),
+      Color(0xFF8B5CF6),
+      Color(0xFFA855F7),
+    ];
+
+    if (bgGradientColors == null && activeBanner?['bgGradient'] is List) {
+      final gradList = activeBanner!['bgGradient'] as List;
+      if (gradList.length >= 2) {
+        effectiveColors = gradList
+            .map((c) => _parseHex(c, const Color(0xFF6C3CE9)))
+            .toList();
+      }
+    }
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF6C3CE9),
-            Color(0xFF8B5CF6),
-            Color(0xFFA855F7),
-          ],
+        gradient: LinearGradient(
+          colors: effectiveColors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -47,7 +96,7 @@ class PromoBanner extends StatelessWidget {
               child: Opacity(
                 opacity: 0.22,
                 child: Image.network(
-                  'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80',
+                  effectiveImage,
                   width: 140,
                   height: 140,
                   fit: BoxFit.cover,
@@ -104,14 +153,14 @@ class PromoBanner extends StatelessWidget {
                     color: Colors.white.withAlpha(45),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.campaign_rounded, color: Colors.amberAccent, size: 15),
-                      SizedBox(width: 5),
+                      const Icon(Icons.campaign_rounded, color: Colors.amberAccent, size: 15),
+                      const SizedBox(width: 5),
                       Text(
-                        'SPECIAL OFFER',
-                        style: TextStyle(
+                        effectiveTag,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -123,10 +172,10 @@ class PromoBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
 
-                // 2. 40% OFF Title
-                const Text(
-                  '40% OFF',
-                  style: TextStyle(
+                // 2. Main Title
+                Text(
+                  effectiveTitle,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 26,
                     fontWeight: FontWeight.w900,
@@ -137,9 +186,9 @@ class PromoBanner extends StatelessWidget {
                 const SizedBox(height: 4),
 
                 // 3. Comma-separated Pakistani Dishes
-                const Text(
-                  'Shahi Qorma, Beef Kabab, Degi Biryani, Mutton Karahi, Zarda',
-                  style: TextStyle(
+                Text(
+                  effectiveDishes,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -148,7 +197,7 @@ class PromoBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // 4. White 'Order Now' Button on Bottom Right
+                // 4. Button on Bottom Right
                 Align(
                   alignment: Alignment.centerRight,
                   child: InkWell(
@@ -167,19 +216,19 @@ class PromoBanner extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Order Now',
-                            style: TextStyle(
+                            effectiveButton,
+                            style: const TextStyle(
                               color: AppTheme.primary,
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                          SizedBox(width: 4),
-                          Icon(
+                          const SizedBox(width: 4),
+                          const Icon(
                             Icons.arrow_forward_rounded,
                             size: 14,
                             color: AppTheme.primary,
@@ -197,3 +246,4 @@ class PromoBanner extends StatelessWidget {
     );
   }
 }
+

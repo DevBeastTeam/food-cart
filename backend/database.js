@@ -1,0 +1,1269 @@
+const fs = require('fs');
+const path = require('path');
+
+const DB_DIR = path.join(__dirname, 'data');
+const DB_FILE = path.join(DB_DIR, 'db.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
+
+// Initial seed data representing entire existing Flutter app
+const defaultData = {
+  settings: {
+    appName: "Food Court — Food & Grocery Delivery",
+    tagline: "Order food, groceries & Deg catering",
+    currency: "Rs.",
+    defaultDeliveryFee: 49.0,
+    serviceFee: 29.0,
+    minOrderAmount: 250.0,
+    storeOpen: true,
+    operatingHours: "09:00 AM - 02:00 AM",
+    supportPhone: "+92 300 8472910",
+    supportEmail: "support@foodcourt.pk",
+    headOfficeAddress: "FoodCourt HQ, 14-C Gulberg III, Main Boulevard, Lahore, Pakistan",
+    headOfficePhone: "+92 42 35789120",
+    centralKitchenAddress: "FoodCourt Central Kitchen, 14-C Gulberg III, Lahore",
+    emergencyAlert: {
+      enabled: false,
+      message: "Heavy rain in Lahore. Orders might experience a 10-15 min slight delay.",
+      type: "warning" // "info", "warning", "critical"
+    },
+    deliveryCities: ["Lahore", "Islamabad", "Rawalpindi"]
+  },
+
+  content: {
+    heroTitle: "Food Court",
+    heroSubtitle: "Order food, groceries & Deg catering",
+    welcomeTextGuest: "Order food, groceries & Deg catering",
+    welcomeTextUser: "Welcome back, {name}! 👋",
+    cuisinesSectionTitle: "Cuisines for you",
+    shahiMenuTitle: "👑 Shahi Menu Dishes (Signature Selection)",
+    shahiMenuSubtitle: "Popular dishes cooked in pure desi ghee & authentic secret spices",
+    daigSpotlightTitle: "Shahi Daig Catering & Pakwan Center",
+    daigSpotlightSubtitle: "Sealed hot cauldrons for Dawats, Weddings & Niyaz",
+    daigNoticeText: "Order 3-4 hours in advance for fresh dum cooking",
+    showPromoBanner: true,
+    showCuisines: true,
+    showQuickFilters: true,
+    showShahiDishes: true,
+    showDaigSpotlight: true,
+    showMartSection: true,
+    addresses: [
+      "Home • F-7 Markaz, Jinnah Super, Islamabad",
+      "Office • Blue Area, Sector F-6, Islamabad",
+      "Campus • Bahria Town Phase 4, Islamabad / Rawalpindi",
+      "Home • Gulberg III, Main Blvd, Lahore"
+    ],
+    quickFilters: [
+      { id: "qf_1", name: "All", icon: "all", isVisible: true },
+      { id: "qf_2", name: "Top Rated", icon: "star", isVisible: true },
+      { id: "qf_3", name: "Fast Delivery", icon: "bolt", isVisible: true },
+      { id: "qf_4", name: "Free Delivery", icon: "delivery", isVisible: true }
+    ]
+  },
+
+  navigation: [
+    { id: "nav_home", label: "Home", icon: "home", order: 1, isVisible: true, screen: "home" },
+    { id: "nav_cart", label: "Cart", icon: "shopping_bag", order: 2, isVisible: true, screen: "cart" },
+    { id: "nav_orders", label: "Orders", icon: "receipt_long", order: 3, isVisible: true, screen: "orders" },
+    { id: "nav_account", label: "Account", icon: "person", order: 4, isVisible: true, screen: "account" }
+  ],
+
+  banners: [
+    {
+      id: "banner_1",
+      tagText: "SPECIAL OFFER",
+      title: "40% OFF",
+      dishesText: "Shahi Qorma, Beef Kabab, Degi Biryani, Mutton Karahi, Zarda",
+      buttonText: "Order Now",
+      bgGradient: ["#6C3CE9", "#8B5CF6", "#A855F7"],
+      imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&q=80",
+      isVisible: true,
+      linkCategory: "Biryani"
+    }
+  ],
+
+  deals: [
+    {
+      id: "deal_1",
+      code: "SHAHI40",
+      title: "Royal Shahi Feast 40% Off",
+      discountPercent: 40,
+      description: "Get flat 40% discount on all Shahi Daig and Signature Beef Biryani Platters",
+      imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80",
+      category: "Biryani",
+      startDate: "2025-01-01",
+      endDate: "2026-12-31",
+      startTime: "00:00",
+      endTime: "23:59",
+      minOrder: 500,
+      maxDiscount: 1000,
+      isVisible: true,
+      status: "active"
+    },
+    {
+      id: "deal_2",
+      code: "FREESHIP",
+      title: "Free Delivery on Weekend Orders",
+      discountPercent: 100,
+      description: "Zero delivery fee on all orders above Rs. 1000 across Lahore & Islamabad",
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80",
+      category: "All",
+      startDate: "2025-01-01",
+      endDate: "2026-12-31",
+      startTime: "12:00",
+      endTime: "23:59",
+      minOrder: 1000,
+      maxDiscount: 150,
+      isVisible: true,
+      status: "active"
+    },
+    {
+      id: "deal_3",
+      code: "DAWAT20",
+      title: "Deg Catering Family Celebration",
+      discountPercent: 20,
+      description: "Flat 20% off on all Full & Half Daig bookings for weddings and events",
+      imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=700&q=80",
+      category: "Biryani & Pulao",
+      startDate: "2025-01-01",
+      endDate: "2026-12-31",
+      startTime: "09:00",
+      endTime: "22:00",
+      minOrder: 5000,
+      maxDiscount: 3000,
+      isVisible: true,
+      status: "active"
+    }
+  ],
+
+  categories: [
+    { id: "cat_all", name: "All", icon: "🍽️", image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&q=80", order: 1, isVisible: true },
+    { id: "cat_pulao", name: "Pulao", icon: "🍲", image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80", order: 2, isVisible: true },
+    { id: "cat_biryani", name: "Biryani", icon: "🍚", image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80", order: 3, isVisible: true },
+    { id: "cat_beef", name: "Bara Gosht (Beef)", icon: "🥩", image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80", order: 4, isVisible: true },
+    { id: "cat_mutton", name: "Chota Gosht (Mutton)", icon: "🍖", image: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=200&q=80", order: 5, isVisible: true },
+    { id: "cat_mutton_karahi", name: "Mutton Karahi", icon: "🥘", image: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=200&q=80", order: 6, isVisible: true },
+    { id: "cat_qorma", name: "Shahi Qorma", icon: "🥣", image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80", order: 7, isVisible: true },
+    { id: "cat_kabab", name: "Tikka & Kabab", icon: "🍢", image: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=200&q=80", order: 8, isVisible: true },
+    { id: "cat_rice_daal", name: "Rice & Daal", icon: "🌾", image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80", order: 9, isVisible: true },
+    { id: "cat_meetha", name: "Zarda & Meetha", icon: "🍮", image: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=200&q=80", order: 10, isVisible: true },
+    { id: "cat_roti", name: "Naan & Roti", icon: "🫓", image: "https://images.unsplash.com/photo-1626074353765-517a681e40be?w=200&q=80", order: 11, isVisible: true }
+  ],
+
+  restaurants: [
+    {
+      id: "rest_1",
+      name: "Bannu Beef Pulao & Nalli Nihari",
+      cuisine: "Pulao • Bara Gosht (Beef) • Nihari & Haleem",
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80",
+      rating: 4.9,
+      reviewCount: 1920,
+      deliveryTime: "20-30 min",
+      deliveryFee: 49,
+      minOrder: 300,
+      distance: "1.8 km",
+      address: "Shop 12, Block K, Gulberg III, Lahore",
+      badge: "🔥 Top Pick",
+      isFeatured: true,
+      isVisible: true,
+      categories: ["All", "Pulao", "Bara Gosht (Beef)", "Tikka & Kabab", "Zarda & Meetha"]
+    },
+    {
+      id: "rest_2",
+      name: "Dawat Khana Desi Heritage",
+      cuisine: "Biryani • Chota Gosht (Mutton) • Karahi & Handi",
+      imageUrl: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=600&q=80",
+      rating: 4.9,
+      reviewCount: 1450,
+      deliveryTime: "25-40 min",
+      deliveryFee: 0,
+      minOrder: 400,
+      distance: "2.4 km",
+      address: "Main Boulevard, Gulberg, Lahore",
+      badge: "✨ Free Delivery",
+      isFeatured: true,
+      isVisible: true,
+      categories: ["All", "Biryani", "Chota Gosht (Mutton)", "Mutton Karahi", "Shahi Qorma", "Tikka & Kabab"]
+    },
+    {
+      id: "rest_3",
+      name: "Butt Karahi & Shinwari Dera",
+      cuisine: "Mutton Karahi • Chota Gosht (Mutton) • Tikka & Kabab",
+      imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=600&q=80",
+      rating: 4.9,
+      reviewCount: 1680,
+      deliveryTime: "30-40 min",
+      deliveryFee: 59,
+      minOrder: 500,
+      distance: "3.1 km",
+      address: "Lakshmi Chowk / Sector Z DHA Phase 3, Lahore",
+      badge: "🥘 Desi Ghee Special",
+      isFeatured: false,
+      isVisible: true,
+      categories: ["All", "Mutton Karahi", "Chota Gosht (Mutton)", "Tikka & Kabab", "Naan & Roti"]
+    },
+    {
+      id: "rest_4",
+      name: "Student Biryani & Pulao Express",
+      cuisine: "Biryani • Pulao • Rice & Daal • Tikka & Kabab",
+      imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&q=80",
+      rating: 4.7,
+      reviewCount: 2140,
+      deliveryTime: "20-30 min",
+      deliveryFee: 39,
+      minOrder: 250,
+      distance: "1.5 km",
+      address: "Main Commercial, Gulberg III, Lahore",
+      badge: "⚡ Fast Delivery",
+      isFeatured: false,
+      isVisible: true,
+      categories: ["All", "Biryani", "Pulao", "Rice & Daal", "Tikka & Kabab"]
+    },
+    {
+      id: "rest_5",
+      name: "Shahi Meetha Mahal & Deghi Qorma",
+      cuisine: "Zarda & Meetha • Shahi Qorma • Chota Gosht (Mutton)",
+      imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&q=80",
+      rating: 4.9,
+      reviewCount: 1520,
+      deliveryTime: "15-25 min",
+      deliveryFee: 39,
+      minOrder: 250,
+      distance: "1.2 km",
+      address: "Mall 1, Main Boulevard, Gulberg, Lahore",
+      badge: "👑 Royal Wedding Desserts",
+      isFeatured: true,
+      isVisible: true,
+      categories: ["All", "Zarda & Meetha", "Shahi Qorma", "Chota Gosht (Mutton)"]
+    }
+  ],
+
+  foodItems: [
+    {
+      id: "item_101",
+      restaurantId: "rest_1",
+      name: "Special Bannu Beef Yakhni Pulao",
+      description: "Aromatic long-grain basmati simmered in bone marrow beef yakhni with tender Bara Gosht cuts and caramelized onions.",
+      price: 890,
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
+      category: "Pulao",
+      rating: 4.9,
+      calories: 680,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Single Platter (1kg)", "Desi Ghee", "Special Raita Included"]
+    },
+    {
+      id: "item_102",
+      restaurantId: "rest_1",
+      name: "Shahi Nalli Nihari (Bara Gosht)",
+      description: "Slow-cooked shank beef in rich spiced gravy with fresh ginger slivers, lemon, and rich bone marrow nalli.",
+      price: 680,
+      imageUrl: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=500&q=80",
+      category: "Bara Gosht (Beef)",
+      rating: 4.8,
+      calories: 740,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Bone Marrow", "Spicy Gravy"]
+    },
+    {
+      id: "item_103",
+      restaurantId: "rest_1",
+      name: "Peshawari Beef Chapli Kabab (2 Pcs)",
+      description: "Crispy pan-fried minced beef kabab seasoned with anardana, whole coriander, and desi ghee.",
+      price: 820,
+      imageUrl: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=500&q=80",
+      category: "Tikka & Kabab",
+      rating: 4.7,
+      calories: 510,
+      isPopular: false,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Crispy", "Desi Ghee"]
+    },
+    {
+      id: "item_104",
+      restaurantId: "rest_1",
+      name: "Degi Shahi Zarda (Mutanjan)",
+      description: "Celebratory sweet basmati rice infused with saffron, gulab jamun, ashrafi murabba, and silver vark.",
+      price: 490,
+      imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&q=80",
+      category: "Zarda & Meetha",
+      rating: 4.9,
+      calories: 420,
+      isPopular: false,
+      isVegetarian: true,
+      isVisible: true,
+      badges: ["Saffron", "Silver Vark"]
+    },
+    {
+      id: "item_105",
+      restaurantId: "rest_1",
+      name: "Zafrani Kheer & Meetha Cup",
+      description: "Thick creamy rice kheer cooked with whole milk, crushed green cardamom, and roasted pistachios.",
+      price: 420,
+      imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&q=80",
+      category: "Zarda & Meetha",
+      rating: 4.9,
+      calories: 360,
+      isPopular: false,
+      isVegetarian: true,
+      isVisible: true,
+      badges: ["Pistachio", "Cold Served"]
+    },
+    {
+      id: "item_201",
+      restaurantId: "rest_2",
+      name: "Special Dum Pukht Mutton Biryani",
+      description: "Aromatic long-grain basmati on slow coal dum with tender Chota Gosht (mutton), saffron, and fried onions.",
+      price: 1190,
+      imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&q=80",
+      category: "Biryani",
+      rating: 5.0,
+      calories: 720,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Coal Dum", "Chota Gosht"]
+    },
+    {
+      id: "item_202",
+      restaurantId: "rest_2",
+      name: "Shinwari Mutton Karahi (Half)",
+      description: "Succulent Chota Gosht (mutton) cuts cooked in pure animal fat with fresh tomatoes, green chilies, and black pepper.",
+      price: 1350,
+      imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&q=80",
+      category: "Mutton Karahi",
+      rating: 4.8,
+      calories: 850,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Shinwari Style", "Fresh Tomato"]
+    },
+    {
+      id: "item_203",
+      restaurantId: "rest_2",
+      name: "Melt-in-Mouth Seekh Kabab (4 Pcs)",
+      description: "Minced beef infused with ginger, coriander seeds, and smoky coal aroma. Served with mint raita.",
+      price: 690,
+      imageUrl: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=500&q=80",
+      category: "Tikka & Kabab",
+      rating: 4.9,
+      calories: 480,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Smoky Coal", "Mint Raita"]
+    },
+    {
+      id: "item_204",
+      restaurantId: "rest_2",
+      name: "Garlic Roghani Naan",
+      description: "Fresh tandoor-baked flatbread glazed with butter, sesame seeds, and crushed roasted garlic.",
+      price: 120,
+      imageUrl: "https://images.unsplash.com/photo-1626074353765-517a681e40be?w=500&q=80",
+      category: "Naan & Roti",
+      rating: 4.7,
+      calories: 260,
+      isPopular: false,
+      isVegetarian: true,
+      isVisible: true,
+      badges: ["Butter Glazed", "Sesame Seeds"]
+    },
+    {
+      id: "item_205",
+      restaurantId: "rest_2",
+      name: "Shahi Zafrani Kheer & Zarda",
+      description: "Royal dessert infused with pure saffron strands, crushed pistachios, cardamom, and silver vark.",
+      price: 340,
+      imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&q=80",
+      category: "Zarda & Meetha",
+      rating: 4.9,
+      calories: 320,
+      isPopular: false,
+      isVegetarian: true,
+      isVisible: true,
+      badges: ["Saffron", "Pistachio"]
+    },
+    {
+      id: "item_301",
+      restaurantId: "rest_3",
+      name: "Lakshmi Chowk Mutton Karahi (Full KG)",
+      description: "Fresh Chota Gosht (mutton) prepared in pure Makhan & Desi Ghee with roasted ginger, green chilies, and Butt spices.",
+      price: 2850,
+      imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&q=80",
+      category: "Mutton Karahi",
+      rating: 5.0,
+      calories: 950,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Pure Makhan", "Butt Spices"]
+    },
+    {
+      id: "item_302",
+      restaurantId: "rest_3",
+      name: "Balochi Tikka Karahi (Boneless)",
+      description: "Charcoal-grilled smoky chicken tikka wok-tossed with fresh lemon, ginger, and roasted cumin.",
+      price: 1250,
+      imageUrl: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=500&q=80",
+      category: "Tikka & Kabab",
+      rating: 4.8,
+      calories: 720,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Charcoal Grilled", "Boneless"]
+    },
+    {
+      id: "item_303",
+      restaurantId: "rest_3",
+      name: "Chota Gosht Mutton Champ Masala (4 Pcs)",
+      description: "Succulent mutton rib chops pan-seared with thick caramelized onion and tomato masala gravy.",
+      price: 1450,
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
+      category: "Chota Gosht (Mutton)",
+      rating: 4.9,
+      calories: 780,
+      isPopular: false,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Mutton Ribs", "Thick Masala"]
+    },
+    {
+      id: "item_304",
+      restaurantId: "rest_3",
+      name: "Tandoori Roghani Naan & Sesame Kulcha",
+      description: "Oven-baked tandoor naan glazed with pure desi butter and roasted sesame seeds.",
+      price: 140,
+      imageUrl: "https://images.unsplash.com/photo-1626074353765-517a681e40be?w=500&q=80",
+      category: "Naan & Roti",
+      rating: 4.7,
+      calories: 280,
+      isPopular: false,
+      isVegetarian: true,
+      isVisible: true,
+      badges: ["Tandoori Fresh", "Sesame Seeds"]
+    },
+    {
+      id: "item_401",
+      restaurantId: "rest_4",
+      name: "Karachi Double Chicken Dum Biryani",
+      description: "Spicy layered basmati rice with double chicken cuts, spiced potato (aloo), and aromatic Kewra aroma.",
+      price: 650,
+      imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&q=80",
+      category: "Biryani",
+      rating: 4.8,
+      calories: 680,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Karachi Masala", "Spiced Aloo"]
+    },
+    {
+      id: "item_402",
+      restaurantId: "rest_4",
+      name: "Matka Beef Yakhni Pulao (Bara Gosht)",
+      description: "Authentic clay pot simmered beef pulao with whole garam masala and tender Bara Gosht cuts.",
+      price: 790,
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
+      category: "Pulao",
+      rating: 4.9,
+      calories: 720,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Clay Pot", "Bara Gosht"]
+    },
+    {
+      id: "item_403",
+      restaurantId: "rest_4",
+      name: "Chicken Malai Tikka Boti (8 Pcs)",
+      description: "Creamy charcoal-grilled boneless chicken boti marinated in fresh cream, cheese, and white pepper.",
+      price: 650,
+      imageUrl: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=500&q=80",
+      category: "Tikka & Kabab",
+      rating: 4.7,
+      calories: 420,
+      isPopular: false,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Malai Cream", "Boneless"]
+    },
+    {
+      id: "item_501",
+      restaurantId: "rest_5",
+      name: "Degi Shahi Mutanjan / Zarda Special",
+      description: "Authentic five-color royal wedding Zarda loaded with mini gulab jamun, khoya rabri, almonds, and pistachios.",
+      price: 690,
+      imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&q=80",
+      category: "Zarda & Meetha",
+      rating: 5.0,
+      calories: 550,
+      isPopular: true,
+      isVegetarian: true,
+      isVisible: true,
+      badges: ["Gulab Jamun", "Khoya Rabri"]
+    },
+    {
+      id: "item_502",
+      restaurantId: "rest_5",
+      name: "Shahi Mutton Degi Qorma",
+      description: "Rich royal wedding style mutton gravy simmered in pure ghee with brown onions, yogurt, and aromatic kewra essence.",
+      price: 1150,
+      imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500&q=80",
+      category: "Shahi Qorma",
+      rating: 4.9,
+      calories: 820,
+      isPopular: true,
+      isVegetarian: false,
+      isVisible: true,
+      badges: ["Pure Ghee", "Royal Wedding"]
+    },
+    {
+      id: "item_503",
+      restaurantId: "rest_5",
+      name: "Gulab Jamun with Rabri (4 Pcs)",
+      description: "Hot melt-in-mouth milk solid dumplings dipped in rose-scented sugar syrup and crowned with chilled Malai Rabri.",
+      price: 490,
+      imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=500&q=80",
+      category: "Zarda & Meetha",
+      rating: 4.9,
+      calories: 390,
+      isPopular: true,
+      isVegetarian: true,
+      isVisible: true,
+      badges: ["Malai Rabri", "Rose Scented"]
+    }
+  ],
+
+  daigDishes: [
+    {
+      id: "daig_1",
+      name: "Shahi Chicken Degi Biryani",
+      urduName: "شاہی چکن دیگی بریانی",
+      description: "Authentic coal-dum cooked Basmati rice with succulent chicken cuts, spiced potatoes, dried plums (Aloo Bukhara) & secret potli garam masala.",
+      category: "Biryani & Pulao",
+      fullDaigPrice: 9500,
+      halfDaigPrice: 5200,
+      fullDaigWeight: "12 KG (Serves 35-40 Persons)",
+      halfDaigWeight: "6 KG (Serves 18-20 Persons)",
+      imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80",
+      rating: 4.9,
+      badge: "👑 Most Ordered Deg",
+      deliveryNotice: "Order 3-4 hours in advance for fresh dum cooking",
+      isVisible: true,
+      includes: ["Atta-sealed Hot Daig", "Spicy Zeera Raita Tub (2 Litre)", "Fresh Kachumber Salad (1 Kg)"]
+    },
+    {
+      id: "daig_2",
+      name: "Special Beef Degi Yakhni Pulao",
+      urduName: "اسپیشل بیف دیگی یخنی پلاؤ",
+      description: "Slow-simmered beef shank yakhni cooked with aged long-grain basmati, garlic pods, whole cloves, and brown caramelized onions.",
+      category: "Biryani & Pulao",
+      fullDaigPrice: 13500,
+      halfDaigPrice: 7400,
+      fullDaigWeight: "12 KG (Serves 35-40 Persons)",
+      halfDaigWeight: "6 KG (Serves 18-20 Persons)",
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80",
+      rating: 4.9,
+      badge: "⭐ Dawat Special",
+      deliveryNotice: "Order 3-4 hours in advance for fresh dum cooking",
+      isVisible: true,
+      includes: ["Atta-sealed Hot Daig", "Traditional Mint Raita (2 Litre)", "Lahori Mixed Pickle Jar"]
+    },
+    {
+      id: "daig_3",
+      name: "Shahi Mutton Degi Korma",
+      urduName: "شاہی مٹن دیگی قورمہ",
+      description: "Shahi wedding style rich mutton gravy prepared in pure ghee with roasted crushed spices, brown onions, and fragrant kewra & saffron essence.",
+      category: "Qorma & Karahi",
+      fullDaigPrice: 16500,
+      halfDaigPrice: 8900,
+      fullDaigWeight: "12 KG (Serves 35-40 Persons)",
+      halfDaigWeight: "6 KG (Serves 18-20 Persons)",
+      imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=700&q=80",
+      rating: 5.0,
+      badge: "🏆 Royal Wedding Deg",
+      deliveryNotice: "Order 3-4 hours in advance for fresh dum cooking",
+      isVisible: true,
+      includes: ["Thermal-wrapped Hot Daig", "Julienned Ginger & Green Chilies Pack", "Fresh Lemons & Coriander"]
+    },
+    {
+      id: "daig_4",
+      name: "Traditional Shahi Beef Haleem / Daleem",
+      urduName: "روایتی شاہی بیف دیگی حلیم",
+      description: "Simmered overnight for 12 hours with seven nutritious grains, cracked wheat, and melt-in-mouth hand-shredded beef risha.",
+      category: "Haleem & Nihari",
+      fullDaigPrice: 11500,
+      halfDaigPrice: 6200,
+      fullDaigWeight: "12 KG (Serves 35-40 Persons)",
+      halfDaigWeight: "6 KG (Serves 18-20 Persons)",
+      imageUrl: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=700&q=80",
+      rating: 4.8,
+      badge: "🌙 Niaz & Event Special",
+      deliveryNotice: "Order 3-4 hours in advance for fresh dum cooking",
+      isVisible: true,
+      includes: ["Hot Insulated Daig", "Golden Crispy Fried Onions Box", "Chaat Masala, Lemon & Mint Box"]
+    },
+    {
+      id: "daig_5",
+      name: "Degi Shahi Mutanjan / Zarda",
+      urduName: "دیگی شاہی متنجن / زردہ",
+      description: "Festive colourful sweet sella rice enriched with pure desi ghee, khoya mawa, mini gulab jamun, cham cham, almonds, pistachios & silver vark.",
+      category: "Sweet & Desserts",
+      fullDaigPrice: 6500,
+      halfDaigPrice: 3600,
+      fullDaigWeight: "12 KG (Serves 35-40 Persons)",
+      halfDaigWeight: "6 KG (Serves 18-20 Persons)",
+      imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=700&q=80",
+      rating: 4.9,
+      badge: "🎉 Festive Sweet Deg",
+      deliveryNotice: "Order 3-4 hours in advance for fresh dum cooking",
+      isVisible: true,
+      includes: ["Hot Daig with Airtight Lid", "Extra Khoya & Almond Topping Box", "Disposable Ladle"]
+    },
+    {
+      id: "daig_6",
+      name: "Chicken Degi Karahi / Korma",
+      urduName: "چکن دیگی کڑاہی / قورمہ",
+      description: "Thick traditional tomato & yogurt based deg gravy with juicy chicken cuts, roasted cumin, black pepper, and whole green chilies.",
+      category: "Qorma & Karahi",
+      fullDaigPrice: 8800,
+      halfDaigPrice: 4800,
+      fullDaigWeight: "12 KG (Serves 35-40 Persons)",
+      halfDaigWeight: "6 KG (Serves 18-20 Persons)",
+      imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=700&q=80",
+      rating: 4.7,
+      badge: "🔥 Dawat Favourite",
+      deliveryNotice: "Order 3-4 hours in advance for fresh dum cooking",
+      isVisible: true,
+      includes: ["Airtight Hot Daig", "Fresh Naan/Roti Booking Support", "Garnish Box (Ginger & Chili)"]
+    },
+    {
+      id: "daig_7",
+      name: "Shahi Lahori Chana Degi Pulao",
+      urduName: "شاہi لاہوری چنا دیگی پلاؤ",
+      description: "Super-aromatic long grain rice infused with tender Kabuli chickpeas, fried shallots, crushed dry coriander seeds, and whole black cardamoms.",
+      category: "Biryani & Pulao",
+      fullDaigPrice: 5800,
+      halfDaigPrice: 3200,
+      fullDaigWeight: "12 KG (Serves 35-40 Persons)",
+      halfDaigWeight: "6 KG (Serves 18-20 Persons)",
+      imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=700&q=80",
+      rating: 4.7,
+      badge: "🌱 Vegetarian Special",
+      deliveryNotice: "Order 3-4 hours in advance for fresh dum cooking",
+      isVisible: true,
+      includes: ["Sealed Hot Daig", "Zeera Raita Tub (2 Litre)", "Red Chili Pickle & Salad Pack"]
+    },
+    {
+      id: "daig_8",
+      name: "Degi Mutton Kunna / Shahi Nihari",
+      urduName: "دیگی مٹن کنا / شاہی نہاری",
+      description: "Traditional slow-braised Chinioti mutton cooked with rich aromatic spices, bone marrow essence, and silky smooth spiced gravy.",
+      category: "Haleem & Nihari",
+      fullDaigPrice: 17500,
+      halfDaigPrice: 9400,
+      fullDaigWeight: "12 KG (Serves 35-40 Persons)",
+      halfDaigWeight: "6 KG (Serves 18-20 Persons)",
+      imageUrl: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=700&q=80",
+      rating: 5.0,
+      badge: "⭐ Premium Chef Special",
+      deliveryNotice: "Order 3-4 hours in advance for fresh dum cooking",
+      isVisible: true,
+      includes: ["Thermal-sealed Hot Daig", "Nalli Marrow Topping Box", "Garnish Box & Ginger Julian"]
+    },
+    {
+      id: "daig_9",
+      name: "Shahi Badami Kheer / Firni Daig",
+      urduName: "شاہی بادامی کھیر / فرنی دیگ",
+      description: "Slow-simmered whole buffalo milk reduced for 6 hours with grounded basmati, pure saffron, crushed almonds, pistachios and condensed khoya.",
+      category: "Sweet & Desserts",
+      fullDaigPrice: 7200,
+      halfDaigPrice: 3900,
+      fullDaigWeight: "12 KG (Serves 35-40 Persons)",
+      halfDaigWeight: "6 KG (Serves 18-20 Persons)",
+      imageUrl: "https://images.unsplash.com/photo-1541832676-9b763b0239ab?w=700&q=80",
+      rating: 4.9,
+      badge: "🍮 Shahi Meetha",
+      deliveryNotice: "Order 3-4 hours in advance for fresh dum cooking",
+      isVisible: true,
+      includes: ["Chilled/Hot Sealed Daig", "Dry Fruit Flakes Pack", "Earthen Clay Bowl Set Available"]
+    }
+  ],
+
+  martProducts: [
+    {
+      id: "mart_1",
+      restaurantId: "foodcourt_mart",
+      name: "Fresh Farm Milk (1 Litre Tetra Pak)",
+      description: "100% pure pasteurized full cream milk with natural vitamins",
+      price: 290,
+      imageUrl: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=500&q=80",
+      category: "Dairy, Milk & Eggs",
+      rating: 4.9,
+      isPopular: true,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_2",
+      restaurantId: "foodcourt_mart",
+      name: "Farm Fresh Organic Eggs (Pack of 12)",
+      description: "Clean, graded, farm fresh large eggs packed with nutrition",
+      price: 340,
+      imageUrl: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=500&q=80",
+      category: "Dairy, Milk & Eggs",
+      rating: 4.8,
+      isPopular: true,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_3",
+      restaurantId: "foodcourt_mart",
+      name: "Coca-Cola Original Taste (1.5 Litre)",
+      description: "Chilled refreshing fizzy cold drink for meals & parties",
+      price: 180,
+      imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+      category: "Cold Drinks & Juices",
+      rating: 4.9,
+      isPopular: true,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_4",
+      restaurantId: "foodcourt_mart",
+      name: "Lays Classic Salted Chips (Large 65g)",
+      description: "Crispy golden potato chips with classic sea salt flavor",
+      price: 100,
+      imageUrl: "https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=500&q=80",
+      category: "Snacks & Biscuits",
+      rating: 4.7,
+      isPopular: true,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_5",
+      restaurantId: "foodcourt_mart",
+      name: "Dawn Premium Milky Bread (Large)",
+      description: "Freshly baked soft sliced sandwich bread made daily",
+      price: 160,
+      imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&q=80",
+      category: "Bakery & Bread",
+      rating: 4.8,
+      isPopular: true,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_6",
+      restaurantId: "foodcourt_mart",
+      name: "Knorr 2-Minute Chatpatta Noodles (Pack of 4)",
+      description: "Instant spicy noodles with authentic Pakistani spices",
+      price: 260,
+      imageUrl: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=500&q=80",
+      category: "Instant Noodles & Meals",
+      rating: 4.8,
+      isPopular: false,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_7",
+      restaurantId: "foodcourt_mart",
+      name: "Fresh Golden Bananas (1 Dozen)",
+      description: "Naturally sweet farm-ripened yellow bananas rich in potassium",
+      price: 220,
+      imageUrl: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=500&q=80",
+      category: "Fruits & Vegetables",
+      rating: 4.9,
+      isPopular: false,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_8",
+      restaurantId: "foodcourt_mart",
+      name: "Cadbury Dairy Milk Silk (150g Bar)",
+      description: "Rich, smooth & creamy milk chocolate indulgence",
+      price: 450,
+      imageUrl: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=500&q=80",
+      category: "Chocolates & Sweets",
+      rating: 4.9,
+      isPopular: true,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_9",
+      restaurantId: "foodcourt_mart",
+      name: "National Tomato Ketchup (800g Pouch)",
+      description: "Rich tomato ketchup made from 100% natural ripe tomatoes",
+      price: 350,
+      imageUrl: "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=500&q=80",
+      category: "Snacks & Biscuits",
+      rating: 4.7,
+      isPopular: false,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_10",
+      restaurantId: "foodcourt_mart",
+      name: "Tapal Danedar Black Tea (450g Pouch)",
+      description: "Strong, rich aroma blend for the perfect cup of chai",
+      price: 680,
+      imageUrl: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&q=80",
+      category: "Cold Drinks & Juices",
+      rating: 4.9,
+      isPopular: false,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_11",
+      restaurantId: "foodcourt_mart",
+      name: "Nestle Pure Life Mineral Water (1.5L x 6)",
+      description: "Clean purified drinking water 6-bottle bundle",
+      price: 420,
+      imageUrl: "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=500&q=80",
+      category: "Cold Drinks & Juices",
+      rating: 4.8,
+      isPopular: false,
+      inStock: true,
+      isVisible: true
+    },
+    {
+      id: "mart_12",
+      restaurantId: "foodcourt_mart",
+      name: "Red Delicious Apples (1 KG Premium)",
+      description: "Crisp, juicy and sweet mountain-picked red apples",
+      price: 360,
+      imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500&q=80",
+      category: "Fruits & Vegetables",
+      rating: 4.8,
+      isPopular: false,
+      inStock: true,
+      isVisible: true
+    }
+  ],
+
+  orders: [
+    {
+      id: "FC-9481",
+      restaurantName: "Dawat Khana Desi Heritage",
+      restaurantImage: "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80",
+      items: ["1x Shahi Qorma Special", "2x Roghani Naan", "1x Kheer"],
+      totalAmount: 1850.0,
+      originalAmount: 1850.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+      status: "Preparing",
+      prepTime: "20 mins",
+      customerName: "Hassan Raza",
+      customerPhone: "+92 300 8472910",
+      deliveryAddress: "House 42, Block H, Phase 5, DHA, Lahore",
+      isDaigBooking: false,
+      occasion: null,
+      notes: "Keep spices medium and bring fresh hot naans please."
+    },
+    {
+      id: "FC-8924",
+      restaurantName: "Shahi Pakwan Center (Deg Booking)",
+      restaurantImage: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80",
+      items: ["1x Full Shahi Mutton Daig (12 KG)", "4L Zeera Raita", "Fresh Garden Salad"],
+      totalAmount: 26500.0,
+      originalAmount: 26500.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 50 * 60 * 1000).toISOString(),
+      status: "Accepted",
+      prepTime: "2 hours",
+      customerName: "Chaudhry Tariq",
+      customerPhone: "+92 301 4455667",
+      deliveryAddress: "Bungalow 18-C, Model Town, Lahore",
+      isDaigBooking: true,
+      occasion: "Family Dawat & Khatam",
+      notes: "Deliver sealed hot with extra salad trays."
+    },
+    {
+      id: "FC-8419",
+      restaurantName: "Bannu Beef Pulao & Nalli Nihari",
+      restaurantImage: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=300&q=80",
+      items: ["1x Special Bannu Beef Pulao (Double Nalli)", "2x Shami Kabab"],
+      totalAmount: 1450.0,
+      originalAmount: 1450.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
+      status: "On the Way",
+      prepTime: "Rider on route",
+      riderName: "Captain Ali Raza",
+      riderPhone: "+92 302 9988776",
+      customerName: "Usman Ghani",
+      customerPhone: "+92 321 8877665",
+      deliveryAddress: "Tower B, 4th Floor, Main Blvd, Gulberg III, Lahore",
+      isDaigBooking: false,
+      occasion: null
+    },
+    {
+      id: "FC-8312",
+      restaurantName: "FoodCourt Central Kitchen",
+      restaurantImage: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=300&q=80",
+      items: ["2x Degi Mutton Biryani (Single Platter)", "1x Mint Margarita"],
+      totalAmount: 2100.0,
+      originalAmount: 2100.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+      status: "Accepted",
+      prepTime: "15 mins",
+      customerName: "Dr. Ayesha Malik",
+      customerPhone: "+92 333 4455112",
+      deliveryAddress: "Doctors Hostel, CMH Cantt, Lahore",
+      isDaigBooking: false
+    },
+    {
+      id: "FC-8205",
+      restaurantName: "Waris Nihari & Sheermal House",
+      restaurantImage: "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80",
+      items: ["1x Maghaz Nalli Nihari", "3x Kulcha Naan"],
+      totalAmount: 1350.0,
+      originalAmount: 1350.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+      status: "Preparing",
+      prepTime: "18 mins",
+      customerName: "Bilal Farooq",
+      customerPhone: "+92 300 9988112",
+      deliveryAddress: "Plaza 14, Commercial Area, Cavalry Ground, Lahore",
+      isDaigBooking: false
+    },
+    {
+      id: "FC-8110",
+      restaurantName: "Karachi Student Biryani Center",
+      restaurantImage: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80",
+      items: ["2x Double Chicken Biryani", "2x Cold Drink (500ml)"],
+      totalAmount: 1100.0,
+      originalAmount: 1100.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
+      status: "On the Way",
+      prepTime: "5 mins away",
+      riderName: "Captain Ali Raza",
+      riderPhone: "+92 302 9988776",
+      customerName: "Hamza Sheikh",
+      customerPhone: "+92 304 5566778",
+      deliveryAddress: "Flat 302, Pace Woodlands, Bedian Road, Lahore",
+      isDaigBooking: false
+    },
+    {
+      id: "FC-8055",
+      restaurantName: "Shahi Pakwan Center (Deg Booking)",
+      restaurantImage: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80",
+      items: ["1x Half Beef Degi Yakhni Pulao (6 KG)", "2L Podina Raita"],
+      totalAmount: 7400.0,
+      originalAmount: 7400.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 80 * 60 * 1000).toISOString(),
+      status: "Preparing",
+      prepTime: "45 mins",
+      customerName: "Malik Sohail",
+      customerPhone: "+92 322 1122334",
+      deliveryAddress: "House 95, Sector Y, Phase 3, DHA, Lahore",
+      isDaigBooking: true,
+      occasion: "Mehndi Function"
+    },
+    {
+      id: "FC-7910",
+      restaurantName: "Butt Karahi & Shinwari Dera",
+      restaurantImage: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=300&q=80",
+      items: ["1x Desi Ghee Mutton Shinwari (1 KG)", "4x Roghani Naan", "1x Zeera Raita"],
+      totalAmount: 3200.0,
+      originalAmount: 3200.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "Delivered",
+      prepTime: "Completed",
+      customerName: "Hassan Raza",
+      customerPhone: "+92 300 8472910",
+      deliveryAddress: "House 42, Block H, Phase 5, DHA, Lahore",
+      isDaigBooking: false,
+      rating: 5
+    },
+    {
+      id: "FC-7820",
+      restaurantName: "Bundu Khan Grill & BBQ",
+      restaurantImage: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=300&q=80",
+      items: ["1x Chicken Reshmi Kabab (4 Pcs)", "1x Malai Boti", "2x Paratha"],
+      totalAmount: 1680.0,
+      originalAmount: 1680.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "Delivered",
+      prepTime: "Completed",
+      customerName: "Zainab Bibi",
+      customerPhone: "+92 305 7788990",
+      deliveryAddress: "House 12, Street 4, Gulshan-e-Ravi, Lahore",
+      isDaigBooking: false,
+      rating: 5
+    },
+    {
+      id: "FC-7750",
+      restaurantName: "Gourmet Sweets & Bakers",
+      restaurantImage: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=300&q=80",
+      items: ["1 KG Shahi Motichoor Laddu", "1x Pistachio Kulfi Tub"],
+      totalAmount: 1250.0,
+      originalAmount: 1250.0,
+      discountInfo: null,
+      orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "Delivered",
+      prepTime: "Completed",
+      customerName: "Khurram Shehzad",
+      customerPhone: "+92 331 6677889",
+      deliveryAddress: "House 7, Eden City, Airport Road, Lahore",
+      isDaigBooking: false,
+      rating: 4
+    }
+  ],
+
+  users: [
+    {
+      id: "usr_admin_1",
+      name: "Master Admin",
+      email: "admin@foodcourt.pk",
+      passwordHash: "$2a$10$wEkgzVw9L.8gK3M6vF4Y4eD6ZsqyZ2e541bC1rJ7Y7Hl.6q6wKkeS", // admin123
+      phone: "+92 300 8472910",
+      city: "Lahore",
+      role: "admin",
+      status: "active",
+      membershipTier: "Super Administrator 👑",
+      walletBalance: 99999.0,
+      loyaltyCoins: 9999,
+      createdAt: "2024-01-01T00:00:00.000Z"
+    },
+    {
+      id: "usr_admin_2",
+      name: "Admin",
+      email: "admin@gmail.com",
+      passwordHash: "$2a$10$wEkgzVw9L.8gK3M6vF4Y4eD6ZsqyZ2e541bC1rJ7Y7Hl.6q6wKkeS", // admin123
+      phone: "+92 300 0000000",
+      city: "Lahore",
+      role: "admin",
+      status: "active",
+      membershipTier: "Admin Manager 🛠️",
+      walletBalance: 50000.0,
+      loyaltyCoins: 5000,
+      createdAt: "2024-01-01T00:00:00.000Z"
+    },
+    {
+      id: "usr_client_1",
+      name: "Hassan Raza",
+      email: "hassan.raza@foodcourt.pk",
+      passwordHash: "$2a$10$wEkgzVw9L.8gK3M6vF4Y4eD6ZsqyZ2e541bC1rJ7Y7Hl.6q6wKkeS", // admin123 / 123456
+      phone: "+92 300 8472910",
+      city: "Lahore",
+      role: "client",
+      status: "active",
+      membershipTier: "FoodCourt Member ⭐",
+      walletBalance: 2450.0,
+      loyaltyCoins: 580,
+      createdAt: "2024-02-15T12:00:00.000Z"
+    },
+    {
+      id: "usr_rider_1",
+      name: "Captain Ali Raza",
+      email: "rider.ali@foodcourt.pk",
+      passwordHash: "$2a$10$wEkgzVw9L.8gK3M6vF4Y4eD6ZsqyZ2e541bC1rJ7Y7Hl.6q6wKkeS", // 123456
+      phone: "+92 302 9988776",
+      city: "Lahore (Gulberg & DHA)",
+      role: "rider",
+      status: "active",
+      vehicle: "Honda CG 125 (LED-4921)",
+      cnic: "35202-8492019-1",
+      isOnline: true,
+      membershipTier: "Delivery Captain 🛵",
+      walletBalance: 4200.0,
+      loyaltyCoins: 210,
+      createdAt: "2024-03-01T10:00:00.000Z"
+    },
+    {
+      id: "usr_client_2",
+      name: "Chaudhry Tariq",
+      email: "tariq.chaudhry@gmail.com",
+      passwordHash: "$2a$10$wEkgzVw9L.8gK3M6vF4Y4eD6ZsqyZ2e541bC1rJ7Y7Hl.6q6wKkeS",
+      phone: "+92 301 4455667",
+      city: "Lahore",
+      role: "client",
+      status: "active",
+      membershipTier: "VIP Dawat Member 🏆",
+      walletBalance: 12000.0,
+      loyaltyCoins: 1420,
+      createdAt: "2024-03-10T14:30:00.000Z"
+    },
+    {
+      id: "usr_client_3",
+      name: "Dr. Ayesha Malik",
+      email: "ayesha.malik@cmh.edu.pk",
+      passwordHash: "$2a$10$wEkgzVw9L.8gK3M6vF4Y4eD6ZsqyZ2e541bC1rJ7Y7Hl.6q6wKkeS",
+      phone: "+92 333 4455112",
+      city: "Lahore",
+      role: "client",
+      status: "active",
+      membershipTier: "FoodCourt Pro ⭐",
+      walletBalance: 3100.0,
+      loyaltyCoins: 640,
+      createdAt: "2024-03-12T16:20:00.000Z"
+    }
+  ],
+
+  media: [
+    {
+      id: "med_1",
+      name: "Bannu Pulao Banner",
+      url: "https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80",
+      type: "image",
+      category: "dishes",
+      uploadedAt: "2024-01-10T08:00:00.000Z"
+    },
+    {
+      id: "med_2",
+      name: "Special Dum Degi Biryani",
+      url: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80",
+      type: "image",
+      category: "dishes",
+      uploadedAt: "2024-01-10T08:00:00.000Z"
+    },
+    {
+      id: "med_3",
+      name: "Shinwari Mutton Karahi",
+      url: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=700&q=80",
+      type: "image",
+      category: "dishes",
+      uploadedAt: "2024-01-10T08:00:00.000Z"
+    },
+    {
+      id: "med_4",
+      name: "Shahi Mutanjan Zarda",
+      url: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=700&q=80",
+      type: "image",
+      category: "desserts",
+      uploadedAt: "2024-01-10T08:00:00.000Z"
+    },
+    {
+      id: "med_5",
+      name: "Head Office Lahore Hub",
+      url: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=700&q=80",
+      type: "image",
+      category: "facilities",
+      uploadedAt: "2024-01-10T08:00:00.000Z"
+    }
+  ]
+};
+
+const firebase = require('./firebase');
+
+// Database state in memory
+let db = null;
+
+function loadDatabase() {
+  if (fs.existsSync(DB_FILE)) {
+    try {
+      const raw = fs.readFileSync(DB_FILE, 'utf8');
+      db = JSON.parse(raw);
+    } catch (err) {
+      console.error('Error loading db.json, resetting to seed defaults:', err);
+      db = JSON.parse(JSON.stringify(defaultData));
+      saveDatabase();
+    }
+  } else {
+    db = JSON.parse(JSON.stringify(defaultData));
+    saveDatabase();
+  }
+
+  // Sync with Firestore if connected
+  if (firebase.isFirebaseConnected()) {
+    firebase.loadFromFirestore().then(remoteData => {
+      if (remoteData && Object.keys(remoteData).length > 0) {
+        db = { ...db, ...remoteData };
+        console.log('🔥 [Firebase] Synchronized live data from Cloud Firestore.');
+      } else {
+        // If Firestore is empty, seed it with initial default dataset
+        console.log('🔥 [Firebase] Firestore empty or new. Pushing initial dataset to Cloud Firestore...');
+        firebase.syncAllToFirestore(db);
+      }
+    }).catch(err => {
+      console.error('[Firebase] Firestore remote load error:', err.message);
+    });
+  }
+}
+
+function saveDatabase() {
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Failed to save db.json:', err);
+  }
+
+  // Persist asynchronously to Cloud Firestore
+  if (firebase.isFirebaseConnected()) {
+    firebase.syncAllToFirestore(db).catch(err => {
+      console.error('Failed to sync to Cloud Firestore:', err.message);
+    });
+  }
+}
+
+// Initial load
+loadDatabase();
+
+
+// Auto-evaluate deals schedule
+function evaluateDealStatuses() {
+  if (!db || !db.deals) return;
+  const now = new Date();
+  const currentDateStr = now.toISOString().split('T')[0];
+  const currentHours = String(now.getHours()).padStart(2, '0');
+  const currentMins = String(now.getMinutes()).padStart(2, '0');
+  const currentTimeStr = `${currentHours}:${currentMins}`;
+
+  let changed = false;
+  db.deals.forEach(deal => {
+    let active = true;
+    if (deal.isVisible === false) {
+      active = false;
+    } else {
+      if (deal.startDate && deal.startDate > currentDateStr) active = false;
+      if (deal.endDate && deal.endDate < currentDateStr) active = false;
+      if (deal.startDate === currentDateStr && deal.startTime && deal.startTime > currentTimeStr) active = false;
+      if (deal.endDate === currentDateStr && deal.endTime && deal.endTime < currentTimeStr) active = false;
+    }
+
+    const computedStatus = active ? 'active' : 'expired';
+    if (deal.status !== computedStatus) {
+      deal.status = computedStatus;
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    saveDatabase();
+  }
+}
+
+// Run schedule evaluator periodically
+setInterval(evaluateDealStatuses, 60000);
+evaluateDealStatuses();
+
+module.exports = {
+  getDb: () => db,
+  saveDb: saveDatabase,
+  evaluateDeals: evaluateDealStatuses
+};
