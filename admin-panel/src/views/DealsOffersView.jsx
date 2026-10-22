@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Tag, Plus, Edit2, Trash2, Eye, EyeOff, Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { api } from '../api';
+import ImageUploadField from '../components/ImageUploadField';
 
 export default function DealsOffersView({ deals, onRefresh, showToast }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -383,16 +384,13 @@ export default function DealsOffersView({ deals, onRefresh, showToast }) {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Banner Image URL</label>
-                  <input 
-                    type="url" 
-                    className="form-input" 
-                    value={formData.imageUrl}
-                    onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://images.unsplash.com/photo-..."
-                  />
-                </div>
+                <ImageUploadField 
+                  label="Deal Banner / Voucher Image"
+                  value={formData.imageUrl}
+                  onChange={url => setFormData({ ...formData, imageUrl: url })}
+                  placeholder="https://... or upload deal image directly from PC"
+                  category="deals"
+                />
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
                   <label className="switch">

@@ -11,6 +11,20 @@ router.get('/', (req, res) => {
   res.json({ success: true, count: list.length, data: list });
 });
 
+// GET /api/daig-items/catering-packages
+router.get('/catering-packages', (req, res) => {
+  const db = getDb();
+  const list = db.cateringPackages || [];
+  res.json({ success: true, count: list.length, data: list });
+});
+
+// GET /api/daig-items/pakwan-centers
+router.get('/pakwan-centers', (req, res) => {
+  const db = getDb();
+  const list = db.pakwanCenters || [];
+  res.json({ success: true, count: list.length, data: list });
+});
+
 // GET /api/daig-items/:id
 router.get('/:id', (req, res) => {
   const db = getDb();

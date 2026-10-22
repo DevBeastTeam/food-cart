@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Image, Plus, Edit2, Trash2, Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-react';
 import { api } from '../api';
+import ImageUploadField from '../components/ImageUploadField';
 
 export default function BannersView({ banners, onRefresh, showToast }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -295,16 +296,13 @@ export default function BannersView({ banners, onRefresh, showToast }) {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Background Dish Image URL</label>
-                  <input 
-                    type="url" 
-                    className="form-input" 
-                    value={formData.imageUrl}
-                    onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://images.unsplash.com/photo-..."
-                  />
-                </div>
+                <ImageUploadField 
+                  label="Banner Promotional Image"
+                  value={formData.imageUrl}
+                  onChange={url => setFormData({ ...formData, imageUrl: url })}
+                  placeholder="https://... or upload banner image directly from PC"
+                  category="banners"
+                />
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
                   <label className="switch">

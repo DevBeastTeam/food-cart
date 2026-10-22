@@ -277,7 +277,7 @@
       "rating": 4.9,
       "reviewCount": 1920,
       "deliveryTime": "20-30 min",
-      "deliveryFee": 49,
+      "deliveryFee": 59,
       "minOrder": 300,
       "distance": "1.8 km",
       "address": "Shop 12, Block K, Gulberg III, Lahore",
@@ -300,7 +300,7 @@
       "rating": 4.9,
       "reviewCount": 1450,
       "deliveryTime": "25-40 min",
-      "deliveryFee": 0,
+      "deliveryFee": 100,
       "minOrder": 400,
       "distance": "2.4 km",
       "address": "Main Boulevard, Gulberg, Lahore",
@@ -1435,6 +1435,176 @@
       "type": "image",
       "category": "facilities",
       "uploadedAt": "2024-01-10T08:00:00.000Z"
+    }
+  ],
+  "pakwanCenters": [
+    {
+      "id": "pakwan_shahi",
+      "name": "Shahi Pakwan Center & Deg Masters",
+      "urduName": "شاہی پکوان سینٹر اینڈ دیگ ماسٹرز",
+      "description": "Pioneers of coal-dum Shahi Deg cooking for weddings, dawats, and community feasts since 1992.",
+      "address": "Main Boulevard, Gulberg III, Lahore",
+      "phone": "+92 300 8472910",
+      "rating": 4.9,
+      "reviewCount": 2480,
+      "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80",
+      "experienceYears": "32+ Years Experience",
+      "minAdvanceNotice": "3-4 Hours Advance Notice",
+      "specialties": [
+        "Chicken & Beef Degi Biryani",
+        "Mutton Yakhni Pulao Deg",
+        "Shahi Wedding Qorma",
+        "Mutanjan Zarda"
+      ],
+      "city": "Lahore"
+    },
+    {
+      "id": "pakwan_madina",
+      "name": "Al-Madina Traditional Pakwan Center",
+      "urduName": "المدینہ ٹریڈیشنل پکوان سینٹر",
+      "description": "Specialists in Niyaz, Milad, Khatam, and bulk event cauldrons sealed with wheat dough.",
+      "address": "F-7 Markaz, Jinnah Super, Islamabad",
+      "phone": "+92 301 5551234",
+      "rating": 4.8,
+      "reviewCount": 1650,
+      "imageUrl": "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80",
+      "experienceYears": "22+ Years Experience",
+      "minAdvanceNotice": "4 Hours Advance Notice",
+      "specialties": [
+        "Beef Haleem Deg",
+        "Shahi Lahori Chana Pulao",
+        "Badami Kheer Deg",
+        "Mutton Kunna"
+      ],
+      "city": "Islamabad"
+    },
+    {
+      "id": "pakwan_karachi",
+      "name": "Karachi Shahi Dawat Pakwan Center",
+      "urduName": "کراچی شاہی دعوت پکوان سینٹر",
+      "description": "Authentic Karachi spicy potli garam masala dum biryani and catering packages for grand ceremonies.",
+      "address": "Sector Y, Phase 3, DHA, Lahore",
+      "phone": "+92 302 9988776",
+      "rating": 4.9,
+      "reviewCount": 1980,
+      "imageUrl": "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&q=80",
+      "experienceYears": "28+ Years Experience",
+      "minAdvanceNotice": "3 Hours Advance Notice",
+      "specialties": [
+        "Double Chicken Degi Biryani",
+        "Beef Nalli Yakhni Pulao",
+        "Chicken Degi Karahi",
+        "Firni Bowls"
+      ],
+      "city": "Lahore & Rawalpindi"
+    }
+  ],
+  "cateringPackages": [
+    {
+      "id": "pkg_wedding",
+      "name": "Royal Wedding & Walima Grand Feast",
+      "urduName": "شاہی شادی و ولیمہ گرینڈ دعوت پیکیج",
+      "occasion": "Wedding / Walima",
+      "description": "Complete royal buffet package with Dum Degi Biryani, Mutton Qorma, BBQ, Roghani Naan, and desserts for grand celebrations.",
+      "pricePerHead": 1650,
+      "minGuests": 100,
+      "imageUrl": "https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80",
+      "menuItems": [
+        "Shahi Chicken / Beef Degi Biryani",
+        "Shahi Mutton Degi Qorma (Pure Desi Ghee)",
+        "Smoky Chicken Malai Seekh Kabab (BBQ)",
+        "Tandoori Roghani Naan & Sesame Kulcha",
+        "Degi Shahi Mutanjan / Zafrani Kheer",
+        "Zeera Mint Raita & Fresh Kachumber Salad",
+        "Chilled Soft Drinks & Mineral Water"
+      ],
+      "includes": [
+        "Clay-sealed Hot Degs delivered to Hall",
+        "Buffet Chafing Dishes & Food Warmers Support",
+        "Professional Catering Supervision",
+        "Complimentary Raita & Salad Tubs"
+      ],
+      "badge": "👑 Royal Wedding Choice",
+      "centerId": "pakwan_shahi",
+      "centerName": "Shahi Pakwan Center"
+    },
+    {
+      "id": "pkg_dawat",
+      "name": "Family Dawat & Engagement Royal Feast",
+      "urduName": "فیملی دعوت و منگنی شاہی پیکیج",
+      "occasion": "Dawat / Family Gathering",
+      "description": "Curated home and banquet feast with Beef Yakhni Pulao Deg, Shinwari Karahi, Chapli Kababs, and Desserts.",
+      "pricePerHead": 1350,
+      "minGuests": 50,
+      "imageUrl": "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80",
+      "menuItems": [
+        "Special Beef Degi Yakhni Pulao (Aged Basmati)",
+        "Shinwari Chicken Karahi (Desi Makhan)",
+        "Peshawari Chapli Kabab (Pan-fried)",
+        "Fresh Tandoor Naan & Roti",
+        "Shahi Badami Kheer / Firni",
+        "Fresh Mint Raita & Red Onion Salad",
+        "Cold Drinks (1.5L Bottles)"
+      ],
+      "includes": [
+        "Hot Insulated Degs Delivered on Time",
+        "Free Raita Tubs & Salad Trays",
+        "Disposable Serving Ladles & Spoons"
+      ],
+      "badge": "⭐ Dawat Special",
+      "centerId": "pakwan_shahi",
+      "centerName": "Shahi Pakwan Center"
+    },
+    {
+      "id": "pkg_niyaz",
+      "name": "Milad, Niyaz & Khatam Mubarak Feast",
+      "urduName": "میلاد، نیاز و ختم مبارک پیکیج",
+      "occasion": "Niyaz / Milad",
+      "description": "Blessing-filled traditional community cauldrons of Chicken Biryani / Pulao Deg with celebratory Shahi Mutanjan Zarda.",
+      "pricePerHead": 950,
+      "minGuests": 50,
+      "imageUrl": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=700&q=80",
+      "menuItems": [
+        "Shahi Chicken Degi Biryani OR Chana Pulao Deg",
+        "Degi Shahi Mutanjan / Saffron Zarda",
+        "Special Zeera Raita Tubs",
+        "Disposable Dawat Meal Boxes (for Distribution)",
+        "Mineral Water Bottles"
+      ],
+      "includes": [
+        "Pious and Hygienic Preparation with Wudu",
+        "Airtight Atta-Sealed Cauldrons",
+        "Ready-to-Distribute Food Packing Boxes"
+      ],
+      "badge": "🌙 Niyaz Mubarak",
+      "centerId": "pakwan_madina",
+      "centerName": "Al-Madina Traditional Pakwan Center"
+    },
+    {
+      "id": "pkg_birthday",
+      "name": "Birthday & Party Celebration Feast",
+      "urduName": "برتھ ڈے و پارٹی فیسٹ پیکیج",
+      "occasion": "Birthday / Event",
+      "description": "Exciting party catering with Chicken Biryani Deg, Charcoal BBQ Boti, Crispy Parathas, Gulab Jamun, and Drinks.",
+      "pricePerHead": 1150,
+      "minGuests": 30,
+      "imageUrl": "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=700&q=80",
+      "menuItems": [
+        "Karachi Double Chicken Dum Biryani Deg",
+        "Smoky Charcoal Chicken Boti BBQ",
+        "Tandoori Sesame Naan & Roghani Parathas",
+        "Hot Gulab Jamun with Creamy Rabri",
+        "Zeera Mint Raita & Fresh Salad",
+        "Assorted Chilled Cold Drinks"
+      ],
+      "includes": [
+        "Hot Sealed Degs Delivered to Venue",
+        "Complete Condiments & Sauces",
+        "Flexible Timing Adjustments"
+      ],
+      "badge": "🎉 Party Favourite",
+      "centerId": "pakwan_karachi",
+      "centerName": "Karachi Shahi Dawat Pakwan Center"
     }
   ]
 }

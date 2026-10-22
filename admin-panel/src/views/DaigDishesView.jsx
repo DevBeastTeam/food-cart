@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Soup, Plus, Edit2, Trash2, Star, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { api } from '../api';
+import ImageUploadField from '../components/ImageUploadField';
 
 export default function DaigDishesView({ daigDishes, onRefresh, showToast }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -354,16 +355,13 @@ export default function DaigDishesView({ daigDishes, onRefresh, showToast }) {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Image URL</label>
-                  <input 
-                    type="url" 
-                    className="form-input" 
-                    value={formData.imageUrl}
-                    onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://images.unsplash.com/photo-..."
-                  />
-                </div>
+                <ImageUploadField 
+                  label="Daig Photograph / Display Image"
+                  value={formData.imageUrl}
+                  onChange={url => setFormData({ ...formData, imageUrl: url })}
+                  placeholder="https://... or upload photo directly from PC"
+                  category="daigs"
+                />
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
                   <label className="switch">

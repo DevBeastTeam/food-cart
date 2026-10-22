@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Compass, Plus, Edit2, Trash2, Eye, EyeOff, MoveUp, MoveDown, Layers } from 'lucide-react';
 import { api } from '../api';
+import ImageUploadField from '../components/ImageUploadField';
 
 export default function NavigationMenusView({ navigation, categories, onRefresh, showToast }) {
   const [navModalOpen, setNavModalOpen] = useState(false);
@@ -398,16 +399,13 @@ export default function NavigationMenusView({ navigation, categories, onRefresh,
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Image URL</label>
-                  <input 
-                    type="url" 
-                    className="form-input" 
-                    value={catForm.image}
-                    onChange={e => setCatForm({ ...catForm, image: e.target.value })}
-                    placeholder="https://images.unsplash.com/photo-..."
-                  />
-                </div>
+                <ImageUploadField 
+                  label="Category Photo / Image"
+                  value={catForm.image}
+                  onChange={url => setCatForm({ ...catForm, image: url })}
+                  placeholder="https://... or upload category image directly from PC"
+                  category="categories"
+                />
               </div>
 
               <div className="modal-footer">

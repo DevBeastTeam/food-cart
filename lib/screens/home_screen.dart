@@ -8,6 +8,7 @@ import '../state/cart_state.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/category_chip.dart';
+import '../widgets/custom_image.dart';
 import '../widgets/daig_card.dart';
 import '../widgets/promo_banner.dart';
 import '../widgets/restaurant_card.dart';
@@ -16,7 +17,9 @@ import 'admin_dashboard_screen.dart';
 import 'auth_screen.dart';
 import 'cart_screen.dart';
 import 'orders_screen.dart';
+import 'pakwan_centers_screen.dart';
 import 'restaurant_details_screen.dart';
+import 'restaurants_screen.dart';
 import 'rider_dashboard_screen.dart';
 import 'user_dashboard_screen.dart';
 
@@ -562,6 +565,11 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_homeSearchQuery.trim().isNotEmpty) ...[
             _buildSearchResultsSection(),
           ] else ...[
+            // 3. TWO PRIMARY MAIN FEATURE CARDS (Restaurants & Pakwan Centers)
+            _buildMainFeatureSelectionCards(),
+
+            const SizedBox(height: 16),
+
             if (appContent['showPromoBanner'] != false) ...[
               PromoBanner(
                 onOrderNow: () {
@@ -645,18 +653,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 20),
 
-            // 6. Category Menu Dishes (Shahi Daig Design)
-            _buildCategoryDishesSection(),
-
-            const SizedBox(height: 20),
-
-            // 7. Shahi Daig Catering Spotlight (Pakwan Center)
+            // 6. Shahi Daig Catering Spotlight (Pakwan Center)
             _buildDaigSpotlightCard(),
 
             const SizedBox(height: 22),
 
-            // 8. Top Restaurants Section
+            // 7. Top Restaurants Section
             _buildRestaurantsSection(),
+
+            const SizedBox(height: 24),
+
+            // 8. Category Menu Dishes (Shahi Daig Design)
+            _buildCategoryDishesSection(),
 
             const SizedBox(height: 20),
           ],
@@ -1010,6 +1018,277 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // ===========================================================================
+  // 2 MAIN FEATURE SELECTION CARDS (RESTAURANTS & PAKWAN CENTERS)
+  // ===========================================================================
+  Widget _buildMainFeatureSelectionCards() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth > 650;
+        final cardHeight = isDesktop ? 165.0 : 152.0;
+
+        return Row(
+          children: [
+            // 1. RESTAURANTS CARD
+            Expanded(
+              child: _buildFeatureCard(
+                title: 'Restaurants',
+                subtitle: 'Fast Food • Pizza • Burgers',
+                badgeText: 'RESTAURANTS',
+                badgeIcon: Icons.local_fire_department_rounded,
+                accentColor: const Color(0xFFFF4B3A),
+                glowColor: const Color(0xFFFF4B3A),
+                borderColor: const Color(0xFFFF4B3A).withAlpha(120),
+                icon: Icons.storefront_rounded,
+                imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80',
+                buttonText: 'Order Food',
+                height: cardHeight,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => RestaurantsScreen(cartState: widget.cartState),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // 2. PAKWAN CENTERS CARD
+            Expanded(
+              child: _buildFeatureCard(
+                title: 'Pakwan Centers',
+                subtitle: 'Shahi Degs • Catering',
+                badgeText: 'PAKWAN & DEGS',
+                badgeIcon: Icons.workspace_premium_rounded,
+                accentColor: const Color(0xFFD97706),
+                glowColor: const Color(0xFFF59E0B),
+                borderColor: const Color(0xFFF59E0B).withAlpha(140),
+                icon: Icons.soup_kitchen_rounded,
+                imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&q=80',
+                buttonText: 'Book Daig',
+                height: cardHeight,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => PakwanCentersScreen(cartState: widget.cartState),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFeatureCard({
+    required String title,
+    required String subtitle,
+    required String badgeText,
+    required IconData badgeIcon,
+    required Color accentColor,
+    required Color glowColor,
+    required Color borderColor,
+    required IconData icon,
+    required String imageUrl,
+    required String buttonText,
+    required double height,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: glowColor.withAlpha(50),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+            BoxShadow(
+              color: Colors.black.withAlpha(15),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18.5),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Background appetizing image (clearly visible)
+              CustomImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.cover,
+                fallbackIcon: icon,
+              ),
+
+              // Multi-stop clean gradient: clear on top for delicious imagery, dark at bottom for contrast
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withAlpha(20),
+                      Colors.black.withAlpha(60),
+                      Colors.black.withAlpha(195),
+                      Colors.black.withAlpha(235),
+                    ],
+                    stops: const [0.0, 0.40, 0.72, 1.0],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+
+              // Content overlay
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Top Row: White Frosted Circle Icon + Glowing Badge
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6.5),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withAlpha(45),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: Icon(icon, color: accentColor, size: 17),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: accentColor,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accentColor.withAlpha(110),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(badgeIcon, color: Colors.white, size: 10),
+                              const SizedBox(width: 3),
+                              Text(
+                                badgeText,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Bottom info: Title, Subtitle, CTA Button
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.3,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black87,
+                                blurRadius: 6,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withAlpha(230),
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            shadows: const [
+                              Shadow(
+                                color: Colors.black87,
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: accentColor,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accentColor.withAlpha(90),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                buttonText,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                color: Colors.white,
+                                size: 11,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Utensils, Plus, Edit2, Trash2, Star, Eye, EyeOff, Flame, Search } from 'lucide-react';
 import { api } from '../api';
+import ImageUploadField from '../components/ImageUploadField';
 
 export default function MenuItemsView({ foodItems, restaurants, categories, onRefresh, showToast }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -378,16 +379,13 @@ export default function MenuItemsView({ foodItems, restaurants, categories, onRe
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Image URL</label>
-                  <input 
-                    type="url" 
-                    className="form-input" 
-                    value={formData.imageUrl}
-                    onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://images.unsplash.com/photo-..."
-                  />
-                </div>
+                <ImageUploadField 
+                  label="Dish Photo / Image"
+                  value={formData.imageUrl}
+                  onChange={url => setFormData({ ...formData, imageUrl: url })}
+                  placeholder="https://... or upload picture directly from PC"
+                  category="dishes"
+                />
 
                 <div style={{ display: 'flex', gap: 20, marginTop: 12, flexWrap: 'wrap' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>

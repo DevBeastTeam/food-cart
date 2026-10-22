@@ -20,9 +20,10 @@ class DaigCard extends StatefulWidget {
 
 class _DaigCardState extends State<DaigCard> {
   void _openBookingSheet() {
-    bool isFullDaig = true;
+    String selectedSize = 'large'; // 'small', 'medium', 'large'
     int degQuantity = 1;
     String selectedOccasion = 'Dawat / Gathering';
+    String selectedSpiceLevel = 'Normal Dum';
     final notesController = TextEditingController();
 
     showModalBottomSheet(
@@ -32,17 +33,29 @@ class _DaigCardState extends State<DaigCard> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (modalContext, setModalState) {
-            final unitPrice = isFullDaig
-                ? widget.daig.fullDaigPrice
-                : widget.daig.halfDaigPrice;
+            final double unitPrice;
+            final String sizeLabel;
+            final String servingLabel;
+
+            if (selectedSize == 'small') {
+              unitPrice = widget.daig.halfDaigPrice;
+              sizeLabel = 'Small (6 KG)';
+              servingLabel = 'Serves 15–20 Persons';
+            } else if (selectedSize == 'medium') {
+              unitPrice = widget.daig.mediumDaigPrice;
+              sizeLabel = 'Medium (10 KG)';
+              servingLabel = 'Serves 25–30 Persons';
+            } else {
+              unitPrice = widget.daig.fullDaigPrice;
+              sizeLabel = 'Large (12–14 KG)';
+              servingLabel = 'Serves 35–45 Persons';
+            }
+
             final totalPrice = unitPrice * degQuantity;
-            final sizeLabel = isFullDaig
-                ? widget.daig.fullDaigWeight
-                : widget.daig.halfDaigWeight;
 
             return Container(
               margin: EdgeInsets.only(
-                top: MediaQuery.of(ctx).size.height * 0.1,
+                top: MediaQuery.of(ctx).size.height * 0.08,
               ),
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -86,14 +99,14 @@ class _DaigCardState extends State<DaigCard> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: AppTheme.primaryLight,
+                                        color: const Color(0xFF2E1065).withAlpha(20),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: const Text(
-                                        '🍲 DEGI BOOKING',
+                                        '🍲 AUTHENTIC DEGI ORDER',
                                         style: TextStyle(
-                                          color: AppTheme.primary,
-                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF4C1D95),
+                                          fontWeight: FontWeight.w900,
                                           fontSize: 10,
                                           letterSpacing: 0.5,
                                         ),
@@ -138,7 +151,7 @@ class _DaigCardState extends State<DaigCard> {
                         ],
                       ),
 
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 12),
 
                       // Description
                       Text(
@@ -152,7 +165,7 @@ class _DaigCardState extends State<DaigCard> {
 
                       // STEP 1: SELECT DEGI SIZE
                       const Text(
-                        '1. Choose Daig Size (دیگ کا سائز منتخب کریں)',
+                        '1. Choose Daig Size & Capacity (دیگ کا سائز)',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
@@ -161,24 +174,35 @@ class _DaigCardState extends State<DaigCard> {
                       ),
                       const SizedBox(height: 10),
 
-                      // Full Daig Option
+                      // Large Daig Option
                       _buildSizeOption(
-                        title: '1 Full Daig (12 KG Basmati / Meat)',
-                        serving: 'Serves 35-40 Persons • Large Gathering / Event',
+                        title: 'Large / Full Daig (12–14 KG Basmati & Meat)',
+                        serving: 'Serves 35–45 Persons • Grand Wedding / Feast',
                         price: widget.daig.fullDaigPrice,
-                        isSelected: isFullDaig,
-                        onTap: () => setModalState(() => isFullDaig = true),
+                        isSelected: selectedSize == 'large',
+                        onTap: () => setModalState(() => selectedSize = 'large'),
                       ),
 
                       const SizedBox(height: 8),
 
-                      // Half Daig Option
+                      // Medium Daig Option
                       _buildSizeOption(
-                        title: 'Half Daig (6 KG Basmati / Meat)',
-                        serving: 'Serves 18-20 Persons • Family Dawat / Get-together',
+                        title: 'Medium / Standard Daig (10 KG Basmati & Meat)',
+                        serving: 'Serves 25–30 Persons • Family Dawat / Event',
+                        price: widget.daig.mediumDaigPrice,
+                        isSelected: selectedSize == 'medium',
+                        onTap: () => setModalState(() => selectedSize = 'medium'),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      // Small Daig Option
+                      _buildSizeOption(
+                        title: 'Small / Half Daig (6 KG Basmati & Meat)',
+                        serving: 'Serves 15–20 Persons • Small Gathering / Khatam',
                         price: widget.daig.halfDaigPrice,
-                        isSelected: !isFullDaig,
-                        onTap: () => setModalState(() => isFullDaig = false),
+                        isSelected: selectedSize == 'small',
+                        onTap: () => setModalState(() => selectedSize = 'small'),
                       ),
 
                       const SizedBox(height: 18),
@@ -187,24 +211,31 @@ class _DaigCardState extends State<DaigCard> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                '2. Number of Degs (دیگوں کی تعداد)',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.textPrimary,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '2. Number of Degs (دیگوں کی تعداد)',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$degQuantity x $sizeLabel',
-                                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                              ),
-                            ],
+                                const SizedBox(height: 2),
+                                Text(
+                                  '$degQuantity x $sizeLabel ($servingLabel)',
+                                  style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Container(
                             decoration: BoxDecoration(
                               color: AppTheme.surfaceMuted,
@@ -226,7 +257,7 @@ class _DaigCardState extends State<DaigCard> {
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: AppTheme.primary,
+                                      color: Color(0xFF4C1D95),
                                     ),
                                   ),
                                 ),
@@ -270,9 +301,45 @@ class _DaigCardState extends State<DaigCard> {
                             onSelected: (val) {
                               if (val) setModalState(() => selectedOccasion = occ);
                             },
-                            selectedColor: AppTheme.primaryLight,
+                            selectedColor: const Color(0xFF2E1065).withAlpha(25),
                             labelStyle: TextStyle(
-                              color: isSel ? AppTheme.primary : AppTheme.textPrimary,
+                              color: isSel ? const Color(0xFF4C1D95) : AppTheme.textPrimary,
+                              fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // STEP 4: SPICE & COOKING CUSTOMIZATION
+                      const Text(
+                        '4. Spice Dum Level (مرچ کا لیول)',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          'Mild Dum',
+                          'Normal Dum',
+                          'Extra Spicy Potli Dum',
+                        ].map((spice) {
+                          final isSel = selectedSpiceLevel == spice;
+                          return ChoiceChip(
+                            label: Text(spice),
+                            selected: isSel,
+                            onSelected: (val) {
+                              if (val) setModalState(() => selectedSpiceLevel = spice);
+                            },
+                            selectedColor: Colors.orange.shade50,
+                            labelStyle: TextStyle(
+                              color: isSel ? Colors.deepOrange : AppTheme.textPrimary,
                               fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
                               fontSize: 12,
                             ),
@@ -321,7 +388,7 @@ class _DaigCardState extends State<DaigCard> {
                         controller: notesController,
                         maxLines: 2,
                         decoration: InputDecoration(
-                          hintText: 'Notes: e.g. Spicy dum, extra aloo, or specific delivery time...',
+                          hintText: 'Notes: e.g. Extra aloo, arrival at 1:30 PM lunch, or specific delivery instructions...',
                           hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
                           filled: true,
                           fillColor: const Color(0xFFF9FAFB),
@@ -341,12 +408,17 @@ class _DaigCardState extends State<DaigCard> {
                         height: 52,
                         child: ElevatedButton(
                           onPressed: () {
-                            final foodItem = widget.daig.toFoodItem(isFullDaig: isFullDaig);
+                            final foodItem = widget.daig.toFoodItem(
+                              sizeName: selectedSize,
+                              occasion: selectedOccasion,
+                              notes: 'Spice: $selectedSpiceLevel${notesController.text.trim().isNotEmpty ? " • ${notesController.text.trim()}" : ""}',
+                            );
+
                             for (int i = 0; i < degQuantity; i++) {
                               widget.cartState.addItem(
                                 foodItem,
-                                'rest_pakwan',
-                                'Food Court Pakwan Center',
+                                widget.daig.centerId,
+                                widget.daig.centerName,
                               );
                             }
                             Navigator.pop(ctx);
@@ -357,25 +429,30 @@ class _DaigCardState extends State<DaigCard> {
                                   style: const TextStyle(fontWeight: FontWeight.w700),
                                 ),
                                 behavior: SnackBarBehavior.floating,
-                                backgroundColor: AppTheme.primary,
+                                backgroundColor: const Color(0xFF4C1D95),
                                 duration: const Duration(seconds: 3),
                               ),
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primary,
+                            backgroundColor: const Color(0xFF4C1D95),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Book $degQuantity Daig ($sizeLabel)',
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+                              Expanded(
+                                child: Text(
+                                  'Book $degQuantity Daig ($sizeLabel)',
+                                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: Colors.white),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
+                              const SizedBox(width: 8),
                               Text(
                                 'Rs. ${totalPrice.toInt()}',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                                style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w900, color: Color(0xFFFBBF24)),
                               ),
                             ],
                           ),
