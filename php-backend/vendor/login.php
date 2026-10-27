@@ -357,11 +357,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <!-- MAIN HEADING & SUBHEADING -->
                 <div class="mt-8 lg:mt-10">
-                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-wider mb-3">
-                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#FF9500]"></i>
-                        <span>Unified Merchant Platform</span>
-                    </div>
-
                     <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
                         Welcome to Vendor
                     </h1>
@@ -462,19 +457,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <!-- FOOTER INFO IN LEFT PANEL -->
-            <footer class="relative z-10 pt-4 mt-2 border-t border-white/10 flex flex-wrap items-center justify-between text-xs text-zinc-400 gap-2">
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span class="font-medium text-zinc-300">10,000+ Orders Served Nationwide</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <a href="../admin/login.php" class="text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1 transition-colors">
-                        <i data-lucide="shield" class="w-3.5 h-3.5"></i>
-                        <span>Super Admin Portal &rarr;</span>
-                    </a>
-                </div>
-            </footer>
+
         </section>
 
 
