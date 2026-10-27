@@ -2083,13 +2083,14 @@ $adminUser = $_SESSION['admin_user'];
                 detectingGps: false,
                 loading: false,
 
-                // Top 6 Strict Tabs
+                // Top 6 Strict Tabs in User Requested Order
+                // [1. Analytics, 2. Food Listing, 3. Customers, 4. Riders, 5. Orders, 6. Profile & Settings]
                 tabs: [
                     { id: 'analytics', label: 'Analytics', icon: 'pie-chart' },
-                    { id: 'riders', label: 'Riders Fleet', icon: 'bike' },
-                    { id: 'customers', label: 'Customers', icon: 'users' },
-                    { id: 'orders', label: 'Orders Hub', icon: 'shopping-bag' },
                     { id: 'food-listing', label: 'Food Listing', icon: 'utensils' },
+                    { id: 'customers', label: 'Customers', icon: 'users' },
+                    { id: 'riders', label: 'Riders Fleet', icon: 'bike' },
+                    { id: 'orders', label: 'Orders Hub', icon: 'shopping-bag' },
                     { id: 'profile', label: 'Profile & Settings', icon: 'store' }
                 ],
 
