@@ -1,0 +1,8 @@
+# Cursor Rules for FoodCourt & Pakwan
+
+## Auto Deployment Instruction
+When the user asks to deploy, upload to server, or push changes:
+Run the deployment script:
+`bash deploy/deploy.sh "<concise commit message>"`
+
+This script runs pre-flight syntax checks, creates the deploy package, commits and pushes to origin main, and performs live health verification on https://food.aztemp.com.

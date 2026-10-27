@@ -121,49 +121,49 @@ $adminUser = $_SESSION['admin_user'];
             </div>
         </div>
 
-        <!-- Navigation Links (ListTile Design, No Rounded Borders, Taller Height) -->
-        <nav class="flex-1 overflow-y-auto divide-y divide-white/[0.04]" aria-label="Vendor Store Navigation">
+        <!-- Navigation Links (5px Rounded, 2px Less Top/Bottom, 30% Opacity Background) -->
+        <nav class="flex-1 px-2 py-2 space-y-1 overflow-y-auto" aria-label="Vendor Store Navigation">
             <template x-for="tab in tabs" :key="tab.id">
                 <button type="button" @click="setTab(tab.id)"
-                    class="w-full flex items-center gap-3 px-4 py-3 min-h-[48px] text-[12.5px] font-semibold transition-all text-left rounded-none select-none group"
+                    class="w-full flex items-center gap-3 px-3.5 py-2.5 min-h-[40px] text-[12.5px] font-semibold transition-all text-left rounded-[5px] select-none group border"
                     :class="activeTab === tab.id 
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold border-l-4 border-amber-200 shadow-sm' 
-                        : 'text-zinc-400 hover:text-white hover:bg-white/[0.04] border-l-4 border-transparent'">
+                        ? 'bg-orange-500/30 text-white font-bold border-orange-500/40 shadow-sm' 
+                        : 'text-zinc-400 hover:text-white hover:bg-white/[0.05] border-transparent'">
                     <i :data-lucide="tab.icon" class="w-4 h-4 shrink-0 transition-colors"
-                        :class="activeTab === tab.id ? 'text-black stroke-[2.5]' : 'text-zinc-400 group-hover:text-zinc-200'" aria-hidden="true"></i>
+                        :class="activeTab === tab.id ? 'text-[#FF9500] stroke-[2.2]' : 'text-zinc-400 group-hover:text-zinc-200'" aria-hidden="true"></i>
                     <span x-text="tab.label" class="flex-1 truncate tracking-tight"></span>
                     
                     <!-- Tab Badges -->
                     <span x-show="tab.id === 'orders' && activeOrdersCount > 0"
-                        class="px-2 py-0.5 rounded-full text-[10px] font-bold tabular-nums"
-                        :class="activeTab === tab.id ? 'bg-black text-[#FF9500]' : 'bg-orange-500/20 text-[#FF9500]'"
+                        class="px-2 py-0.5 rounded-[4px] text-[10px] font-bold tabular-nums"
+                        :class="activeTab === tab.id ? 'bg-orange-500/40 text-white' : 'bg-orange-500/20 text-[#FF9500]'"
                         x-text="activeOrdersCount">
                     </span>
                     <span x-show="tab.id === 'riders' && outletRiders.length > 0"
-                        class="px-1.5 py-0.5 rounded text-[10px] tabular-nums font-mono opacity-80"
-                        :class="activeTab === tab.id ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-300'"
+                        class="px-1.5 py-0.5 rounded-[4px] text-[10px] tabular-nums font-mono opacity-80"
+                        :class="activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-zinc-800 text-zinc-300'"
                         x-text="outletRiders.length">
                     </span>
                     <span x-show="tab.id === 'customers' && vendorCustomers.length > 0"
-                        class="px-1.5 py-0.5 rounded text-[10px] tabular-nums font-mono opacity-80"
-                        :class="activeTab === tab.id ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-300'"
+                        class="px-1.5 py-0.5 rounded-[4px] text-[10px] tabular-nums font-mono opacity-80"
+                        :class="activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-zinc-800 text-zinc-300'"
                         x-text="vendorCustomers.length">
                     </span>
                     <span x-show="tab.id === 'food-listing' && totalMenuCount > 0"
-                        class="px-1.5 py-0.5 rounded text-[10px] tabular-nums font-mono opacity-80"
-                        :class="activeTab === tab.id ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-300'"
+                        class="px-1.5 py-0.5 rounded-[4px] text-[10px] tabular-nums font-mono opacity-80"
+                        :class="activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-zinc-800 text-zinc-300'"
                         x-text="totalMenuCount">
                     </span>
 
                     <i data-lucide="chevron-right" class="w-3.5 h-3.5 shrink-0 transition-transform"
-                        :class="activeTab === tab.id ? 'text-black opacity-80 translate-x-0.5' : 'text-zinc-600 opacity-30 group-hover:opacity-70'" aria-hidden="true"></i>
+                        :class="activeTab === tab.id ? 'text-[#FF9500] opacity-90 translate-x-0.5' : 'text-zinc-600 opacity-30 group-hover:opacity-70'" aria-hidden="true"></i>
                 </button>
             </template>
         </nav>
 
         <!-- Sub-Admin Footer Profile -->
-        <div class="border-t border-white/5 bg-zinc-950/60 shrink-0">
-            <div class="flex items-center justify-between px-4 py-1.5 bg-zinc-900/40 border-b border-white/5">
+        <div class="border-t border-white/5 bg-zinc-950/60 p-2 shrink-0">
+            <div class="flex items-center justify-between px-2.5 py-1 mb-1.5 bg-zinc-900/40 rounded-[5px] border border-white/5">
                 <span class="text-[9.5px] uppercase font-bold tracking-wider text-zinc-500">Store Status:</span>
                 <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-orange-500/15 text-[#FF9500] border border-orange-500/30">
                     <span class="w-1 h-1 rounded-full bg-[#FF9500]"></span>
@@ -171,11 +171,11 @@ $adminUser = $_SESSION['admin_user'];
                 </span>
             </div>
             <div @click="setTab('profile')"
-                class="w-full px-4 py-3 min-h-[52px] hover:bg-zinc-800/80 cursor-pointer flex items-center justify-between transition-all rounded-none border-l-4 select-none"
-                :class="activeTab === 'profile' ? 'border-amber-400 bg-zinc-800/90' : 'border-transparent'"
+                class="w-full px-3 py-2 min-h-[44px] hover:bg-zinc-800/80 cursor-pointer flex items-center justify-between transition-all rounded-[5px] border select-none"
+                :class="activeTab === 'profile' ? 'bg-orange-500/30 border-orange-500/40 text-white' : 'border-transparent bg-zinc-900/60'"
                 title="View & Edit Store Profile">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-7 h-7 rounded-lg bg-zinc-800 border border-white/10 flex items-center justify-center text-[11px] font-bold text-[#FF9500] shrink-0">
+                    <div class="w-7 h-7 rounded-[5px] bg-zinc-800 border border-white/10 flex items-center justify-center text-[11px] font-bold text-[#FF9500] shrink-0">
                         <?= strtoupper(substr($adminUser['name'] ?: 'V', 0, 1)) ?>
                     </div>
                     <div class="min-w-0">

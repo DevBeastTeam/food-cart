@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "npm --prefix admin-panel run build",
+    "deploy": "bash deploy/deploy.sh",
     "dev:admin": "npm --prefix admin-panel run dev",
     "dev:backend": "npm --prefix backend run dev",
     "start:backend": "npm --prefix backend start"
