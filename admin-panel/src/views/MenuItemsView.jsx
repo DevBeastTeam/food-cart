@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Utensils, Plus, Edit2, Trash2, Star, Eye, EyeOff, Flame, Search } from 'lucide-react';
 import { api } from '../api';
 import ImageUploadField from '../components/ImageUploadField';
+import CustomDropdown from '../components/CustomDropdown';
 
 export default function MenuItemsView({ foodItems, restaurants, categories, onRefresh, showToast }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -158,17 +159,16 @@ export default function MenuItemsView({ foodItems, restaurants, categories, onRe
 
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)' }}>Category:</span>
-            <select 
-              className="form-select" 
-              style={{ width: 'auto', minWidth: 160 }}
+            <CustomDropdown
+              size="sm"
+              style={{ width: 'auto', minWidth: 170 }}
               value={selectedCategory}
-              onChange={e => setSelectedCategory(e.target.value)}
-            >
-              <option value="All">All Categories ({foodItems?.length || 0})</option>
-              {(categories || []).filter(c => c.name !== 'All').map(c => (
-                <option key={c.id} value={c.name}>{c.name}</option>
-              ))}
-            </select>
+              onChange={val => setSelectedCategory(val)}
+              options={[
+                { value: 'All', label: `All Categories (${foodItems?.length || 0})` },
+                ...(categories || []).filter(c => c.name !== 'All').map(c => ({ value: c.name, label: c.name }))
+              ]}
+            />
           </div>
         </div>
       </div>
@@ -322,15 +322,11 @@ export default function MenuItemsView({ foodItems, restaurants, categories, onRe
                 <div className="form-grid-2">
                   <div className="form-group">
                     <label className="form-label">Category *</label>
-                    <select 
-                      className="form-select"
+                    <CustomDropdown
                       value={formData.category}
-                      onChange={e => setFormData({ ...formData, category: e.target.value })}
-                    >
-                      {(categories || []).filter(c => c.name !== 'All').map(c => (
-                        <option key={c.id} value={c.name}>{c.name}</option>
-                      ))}
-                    </select>
+                      onChange={val => setFormData({ ...formData, category: val })}
+                      options={(categories || []).filter(c => c.name !== 'All').map(c => ({ value: c.name, label: c.name }))}
+                    />
                   </div>
 
                   <div className="form-group">

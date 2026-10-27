@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Users, Plus, Edit2, Trash2, Shield, Bike, User, DollarSign, Ban, CheckCircle } from 'lucide-react';
 import { api } from '../api';
+import CustomDropdown from '../components/CustomDropdown';
 
 export default function UsersView({ users, onRefresh, showToast }) {
   const [roleFilter, setRoleFilter] = useState('All');
@@ -392,15 +393,15 @@ export default function UsersView({ users, onRefresh, showToast }) {
                 <div className="form-grid-2">
                   <div className="form-group">
                     <label className="form-label">Role & Permission</label>
-                    <select 
-                      className="form-select"
+                    <CustomDropdown
                       value={formData.role}
-                      onChange={e => setFormData({ ...formData, role: e.target.value })}
-                    >
-                      <option value="client">Customer (Client App)</option>
-                      <option value="rider">Delivery Rider (Rider Dashboard)</option>
-                      <option value="admin">Administrator (Full Admin Panel)</option>
-                    </select>
+                      onChange={val => setFormData({ ...formData, role: val })}
+                      options={[
+                        { value: 'client', label: 'Customer (Client App)' },
+                        { value: 'rider', label: 'Delivery Rider (Rider Dashboard)' },
+                        { value: 'admin', label: 'Administrator (Full Admin Panel)' },
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group">

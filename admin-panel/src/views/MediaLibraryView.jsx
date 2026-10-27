@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Image, Upload, Plus, Trash2, Copy, Check, ExternalLink } from 'lucide-react';
 import { api } from '../api';
+import CustomDropdown from '../components/CustomDropdown';
 
 export default function MediaLibraryView({ media, onRefresh, showToast }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -118,16 +119,16 @@ export default function MediaLibraryView({ media, onRefresh, showToast }) {
 
               <div className="form-group">
                 <label className="form-label">Category</label>
-                <select 
-                  className="form-select"
+                <CustomDropdown
                   value={mediaCategory}
-                  onChange={e => setMediaCategory(e.target.value)}
-                >
-                  <option value="dishes">Food Dishes</option>
-                  <option value="banners">Banners & Promos</option>
-                  <option value="facilities">Head Office & Central Kitchen</option>
-                  <option value="general">General</option>
-                </select>
+                  onChange={val => setMediaCategory(val)}
+                  options={[
+                    { value: 'dishes', label: 'Food Dishes' },
+                    { value: 'banners', label: 'Banners & Promos' },
+                    { value: 'facilities', label: 'Head Office & Central Kitchen' },
+                    { value: 'general', label: 'General' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -169,16 +170,16 @@ export default function MediaLibraryView({ media, onRefresh, showToast }) {
 
               <div className="form-group">
                 <label className="form-label">Category</label>
-                <select 
-                  className="form-select"
+                <CustomDropdown
                   value={mediaCategory}
-                  onChange={e => setMediaCategory(e.target.value)}
-                >
-                  <option value="dishes">Food Dishes</option>
-                  <option value="banners">Banners & Promos</option>
-                  <option value="facilities">Head Office & Central Kitchen</option>
-                  <option value="general">General</option>
-                </select>
+                  onChange={val => setMediaCategory(val)}
+                  options={[
+                    { value: 'dishes', label: 'Food Dishes' },
+                    { value: 'banners', label: 'Banners & Promos' },
+                    { value: 'facilities', label: 'Head Office & Central Kitchen' },
+                    { value: 'general', label: 'General' },
+                  ]}
+                />
               </div>
             </div>
 

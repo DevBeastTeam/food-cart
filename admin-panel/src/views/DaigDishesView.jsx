@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Soup, Plus, Edit2, Trash2, Star, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { api } from '../api';
 import ImageUploadField from '../components/ImageUploadField';
+import CustomDropdown from '../components/CustomDropdown';
 
 export default function DaigDishesView({ daigDishes, onRefresh, showToast }) {
   const [modalOpen, setModalOpen] = useState(false);
@@ -285,16 +286,16 @@ export default function DaigDishesView({ daigDishes, onRefresh, showToast }) {
                 <div className="form-grid-2">
                   <div className="form-group">
                     <label className="form-label">Category</label>
-                    <select 
-                      className="form-select"
+                    <CustomDropdown
                       value={formData.category}
-                      onChange={e => setFormData({ ...formData, category: e.target.value })}
-                    >
-                      <option value="Biryani & Pulao">Biryani & Pulao</option>
-                      <option value="Qorma & Karahi">Qorma & Karahi</option>
-                      <option value="Haleem & Nihari">Haleem & Nihari</option>
-                      <option value="Sweet & Desserts">Sweet & Desserts</option>
-                    </select>
+                      onChange={val => setFormData({ ...formData, category: val })}
+                      options={[
+                        { value: 'Biryani & Pulao', label: 'Biryani & Pulao' },
+                        { value: 'Qorma & Karahi', label: 'Qorma & Karahi' },
+                        { value: 'Haleem & Nihari', label: 'Haleem & Nihari' },
+                        { value: 'Sweet & Desserts', label: 'Sweet & Desserts' },
+                      ]}
+                    />
                   </div>
 
                   <div className="form-group">

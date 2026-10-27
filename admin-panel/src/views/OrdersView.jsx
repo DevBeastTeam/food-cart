@@ -4,6 +4,7 @@ import {
   MapPin, Phone, User, MessageSquare, Trash2 
 } from 'lucide-react';
 import { api } from '../api';
+import CustomDropdown from '../components/CustomDropdown';
 
 export default function OrdersView({ orders, onRefresh, showToast }) {
   const [filter, setFilter] = useState('All');
@@ -241,18 +242,19 @@ export default function OrdersView({ orders, onRefresh, showToast }) {
 
                 {/* Pipeline Controls */}
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <select 
-                    className="form-select"
-                    style={{ width: 'auto', padding: '6px 12px', fontSize: 12 }}
+                  <CustomDropdown
+                    size="sm"
+                    style={{ width: 'auto', minWidth: 150 }}
                     value={order.status}
-                    onChange={e => handleStatusChange(order.id, e.target.value)}
-                  >
-                    <option value="Accepted">Accepted</option>
-                    <option value="Preparing">Preparing (Kitchen)</option>
-                    <option value="On the Way">On the Way</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
+                    onChange={val => handleStatusChange(order.id, val)}
+                    options={[
+                      { value: 'Accepted', label: 'Accepted' },
+                      { value: 'Preparing', label: 'Preparing (Kitchen)' },
+                      { value: 'On the Way', label: 'On the Way' },
+                      { value: 'Delivered', label: 'Delivered' },
+                      { value: 'Cancelled', label: 'Cancelled' },
+                    ]}
+                  />
 
                   {order.status !== 'Delivered' && order.status !== 'Cancelled' && (
                     <button 

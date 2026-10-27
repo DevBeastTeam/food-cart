@@ -1220,7 +1220,9 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                           child: DropdownButton<String>(
                             value: order.status,
                             isExpanded: true,
-                            icon: const Icon(Icons.arrow_drop_down, size: 20),
+                            borderRadius: BorderRadius.circular(12),
+                            dropdownColor: Colors.white,
+                            icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: AppTheme.primary),
                             items: const [
                               DropdownMenuItem(value: 'Accepted', child: Text('Accepted', style: TextStyle(fontSize: 12))),
                               DropdownMenuItem(value: 'Preparing', child: Text('Preparing in Kitchen', style: TextStyle(fontSize: 12))),

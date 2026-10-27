@@ -85,20 +85,39 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                     ),
                     const Spacer(),
-                    DropdownButton<String>(
-                      value: _filter,
-                      underline: const SizedBox.shrink(),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primary),
-                      items: const [
-                        DropdownMenuItem(value: 'All', child: Text('All Orders')),
-                        DropdownMenuItem(value: 'Accepted', child: Text('Accepted')),
-                        DropdownMenuItem(value: 'Preparing', child: Text('In Kitchen')),
-                        DropdownMenuItem(value: 'On the Way', child: Text('On the Way')),
-                        DropdownMenuItem(value: 'Delivered', child: Text('Delivered')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) setState(() => _filter = val);
-                      },
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _filter,
+                          borderRadius: BorderRadius.circular(12),
+                          dropdownColor: Colors.white,
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppTheme.primary),
+                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppTheme.primary),
+                          items: const [
+                            DropdownMenuItem(value: 'All', child: Text('All Orders')),
+                            DropdownMenuItem(value: 'Accepted', child: Text('Accepted')),
+                            DropdownMenuItem(value: 'Preparing', child: Text('In Kitchen')),
+                            DropdownMenuItem(value: 'On the Way', child: Text('On the Way')),
+                            DropdownMenuItem(value: 'Delivered', child: Text('Delivered')),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) setState(() => _filter = val);
+                          },
+                        ),
+                      ),
                     ),
                   ],
                 ),

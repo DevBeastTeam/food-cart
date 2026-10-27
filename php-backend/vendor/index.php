@@ -985,10 +985,30 @@ $adminUser = $_SESSION['admin_user'];
                         </button>
                     </div>
 
-                    <!-- Search & Upload Buttons -->
-                    <div class="flex items-center gap-2">
+                    <!-- Search, Category Filter & Upload Buttons -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Custom Dish Category Filter Dropdown -->
+                        <div class="relative" x-show="foodListingSection === 'dishes'" x-data="{ openCatFilter: false }">
+                            <button type="button" @click="openCatFilter = !openCatFilter; $nextTick(() => lucide.createIcons())"
+                                class="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 rounded-xl text-xs text-white flex items-center gap-1.5 transition-all">
+                                <span x-text="foodCategoryFilter === 'All' ? 'All Dish Categories' : foodCategoryFilter"></span>
+                                <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openCatFilter ? 'rotate-180' : ''"></i>
+                            </button>
+                            <div x-show="openCatFilter" @click.outside="openCatFilter = false" x-cloak
+                                class="absolute left-0 mt-1 w-48 cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                <template x-for="cat in ['All', 'Biryani', 'Karahi & Handi', 'BBQ & Grill', 'Burgers', 'Desi Gravy', 'Desserts', 'Beverages']" :key="cat">
+                                    <button type="button" @click="foodCategoryFilter = cat; foodPage = 1; openCatFilter = false"
+                                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                        :class="foodCategoryFilter === cat ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                        <span x-text="cat === 'All' ? 'All Dish Categories' : cat"></span>
+                                        <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="foodCategoryFilter === cat"></i>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
                         <input type="text" x-model="menuSearchQuery" placeholder="Search dish / daig by name..."
-                            class="px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500] w-48 sm:w-56">
+                            class="px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500] w-44 sm:w-52">
 
                         <button type="button" x-show="foodListingSection === 'dishes'" @click="openCreateFoodModal()"
                             class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold rounded-xl text-xs flex items-center gap-1 shadow-sm transition-all active:scale-95">
@@ -1095,8 +1115,30 @@ $adminUser = $_SESSION['admin_user'];
                     </div>
 
                     <!-- Pagination Controls -->
-                    <div class="px-3.5 py-2.5 border-t border-white/5 flex items-center justify-between text-xs text-zinc-400">
-                        <span x-text="'Showing ' + paginatedFoodItems.length + ' of ' + filteredFoodItems.length + ' dishes (Page ' + foodPage + ')'"></span>
+                    <div class="px-3.5 py-2.5 border-t border-white/5 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400">
+                        <div class="flex items-center gap-3">
+                            <span x-text="'Showing ' + paginatedFoodItems.length + ' of ' + filteredFoodItems.length + ' dishes (Page ' + foodPage + ')'"></span>
+                            <!-- Custom Dishes Per Page Dropdown -->
+                            <div class="relative flex items-center gap-1.5 text-xs text-zinc-400" x-data="{ openFoodPage: false }">
+                                <span>Per page:</span>
+                                <button type="button" @click="openFoodPage = !openFoodPage; $nextTick(() => lucide.createIcons())"
+                                    class="px-2 py-0.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 rounded-lg text-xs text-white flex items-center gap-1 transition-all">
+                                    <span x-text="foodPerPage"></span>
+                                    <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openFoodPage ? 'rotate-180' : ''"></i>
+                                </button>
+                                <div x-show="openFoodPage" @click.outside="openFoodPage = false" x-cloak
+                                    class="absolute left-0 bottom-full mb-1 w-20 cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                    <template x-for="n in [10, 25, 50, 100]" :key="n">
+                                        <button type="button" @click="foodPerPage = n; foodPage = 1; openFoodPage = false"
+                                            class="w-full flex items-center justify-between px-2 py-1 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                            :class="foodPerPage === n ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                            <span x-text="n"></span>
+                                            <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="foodPerPage === n"></i>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                         <div class="flex items-center gap-1.5">
                             <button type="button" @click="foodPage = Math.max(1, foodPage - 1)" :disabled="foodPage <= 1"
                                 class="px-2.5 py-1 bg-zinc-900 disabled:opacity-40 rounded-lg text-xs font-semibold hover:text-white">Previous</button>
@@ -1186,8 +1228,30 @@ $adminUser = $_SESSION['admin_user'];
                     </div>
 
                     <!-- Pagination Controls -->
-                    <div class="px-3.5 py-2.5 border-t border-white/5 flex items-center justify-between text-xs text-zinc-400">
-                        <span x-text="'Showing ' + paginatedDaigItems.length + ' of ' + filteredDaigItems.length + ' daigs (Page ' + daigPage + ')'"></span>
+                    <div class="px-3.5 py-2.5 border-t border-white/5 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-400">
+                        <div class="flex items-center gap-3">
+                            <span x-text="'Showing ' + paginatedDaigItems.length + ' of ' + filteredDaigItems.length + ' daigs (Page ' + daigPage + ')'"></span>
+                            <!-- Custom Daigs Per Page Dropdown -->
+                            <div class="relative flex items-center gap-1.5 text-xs text-zinc-400" x-data="{ openDaigPage: false }">
+                                <span>Per page:</span>
+                                <button type="button" @click="openDaigPage = !openDaigPage; $nextTick(() => lucide.createIcons())"
+                                    class="px-2 py-0.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 rounded-lg text-xs text-white flex items-center gap-1 transition-all">
+                                    <span x-text="daigPerPage"></span>
+                                    <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openDaigPage ? 'rotate-180' : ''"></i>
+                                </button>
+                                <div x-show="openDaigPage" @click.outside="openDaigPage = false" x-cloak
+                                    class="absolute left-0 bottom-full mb-1 w-20 cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                    <template x-for="n in [10, 25, 50, 100]" :key="n">
+                                        <button type="button" @click="daigPerPage = n; daigPage = 1; openDaigPage = false"
+                                            class="w-full flex items-center justify-between px-2 py-1 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                            :class="daigPerPage === n ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                            <span x-text="n"></span>
+                                            <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="daigPerPage === n"></i>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                         <div class="flex items-center gap-1.5">
                             <button type="button" @click="daigPage = Math.max(1, daigPage - 1)" :disabled="daigPage <= 1"
                                 class="px-2.5 py-1 bg-zinc-900 disabled:opacity-40 rounded-lg text-xs font-semibold hover:text-white">Previous</button>
@@ -1908,6 +1972,7 @@ $adminUser = $_SESSION['admin_user'];
                 selectedOrderStatus: 'All',
                 selectedOrderType: 'All',
                 menuSearchQuery: '',
+                foodCategoryFilter: 'All',
 
                 // Drawers & Modals
                 sheet: { customer: false, rider: false },
@@ -2124,7 +2189,12 @@ $adminUser = $_SESSION['admin_user'];
 
                 get filteredFoodItems() {
                     const q = (this.menuSearchQuery || '').toLowerCase();
-                    return this.vendorFoodItems.filter(f => (f.name || '').toLowerCase().includes(q) || (f.category || '').toLowerCase().includes(q));
+                    const cat = this.foodCategoryFilter;
+                    return this.vendorFoodItems.filter(f => {
+                        const matchesQ = (f.name || '').toLowerCase().includes(q) || (f.category || '').toLowerCase().includes(q);
+                        const matchesCat = (cat === 'All' || f.category === cat);
+                        return matchesQ && matchesCat;
+                    });
                 },
                 get paginatedFoodItems() {
                     const start = (this.foodPage - 1) * this.foodPerPage;
