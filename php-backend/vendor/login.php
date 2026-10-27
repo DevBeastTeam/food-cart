@@ -721,19 +721,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <!-- City & Address -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            <div>
+                            <div class="relative" x-data="{ openCity: false, selectedCity: 'Lahore', cities: ['Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Gujranwala', 'Sialkot'] }">
                                 <label class="block text-[11px] font-bold text-zinc-300 mb-0.5">City</label>
-                                <select name="city" class="w-full px-2.5 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
-                                    <option value="Lahore">Lahore</option>
-                                    <option value="Karachi">Karachi</option>
-                                    <option value="Islamabad">Islamabad</option>
-                                    <option value="Rawalpindi">Rawalpindi</option>
-                                    <option value="Faisalabad">Faisalabad</option>
-                                    <option value="Multan">Multan</option>
-                                    <option value="Peshawar">Peshawar</option>
-                                    <option value="Gujranwala">Gujranwala</option>
-                                    <option value="Sialkot">Sialkot</option>
-                                </select>
+                                <input type="hidden" name="city" :value="selectedCity">
+                                <button type="button" @click="openCity = !openCity; $nextTick(() => lucide.createIcons())"
+                                    class="w-full px-2.5 py-1.5 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
+                                    <span x-text="selectedCity"></span>
+                                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-[#FF9500] transition-transform" :class="openCity ? 'rotate-180' : ''"></i>
+                                </button>
+                                <div x-show="openCity" @click.outside="openCity = false" x-cloak
+                                    class="absolute left-0 mt-1 w-full max-h-48 overflow-y-auto cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                    <template x-for="c in cities" :key="c">
+                                        <button type="button" @click="selectedCity = c; openCity = false"
+                                            class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                            :class="selectedCity === c ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                            <span x-text="c"></span>
+                                            <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="selectedCity === c"></i>
+                                        </button>
+                                    </template>
+                                </div>
                             </div>
 
                             <div class="sm:col-span-2">

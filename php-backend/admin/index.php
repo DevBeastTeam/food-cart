@@ -1084,11 +1084,18 @@ if ($liveSuper) {
                             <span>Customers Analytics (<span x-text="(viewingCenter?.customers || []).length"></span>)</span>
                         </button>
 
-                        <button type="button" @click="detailSubTab = 'menu'"
+                        <button type="button" @click="detailSubTab = 'pakwan-dishes'"
                             class="px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5"
-                            :class="detailSubTab === 'menu' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white'">
-                            <i data-lucide="soup" class="w-3.5 h-3.5"></i>
-                            <span>Menu Dishes & Daigs (<span x-text="((viewingCenter?.foods || []).length) + '/' + ((viewingCenter?.daigs || []).length)"></span>)</span>
+                            :class="detailSubTab === 'pakwan-dishes' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white'">
+                            <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+                            <span>👑 Pakwan Dishes (<span x-text="(viewingCenter?.daigs || []).length"></span>)</span>
+                        </button>
+
+                        <button type="button" @click="detailSubTab = 'restaurant-dishes'"
+                            class="px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5"
+                            :class="detailSubTab === 'restaurant-dishes' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white'">
+                            <i data-lucide="utensils" class="w-3.5 h-3.5"></i>
+                            <span>🍽️ Restaurant Dishes (<span x-text="(viewingCenter?.foods || []).length"></span>)</span>
                         </button>
                     </div>
 
@@ -1299,50 +1306,122 @@ if ($liveSuper) {
                     </div>
 
                     <!-- ======================================================= -->
-                    <!-- SUB-TAB 4: MENU DISHES & SHAHI DAIGS -->
+                    <!-- SUB-TAB 4: 👑 SHAHI PAKWAN DISHES & DAIGS -->
                     <!-- ======================================================= -->
-                    <div x-show="detailSubTab === 'menu'" class="space-y-4">
-                        <!-- Shahi Daigs Section -->
-                        <div class="cupertino-card rounded-2xl p-3.5 space-y-3">
-                            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
-                                <i data-lucide="soup" class="w-3.5 h-3.5 text-[#FF9500]"></i>
-                                <span>Shahi Daig Pakwans (<span x-text="(viewingCenter?.daigs || []).length"></span>)</span>
-                            </h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div x-show="detailSubTab === 'pakwan-dishes'" class="space-y-4">
+                        <div class="cupertino-card rounded-2xl p-4 space-y-3">
+                            <div class="flex items-center justify-between border-b border-white/5 pb-3">
+                                <div>
+                                    <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                                        <i data-lucide="crown" class="w-4 h-4 text-[#FF9500]"></i>
+                                        <span>Shahi Daigs & Pakwan Dishes (<span x-text="(viewingCenter?.daigs || []).length"></span>)</span>
+                                    </h4>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">Click any Daig to inspect full specifications, rates, servings & complimentary items</p>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-[#FF9500]/15 text-[#FF9500] border border-[#FF9500]/25">
+                                    👑 Pakwan Center Offering
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                                 <template x-for="d in (viewingCenter?.daigs || [])" :key="d.id">
-                                    <div class="p-2.5 bg-zinc-950/60 rounded-xl border border-white/5 flex items-center gap-3">
-                                        <img :src="d.imageUrl" class="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/5" alt="">
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-xs font-bold text-white truncate" x-text="d.name"></p>
-                                            <p class="text-[11px] font-bold text-amber-400 mt-0.5 tabular-nums" x-text="'Full (12KG): Rs. ' + Number(d.fullDaigPrice).toLocaleString() + ' • Half: Rs. ' + Number(d.halfDaigPrice).toLocaleString()"></p>
-                                            <p class="text-[10px] text-zinc-500 truncate mt-0.5" x-text="(d.includes || []).join(', ')"></p>
+                                    <div @click="openDishDetailModal(d, 'pakwan')"
+                                        class="p-3 bg-zinc-950/70 hover:bg-zinc-900/90 rounded-2xl border border-white/5 hover:border-[#FF9500]/40 transition-all cursor-pointer group flex flex-col sm:flex-row gap-3 relative shadow-sm">
+                                        <div class="relative w-full sm:w-28 h-28 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-zinc-900">
+                                            <img :src="d.imageUrl" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" :alt="d.name">
+                                            <span x-show="d.badge" class="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/90 text-black shadow" x-text="d.badge"></span>
+                                            <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-black/70 text-zinc-300 backdrop-blur-sm" x-text="'★ ' + (d.rating || 4.9)"></span>
+                                        </div>
+                                        <div class="min-w-0 flex-1 flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex items-start justify-between gap-1">
+                                                    <h5 class="text-xs font-bold text-white group-hover:text-[#FF9500] transition-colors line-clamp-1" x-text="d.name"></h5>
+                                                    <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 shrink-0" x-text="d.category || 'Shahi Daig'"></span>
+                                                </div>
+                                                <p x-show="d.urduName" class="text-[10px] text-amber-300 font-medium mt-0.5 truncate" x-text="d.urduName"></p>
+                                                <p class="text-[10.5px] text-zinc-400 line-clamp-2 mt-1" x-text="d.description || 'Traditional rich recipe prepared with premium ingredients.'"></p>
+                                            </div>
+
+                                            <div class="mt-2 pt-2 border-t border-white/5 space-y-1">
+                                                <div class="flex items-center justify-between text-[11px]">
+                                                    <span class="text-zinc-400 font-medium">Full (12 KG):</span>
+                                                    <span class="font-bold text-amber-400 tabular-nums" x-text="'Rs. ' + Number(d.fullDaigPrice || 0).toLocaleString()"></span>
+                                                </div>
+                                                <div class="flex items-center justify-between text-[11px]">
+                                                    <span class="text-zinc-400 font-medium">Half (6 KG):</span>
+                                                    <span class="font-bold text-zinc-300 tabular-nums" x-text="'Rs. ' + Number(d.halfDaigPrice || 0).toLocaleString()"></span>
+                                                </div>
+                                                <div class="flex items-center justify-between pt-1">
+                                                    <div class="text-[9.5px] text-zinc-500 truncate max-w-[180px]" x-text="'Includes: ' + (d.includes || []).slice(0, 3).join(', ')"></div>
+                                                    <span class="text-[10px] text-[#FF9500] font-semibold flex items-center gap-0.5 group-hover:underline">
+                                                        Details <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
                                 <template x-if="(viewingCenter?.daigs || []).length === 0">
-                                    <p class="text-xs text-zinc-500 col-span-2 py-2 italic">Is center ne koi Daig upload nahi ki.</p>
+                                    <div class="col-span-2 py-10 text-center space-y-2 cupertino-glass rounded-2xl border border-dashed border-white/10">
+                                        <i data-lucide="crown" class="w-8 h-8 text-zinc-600 mx-auto"></i>
+                                        <p class="text-xs text-zinc-400 font-medium">Is Vendor ke paas abhi koi Shahi Daig / Pakwan dish darj nahi hai.</p>
+                                        <p class="text-[10.5px] text-zinc-600">Agar yeh Pakwan Center hai to vendor panel se Shahi Daigs add ki ja sakti hain.</p>
+                                    </div>
                                 </template>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Regular Food Dishes -->
-                        <div class="cupertino-card rounded-2xl p-3.5 space-y-3">
-                            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
-                                <i data-lucide="utensils" class="w-3.5 h-3.5 text-[#FF9500]"></i>
-                                <span>Restaurant & Kitchen Dishes (<span x-text="(viewingCenter?.foods || []).length"></span>)</span>
-                            </h4>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <!-- ======================================================= -->
+                    <!-- SUB-TAB 5: 🍽️ RESTAURANT DISHES & MENU -->
+                    <!-- ======================================================= -->
+                    <div x-show="detailSubTab === 'restaurant-dishes'" class="space-y-4">
+                        <div class="cupertino-card rounded-2xl p-4 space-y-3">
+                            <div class="flex items-center justify-between border-b border-white/5 pb-3">
+                                <div>
+                                    <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                                        <i data-lucide="utensils" class="w-4 h-4 text-[#FF9500]"></i>
+                                        <span>Restaurant Food Dishes (<span x-text="(viewingCenter?.foods || []).length"></span>)</span>
+                                    </h4>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">Click any dish to view ingredients, category, pricing & dietary details</p>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                                    🍽️ Restaurant Menu
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
                                 <template x-for="f in (viewingCenter?.foods || [])" :key="f.id">
-                                    <div class="p-2.5 bg-zinc-950/60 rounded-xl border border-white/5 flex items-center gap-2.5">
-                                        <img :src="f.imageUrl" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-white/5" alt="">
-                                        <div class="min-w-0">
-                                            <p class="text-xs font-semibold text-white truncate" x-text="f.name"></p>
-                                            <p class="text-[11px] font-bold text-emerald-400 tabular-nums mt-0.5" x-text="'Rs. ' + f.price"></p>
+                                    <div @click="openDishDetailModal(f, 'restaurant')"
+                                        class="p-3 bg-zinc-950/70 hover:bg-zinc-900/90 rounded-2xl border border-white/5 hover:border-[#FF9500]/40 transition-all cursor-pointer group flex gap-3 relative shadow-sm">
+                                        <div class="relative w-20 h-20 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-zinc-900">
+                                            <img :src="f.imageUrl" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" :alt="f.name">
+                                            <span class="absolute bottom-1 right-1 px-1 py-0.2 rounded text-[8.5px] font-semibold bg-black/70 text-zinc-300 backdrop-blur-sm" x-text="'★ ' + (f.rating || 4.8)"></span>
+                                        </div>
+                                        <div class="min-w-0 flex-1 flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex items-start justify-between gap-1">
+                                                    <h5 class="text-xs font-bold text-white group-hover:text-[#FF9500] transition-colors line-clamp-1" x-text="f.name"></h5>
+                                                </div>
+                                                <span class="inline-block text-[9.5px] text-zinc-400 bg-zinc-900 px-1.5 py-0.5 rounded mt-0.5" x-text="f.category || 'Food Dish'"></span>
+                                                <p class="text-[10px] text-zinc-500 line-clamp-1 mt-1" x-text="f.description || 'Delicious freshly prepared dish.'"></p>
+                                            </div>
+
+                                            <div class="mt-2 pt-1.5 border-t border-white/5 flex items-center justify-between">
+                                                <div class="text-xs font-black text-emerald-400 tabular-nums" x-text="'Rs. ' + Number(f.price || 0).toLocaleString()"></div>
+                                                <span class="text-[10px] text-[#FF9500] font-semibold flex items-center gap-0.5 group-hover:underline">
+                                                    Details <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
                                 <template x-if="(viewingCenter?.foods || []).length === 0">
-                                    <p class="text-xs text-zinc-500 col-span-3 py-2 italic">Is center ne koi food dish upload nahi ki.</p>
+                                    <div class="col-span-3 py-10 text-center space-y-2 cupertino-glass rounded-2xl border border-dashed border-white/10">
+                                        <i data-lucide="utensils" class="w-8 h-8 text-zinc-600 mx-auto"></i>
+                                        <p class="text-xs text-zinc-400 font-medium">Is Vendor ke paas abhi koi Restaurant dish darj nahi hai.</p>
+                                        <p class="text-[10.5px] text-zinc-600">Agar yeh Restaurant hai to vendor panel se menu dishes add ki ja sakti hain.</p>
+                                    </div>
                                 </template>
                             </div>
                         </div>
@@ -2148,6 +2227,168 @@ if ($liveSuper) {
     </div>
 
     <!-- ======================================================================= -->
+    <!-- MODAL: DISH & DAIG DETAILS POPUP -->
+    <!-- ======================================================================= -->
+    <div x-show="modal.dishDetail" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md" style="overscroll-behavior: contain;" x-cloak>
+        <div class="w-full max-w-lg cupertino-glass rounded-[28px] p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-white/10" @click.outside="modal.dishDetail = false">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-white/5 pb-3">
+                <div class="flex items-center gap-2">
+                    <template x-if="selectedDishType === 'pakwan'">
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+                            <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+                            <span>Shahi Pakwan Daig Details</span>
+                        </span>
+                    </template>
+                    <template x-if="selectedDishType === 'restaurant'">
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1.5">
+                            <i data-lucide="utensils" class="w-3.5 h-3.5"></i>
+                            <span>Restaurant Dish Details</span>
+                        </span>
+                    </template>
+                </div>
+                <button type="button" @click="modal.dishDetail = false" class="w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Dish Image & Basic Info -->
+            <div class="space-y-3">
+                <div class="relative w-full h-56 sm:h-64 rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shadow-inner">
+                    <img :src="selectedDish?.imageUrl" class="w-full h-full object-cover" :alt="selectedDish?.name">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    
+                    <!-- Badges overlay -->
+                    <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                        <span x-show="selectedDish?.badge" class="px-2 py-0.5 rounded-lg text-xs font-bold bg-amber-500 text-black shadow" x-text="selectedDish?.badge"></span>
+                        <span x-show="selectedDish?.category" class="px-2 py-0.5 rounded-lg text-xs font-semibold bg-black/60 text-white backdrop-blur-md border border-white/10" x-text="selectedDish?.category"></span>
+                    </div>
+
+                    <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                        <div>
+                            <h3 class="text-lg font-black text-white leading-tight drop-shadow-md" x-text="selectedDish?.name"></h3>
+                            <p x-show="selectedDish?.urduName" class="text-sm font-semibold text-amber-300 drop-shadow-sm mt-0.5" x-text="selectedDish?.urduName"></p>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-black/70 text-amber-400 backdrop-blur-md border border-amber-500/30 shrink-0" x-text="'★ ' + (selectedDish?.rating || 4.9)"></span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="p-3 rounded-xl bg-zinc-900/60 border border-white/5 space-y-1">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Dish Description</div>
+                    <p class="text-xs text-zinc-300 leading-relaxed" x-text="selectedDish?.description || 'Authentic traditional recipe prepared with fresh meat and aromatic basmati rice by expert masters.'"></p>
+                </div>
+
+                <!-- Pakwan Daig Specific Details -->
+                <template x-if="selectedDishType === 'pakwan'">
+                    <div class="space-y-3">
+                        <!-- Full vs Half Daig Rates & Servings -->
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <!-- Full Daig -->
+                            <div class="p-3 rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wide">Full Daig (Bari)</span>
+                                    <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i>
+                                </div>
+                                <div class="text-base font-black text-amber-300 tabular-nums" x-text="'Rs. ' + Number(selectedDish?.fullDaigPrice || 0).toLocaleString()"></div>
+                                <div class="text-[10.5px] text-zinc-400 font-medium" x-text="selectedDish?.fullDaigWeight || '12 KG (Serves 35-40 Persons)'"></div>
+                            </div>
+
+                            <!-- Half Daig -->
+                            <div class="p-3 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Half Daig (Choti)</span>
+                                    <i data-lucide="soup" class="w-3.5 h-3.5 text-zinc-400"></i>
+                                </div>
+                                <div class="text-base font-black text-white tabular-nums" x-text="'Rs. ' + Number(selectedDish?.halfDaigPrice || 0).toLocaleString()"></div>
+                                <div class="text-[10.5px] text-zinc-400 font-medium" x-text="selectedDish?.halfDaigWeight || '6 KG (Serves 18-20 Persons)'"></div>
+                            </div>
+                        </div>
+
+                        <!-- Complimentary Inclusions -->
+                        <div class="p-3 rounded-xl bg-zinc-900/60 border border-white/5 space-y-1.5" x-show="(selectedDish?.includes || []).length > 0">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Daig ke Sath Shamil Lamazmat</div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <template x-for="(inc, idx) in (selectedDish?.includes || [])" :key="idx">
+                                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-zinc-800 text-zinc-200 border border-white/5 flex items-center gap-1">
+                                        <i data-lucide="check" class="w-3 h-3 text-emerald-400"></i>
+                                        <span x-text="inc"></span>
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Notice -->
+                        <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[11px] text-amber-200">
+                            <i data-lucide="clock" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                            <div>
+                                <span class="font-bold">Booking Notice: </span>
+                                <span x-text="selectedDish?.deliveryNotice || 'Daig orders require minimum 2 to 3 hours notice for fresh preparation on wood fire.'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Restaurant Specific Details -->
+                <template x-if="selectedDishType === 'restaurant'">
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div class="p-3 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-1">
+                                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Dish Price</span>
+                                <div class="text-base font-black text-emerald-400 tabular-nums" x-text="'Rs. ' + Number(selectedDish?.price || 0).toLocaleString()"></div>
+                                <div class="text-[10.5px] text-zinc-400">Per single standard serving</div>
+                            </div>
+
+                            <div class="p-3 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-1">
+                                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Nutritional Estimate</span>
+                                <div class="text-base font-black text-white tabular-nums" x-text="(selectedDish?.calories || 450) + ' kcal'"></div>
+                                <div class="text-[10.5px] text-zinc-400">Calorie estimation</div>
+                            </div>
+                        </div>
+
+                        <!-- Dietary Badges -->
+                        <div class="flex flex-wrap gap-2 pt-1" x-show="selectedDish?.isVegetarian || selectedDish?.isPopular || (selectedDish?.badges || []).length > 0">
+                            <template x-if="selectedDish?.isVegetarian">
+                                <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">🌱 100% Vegetarian</span>
+                            </template>
+                            <template x-if="selectedDish?.isPopular">
+                                <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/25">🔥 Popular Item</span>
+                            </template>
+                            <template x-for="(bg, bidx) in (selectedDish?.badges || [])" :key="bidx">
+                                <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25" x-text="bg"></span>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Vendor Information Card -->
+                <div class="p-3 rounded-xl bg-zinc-950/70 border border-white/5 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center font-black">
+                            <i data-lucide="store" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-white" x-text="viewingCenter?.businessName"></div>
+                            <div class="text-[10.5px] text-zinc-400" x-text="viewingCenter?.city + ' • ' + (viewingCenter?.phone || '')"></div>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                        Active Menu
+                    </span>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="pt-2 border-t border-white/5 flex justify-end">
+                <button type="button" @click="modal.dishDetail = false"
+                    class="px-5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-all shadow-sm">
+                    Band Karein (Close)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================================= -->
     <!-- ALPINE CONTROLLER -->
     <!-- ======================================================================= -->
     <script>
@@ -2177,7 +2418,9 @@ if ($liveSuper) {
                 desktopNotificationPermission: (typeof Notification !== 'undefined') ? Notification.permission : 'default',
 
                 toast: { visible: false, message: '', type: 'success' },
-                modal: { createSubAdmin: false, editSubAdmin: false, createRider: false, deleteConfirm: false, notifySheet: false },
+                modal: { createSubAdmin: false, editSubAdmin: false, createRider: false, deleteConfirm: false, notifySheet: false, dishDetail: false },
+                selectedDish: null,
+                selectedDishType: 'pakwan',
 
                 targetNotifyCenter: null,
                 targetDeleteCenter: null,
@@ -2412,6 +2655,15 @@ if ($liveSuper) {
                     } catch (e) {
                         this.showToast('Notification error: ' + e.message, 'error');
                     }
+                },
+
+                openDishDetailModal(dish, type) {
+                    this.selectedDish = dish;
+                    this.selectedDishType = type || 'pakwan';
+                    this.modal.dishDetail = true;
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    });
                 },
 
                 openEditSubAdminModal(sa) {

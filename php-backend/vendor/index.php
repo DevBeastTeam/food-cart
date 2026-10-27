@@ -476,14 +476,25 @@ $adminUser = $_SESSION['admin_user'];
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <!-- Items per page selector (100 per page standard) -->
-                        <div class="flex items-center gap-1 text-xs text-zinc-400">
+                        <!-- Custom Items per page dropdown -->
+                        <div class="relative flex items-center gap-1.5 text-xs text-zinc-400" x-data="{ openRidersPage: false }">
                             <span>Per page:</span>
-                            <select x-model.number="ridersPerPage" class="px-2 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white">
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
+                            <button type="button" @click="openRidersPage = !openRidersPage; $nextTick(() => lucide.createIcons())"
+                                class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 rounded-xl text-xs text-white flex items-center gap-1.5 transition-all">
+                                <span x-text="ridersPerPage"></span>
+                                <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openRidersPage ? 'rotate-180' : ''"></i>
+                            </button>
+                            <div x-show="openRidersPage" @click.outside="openRidersPage = false" x-cloak
+                                class="absolute right-0 top-full mt-1 w-20 cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                <template x-for="n in [25, 50, 100]" :key="n">
+                                    <button type="button" @click="ridersPerPage = n; openRidersPage = false"
+                                        class="w-full flex items-center justify-between px-2 py-1 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                        :class="ridersPerPage === n ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                        <span x-text="n"></span>
+                                        <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="ridersPerPage === n"></i>
+                                    </button>
+                                </template>
+                            </div>
                         </div>
 
                         <!-- Add Rider Button -->
@@ -606,19 +617,55 @@ $adminUser = $_SESSION['admin_user'];
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <select x-model="customerSortBy" class="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white">
-                            <option value="spent">Highest Spent First</option>
-                            <option value="orders">Most Orders First</option>
-                            <option value="recent">Most Recent Order</option>
-                        </select>
+                        <!-- Custom Customer Sort Dropdown -->
+                        <div class="relative" x-data="{ openSort: false }">
+                            <button type="button" @click="openSort = !openSort; $nextTick(() => lucide.createIcons())"
+                                class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 rounded-xl text-xs text-white flex items-center gap-1.5 transition-all">
+                                <span x-text="customerSortBy === 'spent' ? 'Highest Spent First' : (customerSortBy === 'orders' ? 'Most Orders First' : 'Most Recent Order')"></span>
+                                <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openSort ? 'rotate-180' : ''"></i>
+                            </button>
+                            <div x-show="openSort" @click.outside="openSort = false" x-cloak
+                                class="absolute left-0 top-full mt-1 w-44 cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                <button type="button" @click="customerSortBy = 'spent'; openSort = false"
+                                    class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                    :class="customerSortBy === 'spent' ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                    <span>Highest Spent First</span>
+                                    <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="customerSortBy === 'spent'"></i>
+                                </button>
+                                <button type="button" @click="customerSortBy = 'orders'; openSort = false"
+                                    class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                    :class="customerSortBy === 'orders' ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                    <span>Most Orders First</span>
+                                    <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="customerSortBy === 'orders'"></i>
+                                </button>
+                                <button type="button" @click="customerSortBy = 'recent'; openSort = false"
+                                    class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                    :class="customerSortBy === 'recent' ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                    <span>Most Recent Order</span>
+                                    <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="customerSortBy === 'recent'"></i>
+                                </button>
+                            </div>
+                        </div>
 
-                        <div class="flex items-center gap-1 text-xs text-zinc-400">
+                        <!-- Custom Customers Per Page Dropdown -->
+                        <div class="relative flex items-center gap-1.5 text-xs text-zinc-400" x-data="{ openCustPage: false }">
                             <span>Per page:</span>
-                            <select x-model.number="customersPerPage" class="px-2 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white">
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
+                            <button type="button" @click="openCustPage = !openCustPage; $nextTick(() => lucide.createIcons())"
+                                class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 rounded-xl text-xs text-white flex items-center gap-1.5 transition-all">
+                                <span x-text="customersPerPage"></span>
+                                <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openCustPage ? 'rotate-180' : ''"></i>
+                            </button>
+                            <div x-show="openCustPage" @click.outside="openCustPage = false" x-cloak
+                                class="absolute right-0 top-full mt-1 w-20 cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                <template x-for="n in [25, 50, 100]" :key="n">
+                                    <button type="button" @click="customersPerPage = n; openCustPage = false"
+                                        class="w-full flex items-center justify-between px-2 py-1 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                        :class="customersPerPage === n ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                        <span x-text="n"></span>
+                                        <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="customersPerPage === n"></i>
+                                    </button>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -756,13 +803,25 @@ $adminUser = $_SESSION['admin_user'];
                             </template>
                         </div>
 
-                        <div class="flex items-center gap-1 text-xs text-zinc-400">
+                        <!-- Custom Orders Per Page Dropdown -->
+                        <div class="relative flex items-center gap-1.5 text-xs text-zinc-400" x-data="{ openOrdersPage: false }">
                             <span>Per page:</span>
-                            <select x-model.number="ordersPerPage" class="px-2 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white">
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
+                            <button type="button" @click="openOrdersPage = !openOrdersPage; $nextTick(() => lucide.createIcons())"
+                                class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 rounded-xl text-xs text-white flex items-center gap-1.5 transition-all">
+                                <span x-text="ordersPerPage"></span>
+                                <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openOrdersPage ? 'rotate-180' : ''"></i>
+                            </button>
+                            <div x-show="openOrdersPage" @click.outside="openOrdersPage = false" x-cloak
+                                class="absolute right-0 top-full mt-1 w-20 cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                <template x-for="n in [25, 50, 100]" :key="n">
+                                    <button type="button" @click="ordersPerPage = n; openOrdersPage = false"
+                                        class="w-full flex items-center justify-between px-2 py-1 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                        :class="ordersPerPage === n ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                        <span x-text="n"></span>
+                                        <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="ordersPerPage === n"></i>
+                                    </button>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
