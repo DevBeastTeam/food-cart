@@ -235,6 +235,8 @@ switch ($resource) {
                 $r['isDiscounted']    = (bool)($r['isDiscounted'] ?? false);
                 $r['discountPercent'] = (int)($r['discountPercent'] ?? 0);
                 $r['discountPrice']   = (float)($r['discountPrice'] ?? 0);
+                $r['cutPrice']        = (float)($r['cutPrice'] ?? 0);
+                $r['showCutPrice']    = isset($r['showCutPrice']) ? (bool)$r['showCutPrice'] : true;
                 $r['promoBadge']      = (string)($r['promoBadge'] ?? '');
                 $list[] = $r;
             }
@@ -243,8 +245,8 @@ switch ($resource) {
             $b = getJsonInput();
             $id = $b['id'] ?? ('item_' . time());
             $stmt = $pdo->prepare("
-                INSERT INTO food_items (id, restaurantId, name, description, price, imageUrl, category, rating, calories, isPopular, isVegetarian, isVisible, badges, sub_admin_id, discountPercent, discountPrice, isDiscounted, promoBadge)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO food_items (id, restaurantId, name, description, price, imageUrl, category, rating, calories, isPopular, isVegetarian, isVisible, badges, sub_admin_id, discountPercent, discountPrice, isDiscounted, promoBadge, cutPrice, showCutPrice)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $id,
@@ -264,7 +266,9 @@ switch ($resource) {
                 (int)($b['discountPercent'] ?? 0),
                 (float)($b['discountPrice'] ?? 0),
                 !empty($b['isDiscounted']) ? 1 : 0,
-                $b['promoBadge'] ?? ''
+                $b['promoBadge'] ?? '',
+                (float)($b['cutPrice'] ?? ($b['price'] ?? 0)),
+                isset($b['showCutPrice']) ? ($b['showCutPrice'] ? 1 : 0) : 1
             ]);
             jsonResponse(['success' => true, 'message' => 'Food item created', 'data' => ['id' => $id]], 201);
         } elseif ($method === 'PUT' && $subId !== '') {
@@ -274,7 +278,8 @@ switch ($resource) {
                     restaurantId = ?, name = ?, description = ?, price = ?,
                     imageUrl = ?, category = ?, rating = ?, calories = ?,
                     isPopular = ?, isVegetarian = ?, isVisible = ?, badges = ?,
-                    sub_admin_id = ?, discountPercent = ?, discountPrice = ?, isDiscounted = ?, promoBadge = ?
+                    sub_admin_id = ?, discountPercent = ?, discountPrice = ?, isDiscounted = ?, promoBadge = ?,
+                    cutPrice = ?, showCutPrice = ?
                 WHERE id = ?
             ");
             $stmt->execute([
@@ -295,6 +300,8 @@ switch ($resource) {
                 (float)($b['discountPrice'] ?? 0),
                 !empty($b['isDiscounted']) ? 1 : 0,
                 $b['promoBadge'] ?? '',
+                (float)($b['cutPrice'] ?? ($b['price'] ?? 0)),
+                isset($b['showCutPrice']) ? ($b['showCutPrice'] ? 1 : 0) : 1,
                 $subId
             ]);
             jsonResponse(['success' => true, 'message' => 'Food item updated']);
@@ -329,6 +336,9 @@ switch ($resource) {
                 $r['isDiscounted']    = (bool)($r['isDiscounted'] ?? false);
                 $r['discountPercent'] = (int)($r['discountPercent'] ?? 0);
                 $r['discountPrice']   = (float)($r['discountPrice'] ?? 0);
+                $r['cutPrice']        = (float)($r['cutPrice'] ?? 0);
+                $r['showCutPrice']    = isset($r['showCutPrice']) ? (bool)$r['showCutPrice'] : true;
+                $r['location']        = (string)($r['location'] ?? 'Main Pakwan Kitchen, Islamabad');
                 $r['promoBadge']      = (string)($r['promoBadge'] ?? '');
                 $list[] = $r;
             }
@@ -337,8 +347,8 @@ switch ($resource) {
             $b = getJsonInput();
             $id = $b['id'] ?? ('daig_' . time());
             $stmt = $pdo->prepare("
-                INSERT INTO daig_items (id, name, urduName, description, category, fullDaigPrice, halfDaigPrice, fullDaigWeight, halfDaigWeight, imageUrl, rating, badge, deliveryNotice, isVisible, includes, sub_admin_id, discountPercent, discountPrice, isDiscounted, promoBadge)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO daig_items (id, name, urduName, description, category, fullDaigPrice, halfDaigPrice, fullDaigWeight, halfDaigWeight, imageUrl, rating, badge, deliveryNotice, isVisible, includes, sub_admin_id, discountPercent, discountPrice, isDiscounted, promoBadge, cutPrice, showCutPrice, location)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $id,
@@ -360,7 +370,10 @@ switch ($resource) {
                 (int)($b['discountPercent'] ?? 0),
                 (float)($b['discountPrice'] ?? 0),
                 !empty($b['isDiscounted']) ? 1 : 0,
-                $b['promoBadge'] ?? ''
+                $b['promoBadge'] ?? '',
+                (float)($b['cutPrice'] ?? ($b['fullDaigPrice'] ?? 0)),
+                isset($b['showCutPrice']) ? ($b['showCutPrice'] ? 1 : 0) : 1,
+                $b['location'] ?? 'Main Pakwan Kitchen, Islamabad'
             ]);
             jsonResponse(['success' => true, 'message' => 'Daig dish created', 'data' => ['id' => $id]], 201);
         } elseif ($method === 'PUT' && $subId !== '') {
@@ -370,7 +383,8 @@ switch ($resource) {
                     name = ?, urduName = ?, description = ?, category = ?,
                     fullDaigPrice = ?, halfDaigPrice = ?, fullDaigWeight = ?, halfDaigWeight = ?,
                     imageUrl = ?, rating = ?, badge = ?, deliveryNotice = ?, isVisible = ?, includes = ?,
-                    sub_admin_id = ?, discountPercent = ?, discountPrice = ?, isDiscounted = ?, promoBadge = ?
+                    sub_admin_id = ?, discountPercent = ?, discountPrice = ?, isDiscounted = ?, promoBadge = ?,
+                    cutPrice = ?, showCutPrice = ?, location = ?
                 WHERE id = ?
             ");
             $stmt->execute([
@@ -393,6 +407,9 @@ switch ($resource) {
                 (float)($b['discountPrice'] ?? 0),
                 !empty($b['isDiscounted']) ? 1 : 0,
                 $b['promoBadge'] ?? '',
+                (float)($b['cutPrice'] ?? ($b['fullDaigPrice'] ?? 0)),
+                isset($b['showCutPrice']) ? ($b['showCutPrice'] ? 1 : 0) : 1,
+                $b['location'] ?? 'Main Pakwan Kitchen, Islamabad',
                 $subId
             ]);
             jsonResponse(['success' => true, 'message' => 'Daig dish updated']);

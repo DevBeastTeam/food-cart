@@ -1111,67 +1111,771 @@ $adminUser = $_SESSION['admin_user'];
             </section>
 
             <!-- =============================================================== -->
-            <!-- TAB 5: FOOD LISTING (DISHES, SHAHI DAIGS & PROMOS - COMPLETE CRUD) -->
+            <!-- TAB 2: FOOD LISTING (RESTAURANT DISHES, SHAHI DAIGS & ADD LISTING) -->
             <!-- =============================================================== -->
-            <section x-show="activeTab === 'food-listing'" class="space-y-3">
+            <section x-show="activeTab === 'food-listing'" class="space-y-3.5">
                 
-                <!-- Sub-Tabs Switcher & Actions Bar -->
-                <div class="p-3 cupertino-card rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-                    
-                    <!-- Sub-tabs: Dishes vs Daigs -->
-                    <div class="inline-flex p-1 bg-zinc-900 rounded-xl border border-white/5">
-                        <button type="button" @click="foodListingSection = 'dishes'"
-                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                            :class="foodListingSection === 'dishes' ? 'bg-[#FF9500] text-black shadow-sm' : 'text-zinc-400 hover:text-white'">
-                            <span>🍽️ Restaurant Dishes</span>
-                            <span class="ml-1 text-[10px] opacity-75 font-mono" x-text="'(' + vendorFoodItems.length + ')'"></span>
-                        </button>
-                        <button type="button" @click="foodListingSection = 'daigs'"
-                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                            :class="foodListingSection === 'daigs' ? 'bg-[#FF9500] text-black shadow-sm' : 'text-zinc-400 hover:text-white'">
-                            <span>👑 Shahi Pakwan Daigs</span>
-                            <span class="ml-1 text-[10px] opacity-75 font-mono" x-text="'(' + vendorDaigItems.length + ')'"></span>
-                        </button>
+                <!-- Top Header & View Switcher Bar -->
+                <div class="p-3 cupertino-card rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-orange-500/15 text-[#FF9500] flex items-center justify-center font-bold text-base shrink-0">
+                            🍽️
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-white flex items-center gap-2">
+                                <span>Food &amp; Catering Listings Hub</span>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/10 text-zinc-300 font-mono" x-text="vendorFoodItems.length + vendorDaigItems.length + ' Total Items'"></span>
+                            </h3>
+                            <p class="text-[10.5px] text-zinc-400">Manage live restaurant dishes, Shahi catering daigs, promotional discounts &amp; images</p>
+                        </div>
                     </div>
 
-                    <!-- Search, Category Filter & Upload Buttons -->
-                    <div class="flex flex-wrap items-center gap-2">
-                        <!-- Custom Dish Category Filter Dropdown -->
-                        <div class="relative" x-show="foodListingSection === 'dishes'" x-data="{ openCatFilter: false }">
-                            <button type="button" @click="openCatFilter = !openCatFilter; $nextTick(() => lucide.createIcons())"
-                                class="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 rounded-xl text-xs text-white flex items-center gap-1.5 transition-all">
-                                <span x-text="foodCategoryFilter === 'All' ? 'All Dish Categories' : foodCategoryFilter"></span>
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openCatFilter ? 'rotate-180' : ''"></i>
-                            </button>
-                            <div x-show="openCatFilter" @click.outside="openCatFilter = false" x-cloak
-                                class="absolute left-0 mt-1 w-48 cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
-                                <template x-for="cat in ['All', 'Biryani', 'Karahi & Handi', 'BBQ & Grill', 'Burgers', 'Desi Gravy', 'Desserts', 'Beverages']" :key="cat">
-                                    <button type="button" @click="foodCategoryFilter = cat; foodPage = 1; openCatFilter = false"
-                                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
-                                        :class="foodCategoryFilter === cat ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
-                                        <span x-text="cat === 'All' ? 'All Dish Categories' : cat"></span>
-                                        <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="foodCategoryFilter === cat"></i>
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
-
-                        <input type="text" x-model="menuSearchQuery" placeholder="Search dish / daig by name..."
-                            class="px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500] w-44 sm:w-52">
-
-                        <button type="button" x-show="foodListingSection === 'dishes'" @click="openCreateFoodModal()"
-                            class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold rounded-xl text-xs flex items-center gap-1 shadow-sm transition-all active:scale-95">
-                            <i data-lucide="plus" class="w-3.5 h-3.5 text-black"></i>
-                            <span>Upload Dish</span>
+                    <!-- View Switcher: All Listings vs Add Food Listing -->
+                    <div class="inline-flex p-1 bg-zinc-900 rounded-xl border border-white/5 shrink-0">
+                        <button type="button" @click="foodListingMode = 'list'; $nextTick(() => lucide.createIcons())"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
+                            :class="foodListingMode === 'list' ? 'bg-[#FF9500] text-black shadow-sm' : 'text-zinc-400 hover:text-white'">
+                            <i data-lucide="layout-list" class="w-3.5 h-3.5"></i>
+                            <span>All Menu Listings</span>
                         </button>
-
-                        <button type="button" x-show="foodListingSection === 'daigs'" @click="openCreateDaigModal()"
-                            class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold rounded-xl text-xs flex items-center gap-1 shadow-sm transition-all active:scale-95">
-                            <i data-lucide="plus" class="w-3.5 h-3.5 text-black"></i>
-                            <span>Upload Daig</span>
+                        <button type="button" @click="openAddListingPage(addListingType || 'restaurant')"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5"
+                            :class="foodListingMode === 'add' ? 'bg-[#FF9500] text-black shadow-sm' : 'text-zinc-400 hover:text-white'">
+                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                            <span>➕ Add Food Listing</span>
                         </button>
                     </div>
                 </div>
+
+                <!-- =========================================================== -->
+                <!-- VIEW 1: DEDICATED ADD FOOD LISTING PAGE                     -->
+                <!-- =========================================================== -->
+                <div x-show="foodListingMode === 'add'" class="space-y-4" x-cloak>
+                    
+                    <!-- STEP 1: CATEGORY SELECTION (RESTAURANT VS PAKWAN) -->
+                    <div class="p-4 rounded-2xl cupertino-card border border-white/5 space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-white/5">
+                            <div>
+                                <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider">Step 1: Listing Category</span>
+                                <h4 class="text-sm font-bold text-white">Kis Category ke liye add karna hai?</h4>
+                                <p class="text-[11px] text-zinc-400">Select whether this menu item belongs to Restaurant Food or Pakwan Catering Center</p>
+                            </div>
+                            <button type="button" @click="foodListingMode = 'list'"
+                                class="self-start sm:self-auto px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold rounded-lg flex items-center gap-1 transition-all">
+                                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                                <span>Back to Listings</span>
+                            </button>
+                        </div>
+
+                        <!-- 2 Big Selection Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <!-- Card A: Restaurant Food Dish -->
+                            <button type="button" @click="resetNewListingForm('restaurant')"
+                                class="p-4 rounded-2xl text-left border transition-all relative overflow-hidden group flex flex-col justify-between"
+                                :class="addListingType === 'restaurant'
+                                    ? 'bg-orange-500/10 border-[#FF9500] ring-1 ring-orange-500/30'
+                                    : 'bg-zinc-900/60 border-white/5 hover:border-white/20'">
+                                <div class="flex items-start justify-between gap-3 mb-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-orange-500/15 text-[#FF9500] flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                        🍽️
+                                    </div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                                        :class="addListingType === 'restaurant' ? 'bg-[#FF9500] text-black' : 'bg-zinc-800 text-zinc-400'">
+                                        <span x-text="addListingType === 'restaurant' ? '✓ Selected' : 'Choose'"></span>
+                                    </span>
+                                </div>
+                                <div>
+                                    <h5 class="text-sm font-bold text-white">Restaurant Food Dishes</h5>
+                                    <p class="text-xs text-zinc-400 mt-1">Single portion meals, Biryani plates, Karahi &amp; Handi, BBQ, Burgers, Gravy, Desserts &amp; Drinks.</p>
+                                    <div class="mt-2.5 flex flex-wrap gap-1.5 text-[9.5px] font-semibold text-zinc-400">
+                                        <span class="px-2 py-0.5 bg-black/40 rounded-md">Biryani</span>
+                                        <span class="px-2 py-0.5 bg-black/40 rounded-md">Karahi</span>
+                                        <span class="px-2 py-0.5 bg-black/40 rounded-md">BBQ &amp; Grill</span>
+                                        <span class="px-2 py-0.5 bg-black/40 rounded-md">Cut Price &amp; % Off</span>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <!-- Card B: Pakwan Center Daig Catering -->
+                            <button type="button" @click="resetNewListingForm('pakwan')"
+                                class="p-4 rounded-2xl text-left border transition-all relative overflow-hidden group flex flex-col justify-between"
+                                :class="addListingType === 'pakwan'
+                                    ? 'bg-amber-500/10 border-amber-400 ring-1 ring-amber-400/30'
+                                    : 'bg-zinc-900/60 border-white/5 hover:border-white/20'">
+                                <div class="flex items-start justify-between gap-3 mb-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                                        👑
+                                    </div>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                                        :class="addListingType === 'pakwan' ? 'bg-amber-400 text-black' : 'bg-zinc-800 text-zinc-400'">
+                                        <span x-text="addListingType === 'pakwan' ? '✓ Selected' : 'Choose'"></span>
+                                    </span>
+                                </div>
+                                <div>
+                                    <h5 class="text-sm font-bold text-white">Pakwan Center (Shahi Daig Catering)</h5>
+                                    <p class="text-xs text-zinc-400 mt-1">Grand catering daigs (12 KG Full Deg / 6 KG Half Deg) for weddings, Valima, bulk gatherings &amp; advance booking.</p>
+                                    <div class="mt-2.5 flex flex-wrap gap-1.5 text-[9.5px] font-semibold text-zinc-400">
+                                        <span class="px-2 py-0.5 bg-black/40 rounded-md">Full / Half Daig</span>
+                                        <span class="px-2 py-0.5 bg-black/40 rounded-md">Pakwan Kitchen Location</span>
+                                        <span class="px-2 py-0.5 bg-black/40 rounded-md">Advance Notice</span>
+                                        <span class="px-2 py-0.5 bg-black/40 rounded-md">Urdu Name</span>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2A: RESTAURANT FORM & LIVE PREVIEW (Shown when addListingType === 'restaurant') -->
+                    <div x-show="addListingType === 'restaurant'" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        
+                        <!-- Form Fields (8 Columns) -->
+                        <div class="lg:col-span-8 p-4 rounded-2xl cupertino-card border border-white/5 space-y-3.5">
+                            <div class="flex items-center justify-between pb-2.5 border-b border-white/5">
+                                <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                                    <i data-lucide="utensils" class="w-4 h-4 text-[#FF9500]"></i>
+                                    <span>Restaurant Dish Information &amp; Pricing</span>
+                                </h4>
+                                <span class="text-[10px] text-zinc-400">* Required inputs</span>
+                            </div>
+
+                            <form @submit.prevent="submitNewListing()" class="space-y-3.5">
+                                
+                                <!-- Dish Title & Category Custom Dropdown -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Dish Name / Title *</label>
+                                        <input type="text" x-model="newListingForm.name" required placeholder="e.g. Special Chicken Dum Biryani"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500] placeholder-zinc-500">
+                                    </div>
+
+                                    <!-- Custom Dish Category Dropdown -->
+                                    <div class="relative" x-data="{ openListingCat: false, categories: ['Biryani', 'Karahi & Handi', 'BBQ & Grill', 'Burgers & Fast Food', 'Desi Gravy', 'Chinese & Continental', 'Desserts', 'Beverages'] }">
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Dish Category *</label>
+                                        <button type="button" @click="openListingCat = !openListingCat; $nextTick(() => lucide.createIcons())"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
+                                            <span x-text="newListingForm.category || 'Select Category'"></span>
+                                            <i data-lucide="chevron-down" class="w-4 h-4 text-[#FF9500] transition-transform" :class="openListingCat ? 'rotate-180' : ''"></i>
+                                        </button>
+                                        <div x-show="openListingCat" @click.outside="openListingCat = false" x-cloak
+                                            class="absolute left-0 mt-1 w-full max-h-52 overflow-y-auto cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                            <template x-for="cat in categories" :key="cat">
+                                                <button type="button" @click="newListingForm.category = cat; openListingCat = false"
+                                                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                                    :class="newListingForm.category === cat ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                                    <span x-text="cat"></span>
+                                                    <i data-lucide="check" class="w-3.5 h-3.5 text-orange-400" x-show="newListingForm.category === cat"></i>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dish Description -->
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Dish Description</label>
+                                    <textarea x-model="newListingForm.description" rows="2" placeholder="Fragrant Basmati rice prepared with premium spices, served with fresh raita and salad..."
+                                        class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500] placeholder-zinc-500"></textarea>
+                                </div>
+
+                                <!-- Pricing, Cut Price & Discount Offer Box -->
+                                <div class="p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/30 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                                            <i data-lucide="tag" class="w-4 h-4 text-[#FF9500]"></i>
+                                            <span>Actual Price, Cut Price &amp; Discount (% OFF)</span>
+                                        </span>
+                                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                                            <input type="checkbox" x-model="newListingForm.showCutPrice" class="w-4 h-4 rounded bg-zinc-800 text-[#FF9500] border-white/20 focus:ring-0">
+                                            <span class="text-[11px] font-bold text-[#FF9500]">Show Cut Price on App</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                        <!-- Actual Selling Price -->
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">Actual Selling Price (Rs.) *</label>
+                                            <input type="number" x-model.number="newListingForm.actualPrice" @input="recalcListingDiscount('actual')" required min="10" placeholder="650"
+                                                class="w-full px-3 py-2 bg-zinc-900 border border-emerald-500/40 rounded-xl text-xs text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-400">
+                                            <span class="text-[9.5px] text-zinc-400 mt-0.5 block">Price customer pays</span>
+                                        </div>
+
+                                        <!-- Original Cut Price -->
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-300 mb-1">Original Cut Price (Rs.)</label>
+                                            <input type="number" x-model.number="newListingForm.cutPrice" @input="recalcListingDiscount('cut')" min="10" placeholder="1300"
+                                                class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-[#FF9500]">
+                                            <span class="text-[9.5px] text-zinc-400 mt-0.5 block">Strikethrough before discount</span>
+                                        </div>
+
+                                        <!-- Discount Percentage -->
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">Discount (% OFF)</label>
+                                            <input type="number" x-model.number="newListingForm.discountPercent" @input="recalcListingDiscount('percent')" min="0" max="90" placeholder="50"
+                                                class="w-full px-3 py-2 bg-zinc-900 border border-amber-500/40 rounded-xl text-xs text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-400">
+                                            <span class="text-[9.5px] text-zinc-400 mt-0.5 block">Percentage off</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Discount Presets & Promo Badge -->
+                                    <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-[10px] text-zinc-400">Quick %:</span>
+                                            <template x-for="p in [10, 20, 30, 40, 50, 70]" :key="p">
+                                                <button type="button" @click="newListingForm.discountPercent = p; recalcListingDiscount('percent')"
+                                                    class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-all"
+                                                    :class="newListingForm.discountPercent === p ? 'bg-[#FF9500] text-black border-[#FF9500]' : 'bg-zinc-800 text-zinc-300 border-white/5 hover:border-orange-500/40'"
+                                                    x-text="p + '%'">
+                                                </button>
+                                            </template>
+                                        </div>
+
+                                        <!-- Promo Tag Badge -->
+                                        <div class="flex items-center gap-1.5 flex-1 sm:max-w-xs">
+                                            <input type="text" x-model="newListingForm.promoBadge" placeholder="Promo Tag: e.g. 🔥 50% OFF"
+                                                class="w-full px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-[#FF9500]">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dish Attributes: Calories, Prep Time, Food Dietary Custom Dropdown -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Calories (kcal)</label>
+                                        <input type="number" x-model.number="newListingForm.calories" placeholder="520"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-[#FF9500]">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Preparation Time</label>
+                                        <input type="text" x-model="newListingForm.prepTime" placeholder="20-25 mins"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
+                                    </div>
+
+                                    <!-- Custom Food Tag Dropdown -->
+                                    <div class="relative" x-data="{ openTag: false, tags: ['🍗 Non-Veg / Meat', '🥗 Pure Vegetarian', '🌶️ Spicy Special', '✨ Signature Dish'] }">
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Food Type</label>
+                                        <button type="button" @click="openTag = !openTag; $nextTick(() => lucide.createIcons())"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
+                                            <span x-text="newListingForm.foodTag"></span>
+                                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-[#FF9500] transition-transform" :class="openTag ? 'rotate-180' : ''"></i>
+                                        </button>
+                                        <div x-show="openTag" @click.outside="openTag = false" x-cloak
+                                            class="absolute left-0 mt-1 w-full cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                            <template x-for="t in tags" :key="t">
+                                                <button type="button" @click="newListingForm.foodTag = t; openTag = false"
+                                                    class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                                    :class="newListingForm.foodTag === t ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                                    <span x-text="t"></span>
+                                                    <i data-lucide="check" class="w-3.5 h-3.5 text-orange-400" x-show="newListingForm.foodTag === t"></i>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Image Upload & Link (Dual Capability) -->
+                                <div class="p-3.5 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                                            <i data-lucide="image" class="w-4 h-4 text-[#FF9500]"></i>
+                                            <span>Dish Image (File Upload OR Image Link)</span>
+                                        </span>
+                                        
+                                        <!-- Dual Switcher -->
+                                        <div class="inline-flex p-0.5 bg-zinc-950 rounded-lg border border-white/5">
+                                            <button type="button" @click="addListingImageMode = 'file'"
+                                                class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all"
+                                                :class="addListingImageMode === 'file' ? 'bg-[#FF9500] text-black font-bold' : 'text-zinc-400 hover:text-white'">
+                                                📁 Upload File
+                                            </button>
+                                            <button type="button" @click="addListingImageMode = 'url'"
+                                                class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all"
+                                                :class="addListingImageMode === 'url' ? 'bg-[#FF9500] text-black font-bold' : 'text-zinc-400 hover:text-white'">
+                                                🔗 Image Link
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mode A: File Upload -->
+                                    <div x-show="addListingImageMode === 'file'" class="space-y-1.5">
+                                        <input type="file" accept="image/*" @change="handleListingImageUpload($event)" class="hidden" id="dish-file-upload">
+                                        <label for="dish-file-upload" class="cursor-pointer border-2 border-dashed border-white/15 hover:border-orange-500/60 rounded-xl p-4 flex flex-col items-center justify-center text-center transition-all bg-white/[0.02] hover:bg-orange-500/[0.05]">
+                                            <template x-if="!uploadingListingImage">
+                                                <div class="space-y-1">
+                                                    <div class="w-10 h-10 rounded-xl bg-orange-500/15 text-[#FF9500] flex items-center justify-center text-lg mx-auto">
+                                                        📤
+                                                    </div>
+                                                    <p class="text-xs font-bold text-white">Click or drag &amp; drop to upload image file</p>
+                                                    <p class="text-[10px] text-zinc-400">Directly saves to server storage (uploads/ folder) with public URL</p>
+                                                </div>
+                                            </template>
+                                            <template x-if="uploadingListingImage">
+                                                <div class="flex items-center gap-2 py-3 text-xs font-bold text-orange-400">
+                                                    <div class="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
+                                                    <span>Uploading image to server disk...</span>
+                                                </div>
+                                            </template>
+                                        </label>
+                                    </div>
+
+                                    <!-- Mode B: Direct Image URL -->
+                                    <div x-show="addListingImageMode === 'url'" class="space-y-1">
+                                        <input type="url" x-model="newListingForm.imageUrl" placeholder="https://images.unsplash.com/... or base URL"
+                                            class="w-full px-3 py-2 bg-zinc-950 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
+                                        <p class="text-[10px] text-zinc-400">Provide direct external CDN image URL or relative server path.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Form Submit Buttons -->
+                                <div class="pt-2 flex flex-wrap items-center justify-end gap-2 border-t border-white/5">
+                                    <button type="button" @click="foodListingMode = 'list'"
+                                        class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-xs font-semibold transition-all">
+                                        Cancel
+                                    </button>
+                                    <button type="button" @click="resetNewListingForm('restaurant')"
+                                        class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-xl text-xs font-semibold border border-white/5 transition-all">
+                                        Reset Form
+                                    </button>
+                                    <button type="submit" :disabled="loading"
+                                        class="px-5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black rounded-xl text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5">
+                                        <i data-lucide="check" class="w-4 h-4 text-black"></i>
+                                        <span>Publish Restaurant Dish</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Live Customer App Card Preview (4 Columns) -->
+                        <div class="lg:col-span-4 space-y-3">
+                            <div class="p-3 cupertino-card rounded-2xl border border-white/5">
+                                <span class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider flex items-center gap-1 mb-2">
+                                    <i data-lucide="smartphone" class="w-3.5 h-3.5 text-[#FF9500]"></i>
+                                    <span>Live Customer App Preview</span>
+                                </span>
+
+                                <!-- Mock Card -->
+                                <div class="rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shadow-lg">
+                                    <div class="relative h-40 bg-zinc-950 overflow-hidden">
+                                        <img :src="newListingForm.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80'"
+                                            class="w-full h-full object-cover" alt="preview">
+                                        
+                                        <!-- Promo Badge Overlay -->
+                                        <div class="absolute top-2 left-2 flex flex-col gap-1">
+                                            <span x-show="newListingForm.promoBadge" class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-red-500 text-white shadow-md"
+                                                x-text="newListingForm.promoBadge">
+                                            </span>
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-black/70 backdrop-blur-sm text-zinc-200"
+                                                x-text="newListingForm.foodTag">
+                                            </span>
+                                        </div>
+
+                                        <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-sm text-amber-400">
+                                            ⭐ 4.8
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3.5 space-y-2">
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div>
+                                                <span class="text-[9px] uppercase font-bold text-[#FF9500]" x-text="newListingForm.category"></span>
+                                                <h5 class="text-sm font-bold text-white line-clamp-1" x-text="newListingForm.name || 'Dish Name Preview'"></h5>
+                                            </div>
+                                        </div>
+
+                                        <p class="text-[11px] text-zinc-400 line-clamp-2" x-text="newListingForm.description || 'Detailed taste and serving description will appear here...'"></p>
+
+                                        <!-- Pricing display -->
+                                        <div class="pt-2 border-t border-white/5 flex items-baseline justify-between">
+                                            <div class="flex items-baseline gap-1.5">
+                                                <span class="text-base font-black text-[#FF9500] tabular-nums" x-text="'Rs. ' + (newListingForm.actualPrice || 0)"></span>
+                                                <template x-if="newListingForm.showCutPrice && newListingForm.cutPrice > newListingForm.actualPrice">
+                                                    <span class="text-xs line-through text-zinc-500 tabular-nums" x-text="'Rs. ' + newListingForm.cutPrice"></span>
+                                                </template>
+                                                <template x-if="newListingForm.showCutPrice && newListingForm.discountPercent > 0">
+                                                    <span class="px-1.5 py-0.2 rounded text-[8.5px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                                        x-text="newListingForm.discountPercent + '% OFF'">
+                                                    </span>
+                                                </template>
+                                            </div>
+                                            <span class="text-[10px] text-zinc-400 font-mono" x-text="newListingForm.prepTime"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- STEP 2B: PAKWAN CENTER DAIG FORM & LIVE PREVIEW (Shown when addListingType === 'pakwan') -->
+                    <div x-show="addListingType === 'pakwan'" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        
+                        <!-- Form Fields (8 Columns) -->
+                        <div class="lg:col-span-8 p-4 rounded-2xl cupertino-card border border-white/5 space-y-3.5">
+                            <div class="flex items-center justify-between pb-2.5 border-b border-white/5">
+                                <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                                    <span class="text-amber-400">👑</span>
+                                    <span>Shahi Pakwan Catering Daig Information &amp; Pricing</span>
+                                </h4>
+                                <span class="text-[10px] text-zinc-400">* Required inputs</span>
+                            </div>
+
+                            <form @submit.prevent="submitNewListing()" class="space-y-3.5">
+                                
+                                <!-- English Title & Urdu Name -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Daig Title (English) *</label>
+                                        <input type="text" x-model="newListingForm.name" required placeholder="e.g. Royal Zafrani Beef Degi Biryani"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500] placeholder-zinc-500">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Urdu / Regional Name</label>
+                                        <input type="text" x-model="newListingForm.urduName" placeholder="e.g. شاہی زعفرانی بیف دیگی بریانی"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500] placeholder-zinc-500 text-right font-medium">
+                                    </div>
+                                </div>
+
+                                <!-- Pakwan Center Location & Category Custom Dropdown -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    
+                                    <!-- Pakwan Center Kitchen Location (Custom Dropdown + Input) -->
+                                    <div class="relative" x-data="{ openLoc: false, locations: ['Main Pakwan Kitchen, Islamabad (G-9 Markaz)', 'Rawalpindi Saddar Catering Hub', 'Lahore Gulberg Pakwan Hub', 'Blue Area Catering Branch, Islamabad', 'Custom Kitchen Location'] }">
+                                        <label class="block text-[11px] font-semibold text-amber-300 mb-1">Pakwan Center Location *</label>
+                                        <button type="button" @click="openLoc = !openLoc; $nextTick(() => lucide.createIcons())"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-amber-500/30 hover:border-amber-400 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-amber-400">
+                                            <span class="truncate" x-text="newListingForm.location"></span>
+                                            <i data-lucide="chevron-down" class="w-4 h-4 text-amber-400 transition-transform shrink-0" :class="openLoc ? 'rotate-180' : ''"></i>
+                                        </button>
+                                        <div x-show="openLoc" @click.outside="openLoc = false" x-cloak
+                                            class="absolute left-0 mt-1 w-full max-h-52 overflow-y-auto cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                            <template x-for="loc in locations" :key="loc">
+                                                <button type="button" @click="newListingForm.location = (loc === 'Custom Kitchen Location' ? '' : loc); openLoc = false"
+                                                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors hover:bg-amber-500/20"
+                                                    :class="newListingForm.location === loc ? 'text-amber-400 font-bold bg-amber-500/10' : 'text-zinc-300'">
+                                                    <span x-text="loc"></span>
+                                                    <i data-lucide="check" class="w-3.5 h-3.5 text-amber-400" x-show="newListingForm.location === loc"></i>
+                                                </button>
+                                            </template>
+                                        </div>
+                                        <!-- Editable Address Field for exact accuracy -->
+                                        <input type="text" x-model="newListingForm.location" placeholder="Or type exact kitchen address..."
+                                            class="mt-1.5 w-full px-2.5 py-1.5 bg-zinc-950 border border-white/5 rounded-lg text-[11px] text-zinc-300 focus:outline-none focus:border-amber-400">
+                                    </div>
+
+                                    <!-- Custom Pakwan Category Dropdown -->
+                                    <div class="relative" x-data="{ openPakCat: false, pCategories: ['Shahi Biryani & Pulao', 'Shahi Qorma & Degi Salan', 'Degi Haleem & Nihari', 'Shahi Sweet Zarda & Mutanjan', 'Kheer & Firni Catering'] }">
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Daig Category *</label>
+                                        <button type="button" @click="openPakCat = !openPakCat; $nextTick(() => lucide.createIcons())"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 hover:border-amber-400/40 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-amber-400">
+                                            <span x-text="newListingForm.pakwanCategory"></span>
+                                            <i data-lucide="chevron-down" class="w-4 h-4 text-amber-400 transition-transform" :class="openPakCat ? 'rotate-180' : ''"></i>
+                                        </button>
+                                        <div x-show="openPakCat" @click.outside="openPakCat = false" x-cloak
+                                            class="absolute left-0 mt-1 w-full max-h-52 overflow-y-auto cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                            <template x-for="pcat in pCategories" :key="pcat">
+                                                <button type="button" @click="newListingForm.pakwanCategory = pcat; openPakCat = false"
+                                                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors hover:bg-amber-500/20"
+                                                    :class="newListingForm.pakwanCategory === pcat ? 'text-amber-400 font-bold bg-amber-500/10' : 'text-zinc-300'">
+                                                    <span x-text="pcat"></span>
+                                                    <i data-lucide="check" class="w-3.5 h-3.5 text-amber-400" x-show="newListingForm.pakwanCategory === pcat"></i>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Daig Description & Advance Notice -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Daig Description &amp; Spices</label>
+                                        <textarea x-model="newListingForm.description" rows="2" placeholder="Authentic slow-cooked deg prepared in pure desi ghee, saffron aroma, tender marinated meat..."
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400 placeholder-zinc-500"></textarea>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Advance Delivery Notice</label>
+                                        <input type="text" x-model="newListingForm.deliveryNotice" placeholder="e.g. Order 3-4 hours in advance"
+                                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400 placeholder-zinc-500">
+                                        <div class="mt-1 flex flex-wrap gap-1">
+                                            <template x-for="notc in ['Order 3-4 hours in advance', 'Order 6-8 hours in advance', '24 hours notice for weddings']" :key="notc">
+                                                <button type="button" @click="newListingForm.deliveryNotice = notc"
+                                                    class="px-2 py-0.5 rounded text-[9.5px] bg-zinc-800 text-zinc-400 hover:text-white" x-text="notc">
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Daig Pricing, Weights & Cut Price Box -->
+                                <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                                            <span class="text-amber-400">👑</span>
+                                            <span>Full &amp; Half Daig Pricing, Cut Price &amp; Weights</span>
+                                        </span>
+                                        <label class="flex items-center gap-2 cursor-pointer select-none">
+                                            <input type="checkbox" x-model="newListingForm.showCutPrice" class="w-4 h-4 rounded bg-zinc-800 text-amber-400 border-white/20 focus:ring-0">
+                                            <span class="text-[11px] font-bold text-amber-400">Show Cut Price on App</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                                        <!-- Full Daig Price -->
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">Full Daig Price (Rs.) *</label>
+                                            <input type="number" x-model.number="newListingForm.fullDaigPrice" @input="recalcListingDiscount('actual')" required min="1000" placeholder="16000"
+                                                class="w-full px-3 py-2 bg-zinc-900 border border-emerald-500/40 rounded-xl text-xs text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-400">
+                                        </div>
+
+                                        <!-- Full Daig Weight/Servings -->
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-300 mb-1">Full Daig Weight</label>
+                                            <input type="text" x-model="newListingForm.fullDaigWeight" placeholder="12 KG (Serves 35-40)"
+                                                class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400">
+                                        </div>
+
+                                        <!-- Half Daig Price -->
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">Half Daig Price (Rs.) *</label>
+                                            <input type="number" x-model.number="newListingForm.halfDaigPrice" required min="500" placeholder="8500"
+                                                class="w-full px-3 py-2 bg-zinc-900 border border-emerald-500/40 rounded-xl text-xs text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-400">
+                                        </div>
+
+                                        <!-- Half Daig Weight/Servings -->
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-300 mb-1">Half Daig Weight</label>
+                                            <input type="text" x-model="newListingForm.halfDaigWeight" placeholder="6 KG (Serves 18-20)"
+                                                class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400">
+                                        </div>
+                                    </div>
+
+                                    <!-- Cut Price & Discount Row -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-white/10">
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-300 mb-1">Original Cut Price (Rs.)</label>
+                                            <input type="number" x-model.number="newListingForm.cutPrice" @input="recalcListingDiscount('cut')" min="1000" placeholder="20000"
+                                                class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-amber-400">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-amber-400 mb-1">Discount (% OFF)</label>
+                                            <input type="number" x-model.number="newListingForm.discountPercent" @input="recalcListingDiscount('percent')" min="0" max="70" placeholder="20"
+                                                class="w-full px-3 py-1.5 bg-zinc-900 border border-amber-500/40 rounded-xl text-xs text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-400">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-[10px] font-bold uppercase tracking-wider text-zinc-300 mb-1">Promo Badge</label>
+                                            <input type="text" x-model="newListingForm.promoBadge" placeholder="SPECIAL SHAHI DEG"
+                                                class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Image Upload & Link (Dual Capability) -->
+                                <div class="p-3.5 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                                            <i data-lucide="image" class="w-4 h-4 text-amber-400"></i>
+                                            <span>Daig Image (File Upload OR Image Link)</span>
+                                        </span>
+                                        
+                                        <div class="inline-flex p-0.5 bg-zinc-950 rounded-lg border border-white/5">
+                                            <button type="button" @click="addListingImageMode = 'file'"
+                                                class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all"
+                                                :class="addListingImageMode === 'file' ? 'bg-amber-400 text-black font-bold' : 'text-zinc-400 hover:text-white'">
+                                                📁 Upload File
+                                            </button>
+                                            <button type="button" @click="addListingImageMode = 'url'"
+                                                class="px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all"
+                                                :class="addListingImageMode === 'url' ? 'bg-amber-400 text-black font-bold' : 'text-zinc-400 hover:text-white'">
+                                                🔗 Image Link
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Mode A: File Upload -->
+                                    <div x-show="addListingImageMode === 'file'" class="space-y-1.5">
+                                        <input type="file" accept="image/*" @change="handleListingImageUpload($event)" class="hidden" id="daig-file-upload">
+                                        <label for="daig-file-upload" class="cursor-pointer border-2 border-dashed border-white/15 hover:border-amber-400/60 rounded-xl p-4 flex flex-col items-center justify-center text-center transition-all bg-white/[0.02] hover:bg-amber-500/[0.05]">
+                                            <template x-if="!uploadingListingImage">
+                                                <div class="space-y-1">
+                                                    <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center text-lg mx-auto">
+                                                        👑
+                                                    </div>
+                                                    <p class="text-xs font-bold text-white">Click or drag &amp; drop to upload Daig image file</p>
+                                                    <p class="text-[10px] text-zinc-400">Saves directly to server storage (uploads/ folder) with public URL</p>
+                                                </div>
+                                            </template>
+                                            <template x-if="uploadingListingImage">
+                                                <div class="flex items-center gap-2 py-3 text-xs font-bold text-amber-400">
+                                                    <div class="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                                                    <span>Uploading image to server disk...</span>
+                                                </div>
+                                            </template>
+                                        </label>
+                                    </div>
+
+                                    <!-- Mode B: Direct Image URL -->
+                                    <div x-show="addListingImageMode === 'url'" class="space-y-1">
+                                        <input type="url" x-model="newListingForm.imageUrl" placeholder="https://images.unsplash.com/... or relative base URL"
+                                            class="w-full px-3 py-2 bg-zinc-950 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400">
+                                        <p class="text-[10px] text-zinc-400">Provide direct external CDN image URL or relative server path.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Form Submit Buttons -->
+                                <div class="pt-2 flex flex-wrap items-center justify-end gap-2 border-t border-white/5">
+                                    <button type="button" @click="foodListingMode = 'list'"
+                                        class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-xl text-xs font-semibold transition-all">
+                                        Cancel
+                                    </button>
+                                    <button type="button" @click="resetNewListingForm('pakwan')"
+                                        class="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-xl text-xs font-semibold border border-white/5 transition-all">
+                                        Reset Form
+                                    </button>
+                                    <button type="submit" :disabled="loading"
+                                        class="px-5 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-black font-black rounded-xl text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5">
+                                        <i data-lucide="check" class="w-4 h-4 text-black"></i>
+                                        <span>Publish Shahi Daig</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Live Customer App Daig Card Preview (4 Columns) -->
+                        <div class="lg:col-span-4 space-y-3">
+                            <div class="p-3 cupertino-card rounded-2xl border border-white/5">
+                                <span class="text-[10px] uppercase font-bold text-amber-400 tracking-wider flex items-center gap-1 mb-2">
+                                    <i data-lucide="smartphone" class="w-3.5 h-3.5 text-amber-400"></i>
+                                    <span>Pakwan Customer App Preview</span>
+                                </span>
+
+                                <!-- Mock Daig Card -->
+                                <div class="rounded-2xl overflow-hidden bg-zinc-900 border border-amber-500/20 shadow-lg">
+                                    <div class="relative h-44 bg-zinc-950 overflow-hidden">
+                                        <img :src="newListingForm.imageUrl || 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80'"
+                                            class="w-full h-full object-cover" alt="preview">
+                                        
+                                        <!-- Badges Overlay -->
+                                        <div class="absolute top-2 left-2 flex flex-col gap-1">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-500 text-black shadow-md flex items-center gap-1">
+                                                <span>👑</span>
+                                                <span x-text="newListingForm.promoBadge || 'SHAHI CATERING'"></span>
+                                            </span>
+                                            <span class="px-2 py-0.5 rounded-full text-[8.5px] font-semibold bg-black/70 backdrop-blur-sm text-zinc-300"
+                                                x-text="newListingForm.pakwanCategory">
+                                            </span>
+                                        </div>
+
+                                        <div class="absolute bottom-2 left-2 right-2 px-2 py-1 rounded-lg text-[9.5px] font-semibold bg-black/80 backdrop-blur-sm text-amber-300 truncate">
+                                            📍 <span x-text="newListingForm.location || 'Pakwan Kitchen Location'"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3.5 space-y-2">
+                                        <div>
+                                            <h5 class="text-sm font-bold text-white line-clamp-1" x-text="newListingForm.name || 'Shahi Daig Title Preview'"></h5>
+                                            <p class="text-xs text-amber-300/90 font-medium text-right line-clamp-1" x-text="newListingForm.urduName || 'شاہی دیغ نام'"></p>
+                                        </div>
+
+                                        <p class="text-[11px] text-zinc-400 line-clamp-2" x-text="newListingForm.description || 'Authentic slow-cooked saffron daig description will appear here...'"></p>
+
+                                        <!-- Prices Comparison -->
+                                        <div class="pt-2 border-t border-white/5 space-y-1.5">
+                                            <div class="flex items-center justify-between text-xs">
+                                                <span class="text-zinc-400 text-[10.5px]">Full Daig (12 KG):</span>
+                                                <div class="flex items-baseline gap-1.5">
+                                                    <span class="font-black text-[#FF9500] text-sm tabular-nums" x-text="'Rs. ' + (newListingForm.fullDaigPrice || 0)"></span>
+                                                    <template x-if="newListingForm.showCutPrice && newListingForm.cutPrice > newListingForm.fullDaigPrice">
+                                                        <span class="text-[10.5px] line-through text-zinc-500 tabular-nums" x-text="'Rs. ' + newListingForm.cutPrice"></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center justify-between text-xs">
+                                                <span class="text-zinc-400 text-[10.5px]">Half Daig (6 KG):</span>
+                                                <span class="font-bold text-white text-xs tabular-nums" x-text="'Rs. ' + (newListingForm.halfDaigPrice || 0)"></span>
+                                            </div>
+
+                                            <div class="pt-1 flex items-center justify-between text-[10px] text-amber-400">
+                                                <span class="flex items-center gap-1">
+                                                    <i data-lucide="clock" class="w-3 h-3"></i>
+                                                    <span x-text="newListingForm.deliveryNotice"></span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- =========================================================== -->
+                <!-- VIEW 2: ALL MENU LISTINGS (TABLES FOR DISHES & DAIGS)        -->
+                <!-- =========================================================== -->
+                <div x-show="foodListingMode === 'list'" class="space-y-3">
+                    
+                    <!-- Sub-Tabs Switcher & Actions Bar -->
+                    <div class="p-3 cupertino-card rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                        
+                        <!-- Sub-tabs: Dishes vs Daigs -->
+                        <div class="inline-flex p-1 bg-zinc-900 rounded-xl border border-white/5">
+                            <button type="button" @click="foodListingSection = 'dishes'"
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                :class="foodListingSection === 'dishes' ? 'bg-[#FF9500] text-black shadow-sm' : 'text-zinc-400 hover:text-white'">
+                                <span>🍽️ Restaurant Dishes</span>
+                                <span class="ml-1 text-[10px] opacity-75 font-mono" x-text="'(' + vendorFoodItems.length + ')'"></span>
+                            </button>
+                            <button type="button" @click="foodListingSection = 'daigs'"
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                :class="foodListingSection === 'daigs' ? 'bg-[#FF9500] text-black shadow-sm' : 'text-zinc-400 hover:text-white'">
+                                <span>👑 Shahi Pakwan Daigs</span>
+                                <span class="ml-1 text-[10px] opacity-75 font-mono" x-text="'(' + vendorDaigItems.length + ')'"></span>
+                            </button>
+                        </div>
+
+                        <!-- Search, Category Filter & Upload Buttons -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <!-- Custom Dish Category Filter Dropdown -->
+                            <div class="relative" x-show="foodListingSection === 'dishes'" x-data="{ openCatFilter: false }">
+                                <button type="button" @click="openCatFilter = !openCatFilter; $nextTick(() => lucide.createIcons())"
+                                    class="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 rounded-xl text-xs text-white flex items-center gap-1.5 transition-all">
+                                    <span x-text="foodCategoryFilter === 'All' ? 'All Dish Categories' : foodCategoryFilter"></span>
+                                    <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openCatFilter ? 'rotate-180' : ''"></i>
+                                </button>
+                                <div x-show="openCatFilter" @click.outside="openCatFilter = false" x-cloak
+                                    class="absolute left-0 mt-1 w-48 cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                    <template x-for="cat in ['All', 'Biryani', 'Karahi & Handi', 'BBQ & Grill', 'Burgers', 'Desi Gravy', 'Desserts', 'Beverages']" :key="cat">
+                                        <button type="button" @click="foodCategoryFilter = cat; foodPage = 1; openCatFilter = false"
+                                            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                            :class="foodCategoryFilter === cat ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                            <span x-text="cat === 'All' ? 'All Dish Categories' : cat"></span>
+                                            <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="foodCategoryFilter === cat"></i>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <input type="text" x-model="menuSearchQuery" placeholder="Search dish / daig by name..."
+                                class="px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500] w-44 sm:w-52">
+
+                            <button type="button" x-show="foodListingSection === 'dishes'" @click="openAddListingPage('restaurant')"
+                                class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold rounded-xl text-xs flex items-center gap-1 shadow-sm transition-all active:scale-95">
+                                <i data-lucide="plus" class="w-3.5 h-3.5 text-black"></i>
+                                <span>Upload Dish</span>
+                            </button>
+
+                            <button type="button" x-show="foodListingSection === 'daigs'" @click="openAddListingPage('pakwan')"
+                                class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold rounded-xl text-xs flex items-center gap-1 shadow-sm transition-all active:scale-95">
+                                <i data-lucide="plus" class="w-3.5 h-3.5 text-black"></i>
+                                <span>Upload Daig</span>
+                            </button>
+                        </div>
+                    </div>
 
                 <!-- SECTION A: RESTAURANT DISHES TABLE -->
                 <div x-show="foodListingSection === 'dishes'" class="cupertino-card rounded-2xl overflow-hidden shadow-sm">
@@ -1409,6 +2113,9 @@ $adminUser = $_SESSION['admin_user'];
                                 class="px-2.5 py-1 bg-zinc-900 disabled:opacity-40 rounded-lg text-xs font-semibold hover:text-white">Next</button>
                         </div>
                     </div>
+                </div>
+
+                <!-- END OF VIEW 2: ALL MENU LISTINGS -->
                 </div>
 
             </section>
@@ -2134,6 +2841,35 @@ $adminUser = $_SESSION['admin_user'];
                 rejectReason: '',
                 assignTarget: null,
 
+                // Dedicated "Add Food Listing" State (Restaurant vs Pakwan)
+                foodListingMode: 'list', // 'list' | 'add'
+                addListingType: 'restaurant', // 'restaurant' | 'pakwan'
+                addListingImageMode: 'file', // 'file' | 'url'
+                uploadingListingImage: false,
+                newListingForm: {
+                    name: '',
+                    urduName: '',
+                    category: 'Biryani',
+                    pakwanCategory: 'Shahi Biryani & Pulao',
+                    description: '',
+                    actualPrice: 650,
+                    cutPrice: 1300,
+                    showCutPrice: true,
+                    isDiscounted: true,
+                    discountPercent: 50,
+                    promoBadge: '🔥 50% OFF',
+                    calories: 520,
+                    prepTime: '20-25 mins',
+                    foodTag: 'Non-Veg / Meat',
+                    location: 'Main Pakwan Kitchen, Islamabad (G-9 Markaz)',
+                    fullDaigPrice: 16000,
+                    halfDaigPrice: 8500,
+                    fullDaigWeight: '12 KG (Serves 35-40 Persons)',
+                    halfDaigWeight: '6 KG (Serves 18-20 Persons)',
+                    deliveryNotice: 'Order 3-4 hours in advance',
+                    imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80'
+                },
+
                 // Forms
                 riderForm: { name: '', phone: '', email: '', password: '123456', city: 'Lahore' },
                 editingRider: {},
@@ -2799,6 +3535,203 @@ $adminUser = $_SESSION['admin_user'];
                         }
                     } catch(e) {
                         this.showToast('Delete error: ' + e.message, 'error');
+                    }
+                },
+
+                // ===============================================================
+                // DEDICATED "ADD FOOD LISTING" PAGE METHODS (RESTAURANT & PAKWAN)
+                // ===============================================================
+                openAddListingPage(type = 'restaurant') {
+                    this.foodListingMode = 'add';
+                    this.resetNewListingForm(type);
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                resetNewListingForm(type = 'restaurant') {
+                    this.addListingType = type;
+                    this.newListingForm = {
+                        name: '',
+                        urduName: '',
+                        category: 'Biryani',
+                        pakwanCategory: 'Shahi Biryani & Pulao',
+                        description: '',
+                        actualPrice: type === 'restaurant' ? 650 : 16000,
+                        cutPrice: type === 'restaurant' ? 1300 : 20000,
+                        showCutPrice: true,
+                        isDiscounted: true,
+                        discountPercent: type === 'restaurant' ? 50 : 20,
+                        promoBadge: type === 'restaurant' ? '🔥 50% OFF' : 'SPECIAL SHAHI DEG',
+                        calories: 520,
+                        prepTime: '20-25 mins',
+                        foodTag: 'Non-Veg / Meat',
+                        location: 'Main Pakwan Kitchen, Islamabad (G-9 Markaz)',
+                        fullDaigPrice: 16000,
+                        halfDaigPrice: 8500,
+                        fullDaigWeight: '12 KG (Serves 35-40 Persons)',
+                        halfDaigWeight: '6 KG (Serves 18-20 Persons)',
+                        deliveryNotice: 'Order 3-4 hours in advance',
+                        imageUrl: type === 'restaurant' 
+                            ? 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80'
+                            : 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80'
+                    };
+                },
+
+                recalcListingDiscount(source) {
+                    if (this.addListingType === 'restaurant') {
+                        const cut = Number(this.newListingForm.cutPrice) || 0;
+                        let pct = Number(this.newListingForm.discountPercent) || 0;
+                        let act = Number(this.newListingForm.actualPrice) || 0;
+
+                        if (source === 'cut' || source === 'percent') {
+                            if (cut > 0 && pct >= 0) {
+                                this.newListingForm.actualPrice = Math.round(cut * (1 - pct / 100));
+                            }
+                        } else if (source === 'actual') {
+                            if (cut > 0 && act > 0 && act <= cut) {
+                                this.newListingForm.discountPercent = Math.round(((cut - act) / cut) * 100);
+                            }
+                        }
+                        if (this.newListingForm.discountPercent > 0) {
+                            this.newListingForm.promoBadge = `🔥 ${this.newListingForm.discountPercent}% OFF`;
+                        }
+                    } else {
+                        const cut = Number(this.newListingForm.cutPrice) || 0;
+                        let pct = Number(this.newListingForm.discountPercent) || 0;
+                        let full = Number(this.newListingForm.fullDaigPrice) || 0;
+
+                        if (source === 'cut' || source === 'percent') {
+                            if (cut > 0 && pct >= 0) {
+                                this.newListingForm.fullDaigPrice = Math.round(cut * (1 - pct / 100));
+                                this.newListingForm.halfDaigPrice = Math.round(this.newListingForm.fullDaigPrice * 0.53);
+                            }
+                        } else if (source === 'actual') {
+                            if (cut > 0 && full > 0 && full <= cut) {
+                                this.newListingForm.discountPercent = Math.round(((cut - full) / cut) * 100);
+                            }
+                            if (!this.newListingForm.halfDaigPrice || this.newListingForm.halfDaigPrice >= full) {
+                                this.newListingForm.halfDaigPrice = Math.round(full * 0.53);
+                            }
+                        }
+                        if (this.newListingForm.discountPercent > 0) {
+                            this.newListingForm.promoBadge = `FLAT ${this.newListingForm.discountPercent}% OFF`;
+                        }
+                    }
+                },
+
+                async handleListingImageUpload(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    this.uploadingListingImage = true;
+                    try {
+                        const res = await fetch('../api/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (data.success && data.data && data.data.url) {
+                            this.newListingForm.imageUrl = data.data.url;
+                            this.showToast('✅ Image uploaded successfully to server storage!');
+                        } else {
+                            this.showToast(data.message || 'Image upload failed', 'error');
+                        }
+                    } catch(err) {
+                        this.showToast('Upload error: ' + err.message, 'error');
+                    } finally {
+                        this.uploadingListingImage = false;
+                        event.target.value = '';
+                    }
+                },
+
+                async submitNewListing() {
+                    if (!this.newListingForm.name || !this.newListingForm.name.trim()) {
+                        this.showToast('Please enter dish / daig title', 'error');
+                        return;
+                    }
+
+                    try {
+                        this.loading = true;
+                        if (this.addListingType === 'restaurant') {
+                            const payload = {
+                                restaurantId: this.subAdmin.id,
+                                sub_admin_id: this.subAdmin.id,
+                                name: this.newListingForm.name.trim(),
+                                category: this.newListingForm.category,
+                                description: this.newListingForm.description,
+                                price: Number(this.newListingForm.actualPrice) || 0,
+                                cutPrice: Number(this.newListingForm.cutPrice) || 0,
+                                showCutPrice: Boolean(this.newListingForm.showCutPrice),
+                                discountPrice: Number(this.newListingForm.actualPrice) || 0,
+                                discountPercent: Number(this.newListingForm.discountPercent) || 0,
+                                isDiscounted: Boolean(this.newListingForm.isDiscounted && this.newListingForm.discountPercent > 0),
+                                promoBadge: this.newListingForm.promoBadge || '',
+                                calories: Number(this.newListingForm.calories) || 500,
+                                prepTime: this.newListingForm.prepTime || '20-25 mins',
+                                imageUrl: this.newListingForm.imageUrl || 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80',
+                                badges: [this.newListingForm.foodTag || 'Non-Veg', this.newListingForm.promoBadge].filter(Boolean),
+                                isVisible: 1
+                            };
+
+                            const res = await fetch('../api/food-items', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                this.showToast('🎉 Restaurant dish added successfully to Food Listing!');
+                                await this.refreshAll();
+                                this.foodListingSection = 'dishes';
+                                this.foodListingMode = 'list';
+                            } else {
+                                this.showToast(data.message || 'Failed to save dish', 'error');
+                            }
+                        } else {
+                            const payload = {
+                                sub_admin_id: this.subAdmin.id,
+                                name: this.newListingForm.name.trim(),
+                                urduName: this.newListingForm.urduName || '',
+                                category: this.newListingForm.pakwanCategory || 'Shahi Biryani & Pulao',
+                                location: this.newListingForm.location || 'Main Pakwan Kitchen, Islamabad (G-9 Markaz)',
+                                description: this.newListingForm.description || '',
+                                fullDaigPrice: Number(this.newListingForm.fullDaigPrice) || 0,
+                                halfDaigPrice: Number(this.newListingForm.halfDaigPrice) || 0,
+                                cutPrice: Number(this.newListingForm.cutPrice) || 0,
+                                showCutPrice: Boolean(this.newListingForm.showCutPrice),
+                                discountPercent: Number(this.newListingForm.discountPercent) || 0,
+                                discountPrice: Number(this.newListingForm.fullDaigPrice) || 0,
+                                isDiscounted: Boolean(this.newListingForm.discountPercent > 0),
+                                promoBadge: this.newListingForm.promoBadge || 'SPECIAL SHAHI DEG',
+                                fullDaigWeight: this.newListingForm.fullDaigWeight || '12 KG (Serves 35-40 Persons)',
+                                halfDaigWeight: this.newListingForm.halfDaigWeight || '6 KG (Serves 18-20 Persons)',
+                                deliveryNotice: this.newListingForm.deliveryNotice || 'Order 3-4 hours in advance',
+                                imageUrl: this.newListingForm.imageUrl || 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80',
+                                isVisible: 1
+                            };
+
+                            const res = await fetch('../api/daig-items', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                this.showToast('👑 Shahi Pakwan Daig added successfully to Food Listing!');
+                                await this.refreshAll();
+                                this.foodListingSection = 'daigs';
+                                this.foodListingMode = 'list';
+                            } else {
+                                this.showToast(data.message || 'Failed to save daig', 'error');
+                            }
+                        }
+                    } catch(err) {
+                        this.showToast('Listing error: ' + err.message, 'error');
+                    } finally {
+                        this.loading = false;
+                        this.$nextTick(() => lucide.createIcons());
                     }
                 },
 
