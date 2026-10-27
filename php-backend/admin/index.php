@@ -505,16 +505,6 @@ if ($liveSuper) {
                             </h3>
                             <p class="text-[11px] text-zinc-400">List of all registered Vendors (Pakwan Centers & Restaurants), riders fleet, orders analytics & instant messaging</p>
                         </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <button type="button" @click="openCreateRiderModal()" class="px-3 py-1.5 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
-                                <i data-lucide="bike" class="w-3.5 h-3.5"></i>
-                                <span>+ Rider Add Karein</span>
-                            </button>
-                            <button type="button" @click="openCreateSubAdminModal()" class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
-                                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-                                <span>+ Naya Vendor Kholein</span>
-                            </button>
-                        </div>
                     </div>
 
                     <!-- Search, Category Type Buttons (All, Pakwan, Restaurant, Both) & Date-wise Filter Bar -->
@@ -531,7 +521,7 @@ if ($liveSuper) {
                                 <button type="button" x-show="searchPakwanQuery" @click="searchPakwanQuery = ''" class="absolute right-2.5 top-2 text-zinc-500 hover:text-white text-xs">✕</button>
                             </div>
 
-                            <!-- THE REQUIRED TYPE BUTTONS: ALL, PAKWAN CENTERS, RESTAURANTS, BOTH -->
+                            <!-- THE 3 REQUIRED TYPE BUTTONS: ALL, PAKWAN CENTERS, RESTAURANTS -->
                             <div class="flex items-center gap-1.5 shrink-0 text-xs font-semibold flex-wrap">
                                 <!-- Button 1: All -->
                                 <button type="button" @click="selectedBusinessTypeFilter = 'All'"
@@ -555,14 +545,6 @@ if ($liveSuper) {
                                     :class="selectedBusinessTypeFilter === 'restaurant' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/5'">
                                     <span>🍽️ Restaurants</span>
                                     <span class="px-1.5 py-0.2 rounded-full text-[9.5px]" :class="selectedBusinessTypeFilter === 'restaurant' ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-400'" x-text="subAdmins.filter(s => s.businessType === 'restaurant' || s.businessType === 'both').length"></span>
-                                </button>
-
-                                <!-- Button 4: Both -->
-                                <button type="button" @click="selectedBusinessTypeFilter = 'both'"
-                                    class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95"
-                                    :class="selectedBusinessTypeFilter === 'both' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/5'">
-                                    <span>👑🍽️ Both</span>
-                                    <span class="px-1.5 py-0.2 rounded-full text-[9.5px]" :class="selectedBusinessTypeFilter === 'both' ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-400'" x-text="subAdmins.filter(s => s.businessType === 'both').length"></span>
                                 </button>
                             </div>
 
@@ -1055,11 +1037,11 @@ if ($liveSuper) {
                                     <i data-lucide="bike" class="w-3.5 h-3.5 text-sky-400"></i>
                                     <span>Dedicated Fleet Riders (<span x-text="(viewingCenter?.riders || []).length"></span>)</span>
                                 </h4>
-                                <p class="text-[10.5px] text-zinc-400">Riders assigned specifically to this Pakwan Center, their delivery records and customers served</p>
+                                <p class="text-[10.5px] text-zinc-400">Riders assigned specifically to this Vendor, their delivery records and customers served</p>
                             </div>
                             <button type="button" @click="openCreateRiderModal(viewingCenter)" class="px-3 py-1.5 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
                                 <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-                                <span>+ Is Center Ka Naya Rider Add Karein</span>
+                                <span>+ Is Vendor Ka Naya Rider Add Karein</span>
                             </button>
                         </div>
 

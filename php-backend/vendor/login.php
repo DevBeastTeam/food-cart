@@ -326,143 +326,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- =================================================================== -->
         <!-- LEFT 50% PANEL: VENDOR BRANDING, BURGER BACKGROUND, FEATURES LIST   -->
         <!-- =================================================================== -->
-        <section class="w-full lg:w-1/2 min-h-[500px] lg:min-h-screen relative flex flex-col justify-between p-6 sm:p-10 lg:p-14 border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900/90 to-zinc-950">
+        <section class="w-full lg:w-1/2 min-h-[500px] lg:min-h-screen relative flex flex-col justify-between p-5 sm:p-8 lg:p-10 border-b lg:border-b-0 lg:border-r border-white/10 overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
             
-            <!-- SUBTLE FOOD / BURGER & FRIES BACKGROUND IMAGE (LOW OPACITY AS REQUESTED) -->
-            <div class="absolute inset-0 bg-cover bg-center pointer-events-none opacity-20 mix-blend-luminosity filter contrast-125"
-                 style="background-image: url('https://images.unsplash.com/photo-1550547660-d9450f859349?w=1600&auto=format&fit=crop&q=80');"
+            <!-- VIBRANT & VISIBLE FOOD / BURGER & FRIES BACKGROUND IMAGE -->
+            <div class="absolute inset-0 bg-cover bg-center pointer-events-none opacity-45"
+                 style="background-image: url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1600&auto=format&fit=crop&q=85');"
                  aria-hidden="true">
             </div>
             
-            <!-- Dark Aesthetic Gradient Overlay to maintain clean contrast -->
-            <div class="absolute inset-0 bg-gradient-to-b from-[#09090b]/90 via-[#09090b]/80 to-zinc-950/95 pointer-events-none" aria-hidden="true"></div>
-            <div class="absolute -top-24 -left-24 w-80 h-80 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
+            <!-- Soft Dark Tint Overlay ensuring both image visibility and high text contrast -->
+            <div class="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/80 to-[#09090b]/60 pointer-events-none" aria-hidden="true"></div>
+            <div class="absolute -top-24 -left-24 w-80 h-80 bg-orange-500/20 rounded-full blur-3xl pointer-events-none" aria-hidden="true"></div>
 
             <!-- TOP BRAND HEADER -->
             <header class="relative z-10">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FF9500] to-[#EA580C] text-black flex items-center justify-center font-black shadow-lg shadow-orange-500/25 shrink-0 ring-2 ring-orange-500/20">
-                            <i data-lucide="crown" class="w-6 h-6 stroke-[2.5]"></i>
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF9500] to-[#EA580C] text-black flex items-center justify-center font-black shadow-lg shadow-orange-500/25 shrink-0 ring-1 ring-orange-500/30">
+                            <i data-lucide="crown" class="w-5 h-5 stroke-[2.5]"></i>
                         </div>
                         <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-base font-black text-white tracking-tight">FoodCourt &amp; Pakwan</span>
-                                <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-orange-500/20 text-[#FF9500] border border-orange-500/30">Partner</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-sm font-black text-white tracking-tight">FoodCourt &amp; Pakwan</span>
+                                <span class="px-1.5 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase tracking-wider bg-orange-500/20 text-[#FF9500] border border-orange-500/30">Partner</span>
                             </div>
-                            <p class="text-[11px] text-zinc-400">Authorized Vendor &amp; Merchant Operations</p>
+                            <p class="text-[10.5px] text-zinc-400">Authorized Vendor &amp; Merchant Operations</p>
                         </div>
                     </div>
 
                     <!-- Live Status Badge -->
-                    <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/80 border border-white/10 text-[11px] text-zinc-300">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span class="font-medium">Live Partner Network</span>
+                    <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900/80 border border-white/10 text-[10.5px] text-zinc-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="font-medium">Live Network</span>
                     </div>
                 </div>
 
-                <!-- MAIN HEADING & SUBHEADING -->
-                <div class="mt-8 lg:mt-10">
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+                <!-- MAIN HEADING & SUBHEADING (NO VERBOSE PARAGRAPH) -->
+                <div class="mt-4 lg:mt-6">
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
                         Welcome to Vendor
                     </h1>
 
-                    <h2 class="text-lg sm:text-2xl font-bold text-orange-400 mt-2 flex flex-wrap items-center gap-2">
+                    <h2 class="text-base sm:text-lg font-bold text-orange-400 mt-1 flex flex-wrap items-center gap-2">
                         <span>Restaurant / Pakwan Center</span>
-                        <span class="text-xs sm:text-sm font-semibold px-2.5 py-0.5 rounded-lg bg-orange-500/20 text-orange-300 border border-orange-500/30" dir="rtl">
+                        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-300 border border-orange-500/30" dir="rtl">
                             ریسٹورنٹ سلیش پکوان سینٹر
                         </span>
                     </h2>
-
-                    <p class="text-xs sm:text-sm text-zinc-400 mt-3 leading-relaxed max-w-xl">
-                        Pakistan's premier all-in-one management suite for traditional bulk Daig catering, restaurant fast-food menus, dedicated rider dispatching, and instant customer fulfillment.
-                    </p>
                 </div>
             </header>
 
-            <!-- BULLET POINTS / CAPABILITIES LIST (AS REQUESTED) -->
-            <div class="relative z-10 my-6 sm:my-8 space-y-3 max-w-xl">
+            <!-- BULLET POINTS / CAPABILITIES (COMPACT GAPS & CONCISE DETAILS) -->
+            <div class="relative z-10 my-4 sm:my-5 space-y-2 max-w-xl">
                 <!-- Bullet 1: Manage Riders -->
-                <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-zinc-900/70 border border-white/5 hover:border-orange-500/30 transition-all group backdrop-blur-sm">
-                    <div class="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                        <i data-lucide="bike" class="w-5 h-5"></i>
+                <div class="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900/75 border border-white/10 hover:border-orange-500/40 transition-all group backdrop-blur-md">
+                    <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="bike" class="w-4 h-4"></i>
                     </div>
                     <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-xs sm:text-sm font-bold text-white">Can Manage Riders</h3>
-                            <span class="text-[10px] text-zinc-400 font-medium" dir="rtl">(رائڈرز مینیج کریں)</span>
+                        <div class="flex items-center gap-1.5">
+                            <h3 class="text-xs font-bold text-white">Can Manage Riders</h3>
+                            <span class="text-[10px] text-zinc-400" dir="rtl">(رائڈرز مینیج کریں)</span>
                         </div>
-                        <p class="text-[11px] sm:text-xs text-zinc-400 mt-0.5 leading-normal">
-                            Add and onboard store riders, automatically dispatch incoming orders, track active deliveries with live GPS, and calculate rider commissions.
+                        <p class="text-[11px] text-zinc-300 mt-0.5 leading-tight">
+                            Add store riders, assign incoming orders, and track live delivery GPS.
                         </p>
                     </div>
                 </div>
 
                 <!-- Bullet 2: Manage Customers -->
-                <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-zinc-900/70 border border-white/5 hover:border-orange-500/30 transition-all group backdrop-blur-sm">
-                    <div class="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-300 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                        <i data-lucide="users" class="w-5 h-5"></i>
+                <div class="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900/75 border border-white/10 hover:border-orange-500/40 transition-all group backdrop-blur-md">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="users" class="w-4 h-4"></i>
                     </div>
                     <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-xs sm:text-sm font-bold text-white">Can Manage Customers</h3>
-                            <span class="text-[10px] text-zinc-400 font-medium" dir="rtl">(کسٹمر ڈیٹا اور لائلٹی)</span>
+                        <div class="flex items-center gap-1.5">
+                            <h3 class="text-xs font-bold text-white">Can Manage Customers</h3>
+                            <span class="text-[10px] text-zinc-400" dir="rtl">(کسٹمر ڈیٹا اور لائلٹی)</span>
                         </div>
-                        <p class="text-[11px] sm:text-xs text-zinc-400 mt-0.5 leading-normal">
-                            Access customer profiles, delivery addresses, order history, phone numbers for WhatsApp updates, and manage customer reviews.
+                        <p class="text-[11px] text-zinc-300 mt-0.5 leading-tight">
+                            Access customer profiles, delivery addresses, and repeat order history.
                         </p>
                     </div>
                 </div>
 
                 <!-- Bullet 3: Check Daily Orders -->
-                <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-zinc-900/70 border border-white/5 hover:border-orange-500/30 transition-all group backdrop-blur-sm">
-                    <div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                <div class="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900/75 border border-white/10 hover:border-orange-500/40 transition-all group backdrop-blur-md">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="clipboard-list" class="w-4 h-4"></i>
                     </div>
                     <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-xs sm:text-sm font-bold text-white">Can Check Daily Orders</h3>
-                            <span class="text-[10px] text-zinc-400 font-medium" dir="rtl">(روزانہ کے لائیو آرڈرز)</span>
+                        <div class="flex items-center gap-1.5">
+                            <h3 class="text-xs font-bold text-white">Can Check Daily Orders</h3>
+                            <span class="text-[10px] text-zinc-400" dir="rtl">(روزانہ کے لائیو آرڈرز)</span>
                         </div>
-                        <p class="text-[11px] sm:text-xs text-zinc-400 mt-0.5 leading-normal">
-                            Monitor incoming real-time orders, manage kitchen preparation queues, print KOT receipts, and update order statuses instantly.
+                        <p class="text-[11px] text-zinc-300 mt-0.5 leading-tight">
+                            Live incoming orders stream, kitchen preparation queue, and instant dispatch.
                         </p>
                     </div>
                 </div>
 
                 <!-- Bullet 4: Daigs & Restaurant Menu -->
-                <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-zinc-900/70 border border-white/5 hover:border-orange-500/30 transition-all group backdrop-blur-sm">
-                    <div class="w-9 h-9 rounded-xl bg-orange-500/15 text-[#FF9500] flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform font-bold">
+                <div class="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900/75 border border-white/10 hover:border-orange-500/40 transition-all group backdrop-blur-md">
+                    <div class="w-8 h-8 rounded-lg bg-orange-500/20 text-[#FF9500] flex items-center justify-center shrink-0 mt-0.5 font-bold text-sm">
                         🍽️
                     </div>
                     <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-xs sm:text-sm font-bold text-white">Bulk Shahi Daigs &amp; Fast Food Menu</h3>
-                            <span class="text-[10px] text-zinc-400 font-medium" dir="rtl">(دیگ کیٹرنگ اور فاسٹ فوڈ)</span>
+                        <div class="flex items-center gap-1.5">
+                            <h3 class="text-xs font-bold text-white">Bulk Shahi Daigs &amp; Fast Food Menu</h3>
+                            <span class="text-[10px] text-zinc-400" dir="rtl">(دیگ اور فاسٹ فوڈ)</span>
                         </div>
-                        <p class="text-[11px] sm:text-xs text-zinc-400 mt-0.5 leading-normal">
-                            Upload 12KG &amp; 6KG catering daigs with advance booking slots, burgers, rolls, biryani platters, and custom spice level options.
+                        <p class="text-[11px] text-zinc-300 mt-0.5 leading-tight">
+                            Manage 12KG/6KG catering daigs, fast-food burgers, biryani platters, and spices.
                         </p>
                     </div>
                 </div>
 
                 <!-- Bullet 5: Live Analytics & Discounts -->
-                <div class="flex items-start gap-3.5 p-3 rounded-2xl bg-zinc-900/70 border border-white/5 hover:border-orange-500/30 transition-all group backdrop-blur-sm">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                        <i data-lucide="trending-up" class="w-5 h-5"></i>
+                <div class="flex items-start gap-3 p-2.5 rounded-xl bg-zinc-900/75 border border-white/10 hover:border-orange-500/40 transition-all group backdrop-blur-md">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i>
                     </div>
                     <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-xs sm:text-sm font-bold text-white">Live Revenue &amp; 50% Promos</h3>
-                            <span class="text-[10px] text-zinc-400 font-medium" dir="rtl">(منافع اور پروموشنز)</span>
+                        <div class="flex items-center gap-1.5">
+                            <h3 class="text-xs font-bold text-white">Daily Revenue &amp; 50% Promos</h3>
+                            <span class="text-[10px] text-zinc-400" dir="rtl">(منافع اور پروموشنز)</span>
                         </div>
-                        <p class="text-[11px] sm:text-xs text-zinc-400 mt-0.5 leading-normal">
-                            Track net revenue, payout settlements, customer repeat metrics, and launch flash promotional badges (e.g. 50% OFF, Free Delivery).
+                        <p class="text-[11px] text-zinc-300 mt-0.5 leading-tight">
+                            Real-time sales revenue, wallet settlements, and custom 50% discount deals.
                         </p>
                     </div>
                 </div>
             </div>
 
+            <div class="relative z-10 text-[11px] text-zinc-400">
+                <span>FoodCourt &amp; Pakwan Network &bull; Merchant Portal</span>
+            </div>
 
         </section>
 
@@ -470,95 +469,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- =================================================================== -->
         <!-- RIGHT 50% PANEL: INTERACTIVE AUTH (LOGIN, SIGN UP, FORGOT PASSWORD) -->
         <!-- =================================================================== -->
-        <section class="w-full lg:w-1/2 min-h-[600px] lg:min-h-screen flex flex-col justify-between p-6 sm:p-10 lg:p-14 bg-[#09090b] relative">
+        <section class="w-full lg:w-1/2 min-h-[500px] lg:min-h-screen flex flex-col justify-between p-5 sm:p-8 lg:p-10 bg-[#09090b] relative">
 
             <!-- TOP NAVIGATION & TAB SWITCHER -->
             <div class="w-full max-w-lg mx-auto">
-                <div class="flex items-center justify-between pb-6 border-b border-white/10">
+                <div class="flex items-center justify-between pb-4 border-b border-white/10">
                     
                     <!-- TAB BUTTONS: LOGIN & SIGN UP (AS REQUESTED) -->
-                    <div class="inline-flex p-1 bg-zinc-900/90 rounded-2xl border border-white/10 shadow-inner">
+                    <div class="inline-flex p-1 bg-zinc-900/90 rounded-xl border border-white/10 shadow-inner">
                         <button type="button" @click="setMode('login')"
-                            class="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5"
+                            class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5"
                             :class="mode === 'login' ? 'bg-gradient-to-r from-[#FF9500] to-[#EA580C] text-black shadow-lg shadow-orange-500/20' : 'text-zinc-400 hover:text-white'">
-                            <i data-lucide="log-in" class="w-4 h-4"></i>
+                            <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
                             <span>Sign In</span>
                         </button>
                         <button type="button" @click="setMode('signup')"
-                            class="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5"
+                            class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5"
                             :class="mode === 'signup' ? 'bg-gradient-to-r from-[#FF9500] to-[#EA580C] text-black shadow-lg shadow-orange-500/20' : 'text-zinc-400 hover:text-white'">
-                            <i data-lucide="store" class="w-4 h-4"></i>
+                            <i data-lucide="store" class="w-3.5 h-3.5"></i>
                             <span>Sign Up</span>
                         </button>
                     </div>
 
                     <!-- Hub Home Link -->
-                    <a href="../" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs text-zinc-300 hover:text-white border border-white/10 flex items-center gap-1.5 font-medium transition-all">
+                    <a href="../" class="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs text-zinc-300 hover:text-white border border-white/10 flex items-center gap-1 font-medium transition-all">
                         <span>Hub Home</span>
-                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        <i data-lucide="arrow-right" class="w-3 h-3"></i>
                     </a>
                 </div>
 
                 <!-- ALERTS -->
                 <?php if (!empty($error)): ?>
-                    <div class="mt-4 p-3.5 bg-red-500/10 border border-red-500/30 rounded-2xl text-xs sm:text-sm text-red-300 flex items-start gap-3 shadow-lg">
-                        <i data-lucide="alert-circle" class="w-5 h-5 text-red-400 shrink-0 mt-0.5"></i>
+                    <div class="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-300 flex items-start gap-2.5">
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 shrink-0 mt-0.5"></i>
                         <span class="leading-relaxed"><?= $error ?></span>
                     </div>
                 <?php endif; ?>
 
                 <?php if (!empty($success)): ?>
-                    <div class="mt-4 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-xs sm:text-sm text-emerald-300 flex items-start gap-3 shadow-lg">
-                        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
+                    <div class="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-start gap-2.5">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
                         <span class="leading-relaxed"><?= $success ?></span>
                     </div>
                 <?php endif; ?>
 
                 <!-- DYNAMIC CLIENT-SIDE ALERT BANNER -->
-                <div x-show="clientAlert.message" x-cloak class="mt-4 p-3.5 rounded-2xl text-xs sm:text-sm flex items-start gap-3 shadow-lg"
+                <div x-show="clientAlert.message" x-cloak class="mt-3 p-3 rounded-xl text-xs flex items-start gap-2.5"
                      :class="clientAlert.type === 'error' ? 'bg-red-500/10 border border-red-500/30 text-red-300' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'">
-                    <i :data-lucide="clientAlert.type === 'error' ? 'alert-circle' : 'check-circle'" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                    <i :data-lucide="clientAlert.type === 'error' ? 'alert-circle' : 'check-circle'" class="w-4 h-4 shrink-0 mt-0.5"></i>
                     <div class="flex-1" x-html="clientAlert.message"></div>
                     <button type="button" @click="clientAlert.message = ''" class="text-zinc-400 hover:text-white">
-                        <i data-lucide="x" class="w-4 h-4"></i>
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- MAIN FORM WRAPPER (CENTERED) -->
-            <div class="w-full max-w-lg mx-auto my-auto py-6">
+            <!-- MAIN FORM WRAPPER (COMPACT GAPS) -->
+            <div class="w-full max-w-lg mx-auto my-auto py-3">
 
                 <!-- =========================================================== -->
                 <!-- 1. LOGIN TAB VIEW                                           -->
                 <!-- =========================================================== -->
-                <div x-show="mode === 'login'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0">
-                    <div class="mb-5">
-                        <h2 class="text-2xl font-black text-white tracking-tight">Sign In to Store Portal</h2>
-                        <p class="text-xs sm:text-sm text-zinc-400 mt-1">Enter your manager credentials to access orders, fleet, and kitchen controls.</p>
+                <div x-show="mode === 'login'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                    <div class="mb-4">
+                        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Sign In to Store Portal</h2>
+                        <p class="text-xs text-zinc-400 mt-0.5">Enter your manager credentials to access orders, fleet, and kitchen controls.</p>
                     </div>
 
-                    <form method="POST" action="login.php" class="space-y-4">
+                    <form method="POST" action="login.php" class="space-y-3">
                         <input type="hidden" name="auth_action" value="login">
 
                         <!-- Field 1: Email Address -->
                         <div>
-                            <label for="login_email" class="block text-xs font-bold text-zinc-300 mb-1.5">
+                            <label for="login_email" class="block text-xs font-bold text-zinc-300 mb-1">
                                 Manager Email Address
                             </label>
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-zinc-500 pointer-events-none">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500 pointer-events-none">
                                     <i data-lucide="mail" class="w-4 h-4"></i>
                                 </span>
                                 <input type="email" name="email" id="login_email" required autocomplete="email"
                                     x-model="loginEmail"
                                     placeholder="shahi.pakwan@foodcourt.pk"
-                                    class="w-full pl-10 pr-3.5 py-3 bg-zinc-900 border border-white/10 rounded-2xl text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500] focus:ring-1 focus:ring-[#FF9500] transition-colors shadow-inner">
+                                    class="w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500] focus:ring-1 focus:ring-[#FF9500] transition-colors shadow-inner">
                             </div>
                         </div>
 
                         <!-- Field 2: Password with "Forgot Password?" button placed right above on the right side -->
                         <div>
-                            <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center justify-between mb-1">
                                 <label for="login_pass" class="text-xs font-bold text-zinc-300">
                                     Password
                                 </label>
@@ -569,13 +568,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </button>
                             </div>
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-zinc-500 pointer-events-none">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-500 pointer-events-none">
                                     <i data-lucide="lock" class="w-4 h-4"></i>
                                 </span>
                                 <input :type="showLoginPass ? 'text' : 'password'" name="password" id="login_pass" required autocomplete="current-password"
                                     placeholder="••••••••"
-                                    class="w-full pl-10 pr-10 py-3 bg-zinc-900 border border-white/10 rounded-2xl text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500] focus:ring-1 focus:ring-[#FF9500] transition-colors shadow-inner">
-                                <button type="button" @click="showLoginPass = !showLoginPass" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-500 hover:text-zinc-300">
+                                    class="w-full pl-9 pr-9 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500] focus:ring-1 focus:ring-[#FF9500] transition-colors shadow-inner">
+                                <button type="button" @click="showLoginPass = !showLoginPass" class="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-500 hover:text-zinc-300">
                                     <i :data-lucide="showLoginPass ? 'eye-off' : 'eye'" class="w-4 h-4"></i>
                                 </button>
                             </div>
@@ -583,15 +582,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <!-- Submit Button -->
                         <button type="submit"
-                            class="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-[#EA580C] hover:from-amber-400 hover:to-orange-500 active:scale-[0.99] text-black font-black rounded-2xl text-sm shadow-xl shadow-orange-500/20 transition-all flex items-center justify-center gap-2 mt-2">
+                            class="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-[#EA580C] hover:from-amber-400 hover:to-orange-500 active:scale-[0.99] text-black font-black rounded-xl text-xs sm:text-sm shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-1.5 mt-2">
                             <i data-lucide="log-in" class="w-4 h-4"></i>
                             <span>Sign In to Store Portal</span>
                         </button>
                     </form>
 
                     <!-- Bottom Switch to Register (AS REQUESTED) -->
-                    <div class="mt-6 text-center">
-                        <p class="text-xs sm:text-sm text-zinc-400">
+                    <div class="mt-4 text-center">
+                        <p class="text-xs text-zinc-400">
                             Don't have an outlet registered?
                             <button type="button" @click="setMode('signup')" class="text-[#FF9500] hover:text-orange-400 font-bold hover:underline transition-colors ml-1">
                                 Sign Up Here
@@ -603,92 +602,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- =========================================================== -->
                 <!-- 2. SIGN UP / REGISTER TAB VIEW                              -->
                 <!-- =========================================================== -->
-                <div x-show="mode === 'signup'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0">
-                    <div class="mb-4">
-                        <h2 class="text-2xl font-black text-white tracking-tight">Register New Vendor Outlet</h2>
-                        <p class="text-xs sm:text-sm text-zinc-400 mt-1">Register your Pakwan Center or Restaurant on Pakistan's premier food network.</p>
+                <div x-show="mode === 'signup'" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+                    <div class="mb-3">
+                        <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Register New Vendor Outlet</h2>
+                        <p class="text-xs text-zinc-400 mt-0.5">Register your Pakwan Center or Restaurant on Pakistan's premier food network.</p>
                     </div>
 
-                    <form method="POST" action="login.php" class="space-y-3">
+                    <form method="POST" action="login.php" class="space-y-2.5">
                         <input type="hidden" name="auth_action" value="register">
 
                         <!-- Business Category Selector (3 Pills) -->
                         <div>
-                            <label class="block text-xs font-bold text-zinc-300 mb-1.5">Business Category</label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <label class="p-2.5 rounded-2xl border text-center cursor-pointer transition-all active:scale-95"
+                            <label class="block text-xs font-bold text-zinc-300 mb-1">Business Category</label>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                <label class="p-2 rounded-xl border text-center cursor-pointer transition-all active:scale-95"
                                     :class="signupData.businessType === 'pakwan' ? 'bg-[#FF9500]/20 border-orange-500/70 text-[#FF9500] font-bold shadow-md' : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-white'">
                                     <input type="radio" name="businessType" value="pakwan" x-model="signupData.businessType" class="sr-only">
                                     <div class="text-xs font-bold">👑 Pakwan</div>
-                                    <div class="text-[10px] opacity-75">Daig Catering</div>
+                                    <div class="text-[9.5px] opacity-75">Daig Catering</div>
                                 </label>
 
-                                <label class="p-2.5 rounded-2xl border text-center cursor-pointer transition-all active:scale-95"
+                                <label class="p-2 rounded-xl border text-center cursor-pointer transition-all active:scale-95"
                                     :class="signupData.businessType === 'restaurant' ? 'bg-[#FF9500]/20 border-orange-500/70 text-[#FF9500] font-bold shadow-md' : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-white'">
                                     <input type="radio" name="businessType" value="restaurant" x-model="signupData.businessType" class="sr-only">
                                     <div class="text-xs font-bold">🍽️ Restaurant</div>
-                                    <div class="text-[10px] opacity-75">Fast Food &amp; Desi</div>
+                                    <div class="text-[9.5px] opacity-75">Fast Food &amp; Desi</div>
                                 </label>
 
-                                <label class="p-2.5 rounded-2xl border text-center cursor-pointer transition-all active:scale-95"
+                                <label class="p-2 rounded-xl border text-center cursor-pointer transition-all active:scale-95"
                                     :class="signupData.businessType === 'both' ? 'bg-[#FF9500]/20 border-orange-500/70 text-[#FF9500] font-bold shadow-md' : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-white'">
                                     <input type="radio" name="businessType" value="both" x-model="signupData.businessType" class="sr-only">
                                     <div class="text-xs font-bold">👑🍽️ Both</div>
-                                    <div class="text-[10px] opacity-75">Pakwan + Dine-in</div>
+                                    <div class="text-[9.5px] opacity-75">Pakwan + Dine-in</div>
                                 </label>
                             </div>
                         </div>
 
                         <!-- Store Name & Owner Name -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-xs font-bold text-zinc-300 mb-1">Store / Pakwan Name *</label>
+                                <label class="block text-[11px] font-bold text-zinc-300 mb-0.5">Store / Pakwan Name *</label>
                                 <input type="text" name="businessName" required placeholder="e.g. Al-Madina Pakwan Center"
-                                    class="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
+                                    class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-zinc-300 mb-1">Manager / Owner Name *</label>
+                                <label class="block text-[11px] font-bold text-zinc-300 mb-0.5">Manager / Owner Name *</label>
                                 <input type="text" name="name" required placeholder="e.g. Haji Rashid Ahmad"
-                                    class="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
+                                    class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
                             </div>
                         </div>
 
                         <!-- Email & Phone -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-xs font-bold text-zinc-300 mb-1">Login Email *</label>
+                                <label class="block text-[11px] font-bold text-zinc-300 mb-0.5">Login Email *</label>
                                 <input type="email" name="email" required autocomplete="username" placeholder="manager@pakwan.pk"
-                                    class="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
+                                    class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-zinc-300 mb-1">Phone (WhatsApp) *</label>
+                                <label class="block text-[11px] font-bold text-zinc-300 mb-0.5">Phone (WhatsApp) *</label>
                                 <input type="tel" name="phone" required placeholder="+92 300 1234567"
-                                    class="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
+                                    class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
                             </div>
                         </div>
 
                         <!-- Password & Confirm Password -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-xs font-bold text-zinc-300 mb-1">Create Password *</label>
+                                <label class="block text-[11px] font-bold text-zinc-300 mb-0.5">Create Password *</label>
                                 <input type="password" name="password" required autocomplete="new-password" placeholder="••••••••"
-                                    class="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
+                                    class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-zinc-300 mb-1">Confirm Password *</label>
+                                <label class="block text-[11px] font-bold text-zinc-300 mb-0.5">Confirm Password *</label>
                                 <input type="password" name="confirmPassword" required autocomplete="new-password" placeholder="••••••••"
-                                    class="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
+                                    class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
                             </div>
                         </div>
 
                         <!-- City & Address -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <div>
-                                <label class="block text-xs font-bold text-zinc-300 mb-1">City</label>
-                                <select name="city" class="w-full px-3 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
+                                <label class="block text-[11px] font-bold text-zinc-300 mb-0.5">City</label>
+                                <select name="city" class="w-full px-2.5 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
                                     <option value="Lahore">Lahore</option>
                                     <option value="Karachi">Karachi</option>
                                     <option value="Islamabad">Islamabad</option>
@@ -702,44 +701,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
 
                             <div class="sm:col-span-2">
-                                <label class="block text-xs font-bold text-zinc-300 mb-1">Kitchen / Shop Physical Address *</label>
+                                <label class="block text-[11px] font-bold text-zinc-300 mb-0.5">Kitchen / Shop Physical Address *</label>
                                 <input type="text" name="address" required placeholder="Shop #4, Main Market, Gulberg III"
-                                    class="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
+                                    class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
                             </div>
                         </div>
 
                         <!-- Kitchen GPS Location Coords with Auto-Detect -->
-                        <div class="p-2.5 rounded-2xl cupertino-inset">
-                            <div class="flex items-center justify-between mb-1.5">
-                                <span class="text-[11px] font-bold text-zinc-300 flex items-center gap-1.5">
-                                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-[#FF9500]"></i>
-                                    <span>Store GPS Coordinates (For Rider Dispatch)</span>
+                        <div class="p-2 rounded-xl cupertino-inset">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-bold text-zinc-300 flex items-center gap-1">
+                                    <i data-lucide="map-pin" class="w-3 h-3 text-[#FF9500]"></i>
+                                    <span>Store GPS Coordinates</span>
                                 </span>
                                 <button type="button" @click="detectCurrentGPS()"
-                                    class="px-2.5 py-1 bg-orange-500/20 text-[#FF9500] hover:bg-orange-500/30 text-[10px] font-bold rounded-lg border border-orange-500/30 flex items-center gap-1 transition-all active:scale-95">
-                                    <i data-lucide="crosshair" class="w-3 h-3"></i>
+                                    class="px-2 py-0.5 bg-orange-500/20 text-[#FF9500] hover:bg-orange-500/30 text-[9.5px] font-bold rounded-lg border border-orange-500/30 flex items-center gap-1 transition-all active:scale-95">
+                                    <i data-lucide="crosshair" class="w-2.5 h-2.5"></i>
                                     <span x-text="detectingGps ? 'Detecting...' : 'Auto-Detect GPS 📍'"></span>
                                 </button>
                             </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <input type="text" name="latitude" x-model="signupData.lat" placeholder="Latitude (e.g. 31.5204)"
-                                    class="px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-zinc-200 font-mono focus:outline-none focus:border-[#FF9500]">
+                                    class="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-lg text-xs text-zinc-200 font-mono focus:outline-none focus:border-[#FF9500]">
                                 <input type="text" name="longitude" x-model="signupData.lng" placeholder="Longitude (e.g. 74.3587)"
-                                    class="px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-zinc-200 font-mono focus:outline-none focus:border-[#FF9500]">
+                                    class="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-lg text-xs text-zinc-200 font-mono focus:outline-none focus:border-[#FF9500]">
                             </div>
                         </div>
 
                         <!-- Submit Registration -->
                         <button type="submit"
-                            class="w-full mt-2 py-3 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-[#EA580C] hover:from-amber-400 hover:to-orange-500 active:scale-[0.99] text-black font-black rounded-2xl text-xs sm:text-sm shadow-xl shadow-orange-500/20 transition-all flex items-center justify-center gap-2">
-                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            class="w-full mt-1.5 py-2.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-[#EA580C] hover:from-amber-400 hover:to-orange-500 active:scale-[0.99] text-black font-black rounded-xl text-xs sm:text-sm shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-1.5">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
                             <span>Register &amp; Launch My Store Portal</span>
                         </button>
                     </form>
 
                     <!-- Switch to Login -->
-                    <div class="mt-4 text-center">
-                        <p class="text-xs sm:text-sm text-zinc-400">
+                    <div class="mt-3 text-center">
+                        <p class="text-xs text-zinc-400">
                             Already registered as partner?
                             <button type="button" @click="setMode('login')" class="text-[#FF9500] hover:text-orange-400 font-bold hover:underline transition-colors ml-1">
                                 Sign In Instead
