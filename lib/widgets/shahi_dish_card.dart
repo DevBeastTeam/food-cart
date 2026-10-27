@@ -30,7 +30,7 @@ class ShahiDishCard extends StatelessWidget {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (modalContext, setModalState) {
-            final totalPrice = item.price * quantity;
+            final totalPrice = item.effectivePrice * quantity;
 
             return Container(
               margin: EdgeInsets.only(
@@ -557,29 +557,54 @@ class ShahiDishCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'PRICE',
-                          style: TextStyle(
-                            color: Colors.white60,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'PRICE',
+                            style: TextStyle(
+                              color: Colors.white60,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Rs. ${item.price.toInt()}',
-                          style: const TextStyle(
-                            color: Color(0xFFFDE047),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text(
+                                  item.formattedPrice,
+                                  style: const TextStyle(
+                                    color: Color(0xFFFDE047),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                if (item.isDiscounted && item.savingsAmount > 0) ...[
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    item.formattedOriginalPrice,
+                                    style: const TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: 12,
+                                      decoration: TextDecoration.lineThrough,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () {
                         if (onOrderNow != null) {

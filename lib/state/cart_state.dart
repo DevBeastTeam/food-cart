@@ -6,6 +6,7 @@ class CartState extends ChangeNotifier {
   final List<CartItem> _items = [];
   String? _restaurantId;
   String? _restaurantName;
+  String? _subAdminId;
   String _deliveryAddress = 'Home • Gulberg III, Main Blvd, Lahore';
   String _specialInstructions = '';
   double _deliveryFee = 49.0;
@@ -14,6 +15,7 @@ class CartState extends ChangeNotifier {
   List<CartItem> get items => List.unmodifiable(_items);
   String? get restaurantId => _restaurantId;
   String? get restaurantName => _restaurantName;
+  String? get subAdminId => _subAdminId;
   String get deliveryAddress => _deliveryAddress;
   String get specialInstructions => _specialInstructions;
   double get deliveryFee => _items.isEmpty ? 0.0 : _deliveryFee;
@@ -24,6 +26,9 @@ class CartState extends ChangeNotifier {
 
   double get subtotal =>
       _items.fold<double>(0.0, (total, item) => total + item.totalPrice);
+
+  double get totalSavings =>
+      _items.fold<double>(0.0, (total, item) => total + (item.foodItem.savingsAmount * item.quantity));
 
   double get grandTotal {
     if (_items.isEmpty) return 0.0;
@@ -46,6 +51,9 @@ class CartState extends ChangeNotifier {
 
     _restaurantId = restId;
     _restaurantName = restName;
+    if (foodItem.subAdminId.isNotEmpty) {
+      _subAdminId = foodItem.subAdminId;
+    }
 
     final existingIndex =
         _items.indexWhere((element) => element.foodItem.id == foodItem.id);
@@ -70,6 +78,7 @@ class CartState extends ChangeNotifier {
     _items.clear();
     _restaurantId = restId;
     _restaurantName = restName;
+    _subAdminId = foodItem.subAdminId.isNotEmpty ? foodItem.subAdminId : null;
     _deliveryFee = restDeliveryFee;
     _items.add(CartItem(
       foodItem: foodItem,
@@ -101,6 +110,7 @@ class CartState extends ChangeNotifier {
       if (_items.isEmpty) {
         _restaurantId = null;
         _restaurantName = null;
+        _subAdminId = null;
       }
       notifyListeners();
     }
@@ -111,6 +121,7 @@ class CartState extends ChangeNotifier {
     if (_items.isEmpty) {
       _restaurantId = null;
       _restaurantName = null;
+      _subAdminId = null;
     }
     notifyListeners();
   }
@@ -119,6 +130,7 @@ class CartState extends ChangeNotifier {
     _items.clear();
     _restaurantId = null;
     _restaurantName = null;
+    _subAdminId = null;
     _specialInstructions = '';
     notifyListeners();
   }

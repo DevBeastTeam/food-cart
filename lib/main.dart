@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
 import 'services/api_service.dart';
+import 'services/notification_service.dart';
 import 'state/cart_state.dart';
 import 'state/user_state.dart';
 import 'theme/app_theme.dart';
@@ -16,6 +17,13 @@ void main() async {
     );
   } catch (e) {
     debugPrint('Firebase not initialized: $e');
+  }
+
+  // Initialize Local Notifications & Timezones
+  try {
+    await NotificationService.instance.init();
+  } catch (e) {
+    debugPrint('Local notifications init error: $e');
   }
 
   runApp(const CraveeFoodApp());

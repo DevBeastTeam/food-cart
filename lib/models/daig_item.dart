@@ -19,6 +19,11 @@ class DaigItem {
   final List<String> includes;
   final String centerId;
   final String centerName;
+  final int discountPercent;
+  final double discountPrice;
+  final bool isDiscounted;
+  final String promoBadge;
+  final String subAdminId;
 
   double get mediumDaigPrice =>
       customMediumPrice ?? (((fullDaigPrice + halfDaigPrice) / 2) / 100).round() * 100.0;
@@ -46,6 +51,11 @@ class DaigItem {
     ],
     this.centerId = 'rest_pakwan',
     this.centerName = 'Shahi Pakwan Center',
+    this.discountPercent = 0,
+    this.discountPrice = 0.0,
+    this.isDiscounted = false,
+    this.promoBadge = '',
+    this.subAdminId = 'sub_admin_2',
   });
 
   // Convert to FoodItem for seamless cart integration
@@ -86,6 +96,14 @@ class DaigItem {
       'Fresh coal dum cooked',
     ].join(' • ');
 
+    final calculatedDiscountPrice = discountPrice > 0
+        ? (sizeName.toLowerCase().contains('half') || sizeName.toLowerCase().contains('small')
+            ? (discountPrice * 0.55).roundToDouble()
+            : discountPrice)
+        : (isDiscounted && discountPercent > 0
+            ? (price * (1 - discountPercent / 100)).roundToDouble()
+            : 0.0);
+
     return FoodItem(
       id: '${id}_${sizeName.toLowerCase()}_${DateTime.now().millisecondsSinceEpoch}',
       restaurantId: centerId,
@@ -98,6 +116,11 @@ class DaigItem {
       calories: sizeName == 'small' ? 6000 : (sizeName == 'medium' ? 9500 : 13000),
       isPopular: true,
       isVegetarian: category == 'Sweet & Desserts',
+      discountPercent: discountPercent,
+      discountPrice: calculatedDiscountPrice,
+      isDiscounted: isDiscounted || discountPercent > 0,
+      promoBadge: promoBadge,
+      subAdminId: subAdminId.isNotEmpty ? subAdminId : 'sub_admin_2',
     );
   }
 }

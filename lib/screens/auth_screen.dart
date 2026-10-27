@@ -68,7 +68,7 @@ class _AuthScreenState extends State<AuthScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     final email = _emailController.text.trim();
@@ -77,7 +77,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final phone = _phoneController.text.trim();
 
     if (_isSignUp) {
-      widget.userState.signup(
+      await widget.userState.signup(
         name: name.isNotEmpty ? name : (_selectedRole == UserRole.rider ? 'Rider Partner' : 'Food Lover'),
         email: email,
         phone: phone.isNotEmpty ? phone : '+92 300 0000000',
@@ -85,6 +85,7 @@ class _AuthScreenState extends State<AuthScreen> {
       );
       widget.userState.setRole(_selectedRole);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Account created! Welcome as ${_selectedRole.name.toUpperCase()}.'),
@@ -93,7 +94,7 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       );
     } else {
-      widget.userState.login(
+      await widget.userState.login(
         email: email,
         password: password,
         name: name.isNotEmpty ? name : null,
@@ -101,6 +102,7 @@ class _AuthScreenState extends State<AuthScreen> {
         role: _selectedRole,
       );
 
+      if (!mounted) return;
       String roleTitle = 'Customer';
       if (_selectedRole == UserRole.admin || widget.userState.currentRole == UserRole.admin) {
         roleTitle = 'Kitchen Admin';
@@ -127,7 +129,9 @@ class _AuthScreenState extends State<AuthScreen> {
       );
     }
 
-    Navigator.of(context).pop();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -275,6 +279,67 @@ class _AuthScreenState extends State<AuthScreen> {
                       ],
                     ),
                   ),
+
+                  const SizedBox(height: 10),
+
+                  // Quick 1-Tap Demo Shortcuts for Customer & Rider
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      ActionChip(
+                        avatar: const Icon(Icons.person, size: 15, color: AppTheme.primary),
+                        label: const Text('Customer Demo', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                        backgroundColor: _selectedRole == UserRole.client ? AppTheme.primaryLight : Colors.white,
+                        side: BorderSide(color: _selectedRole == UserRole.client ? AppTheme.primary : AppTheme.border),
+                        onPressed: () {
+                          setState(() {
+                            _selectedRole = UserRole.client;
+                            _isSignUp = false;
+                            _applyRoleDefaults(UserRole.client);
+                          });
+                        },
+                      ),
+                      ActionChip(
+                        avatar: const Icon(Icons.two_wheeler, size: 15, color: Color(0xFF1B2A4A)),
+                        label: const Text('Rider Demo', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                        backgroundColor: _selectedRole == UserRole.rider ? const Color(0xFFE2E8F0) : Colors.white,
+                        side: BorderSide(color: _selectedRole == UserRole.rider ? const Color(0xFF1B2A4A) : AppTheme.border),
+                        onPressed: () {
+                          setState(() {
+                            _selectedRole = UserRole.rider;
+                            _isSignUp = false;
+                            _applyRoleDefaults(UserRole.rider);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+
+                  if (_selectedRole == UserRole.admin) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3E8FF),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFD8B4FE)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline_rounded, color: Color(0xFF6B21A8), size: 18),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Web Portals: Super Admin is at /admin, and Sub-Admin Vendors manage stores at /vendor.',
+                              style: TextStyle(fontSize: 11, color: Color(0xFF581C87), fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 14),
 

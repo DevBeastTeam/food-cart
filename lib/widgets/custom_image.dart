@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
 class CustomImage extends StatelessWidget {
@@ -19,15 +20,28 @@ class CustomImage extends StatelessWidget {
     this.fallbackIcon = Icons.fastfood_rounded,
   });
 
+  String get _resolvedImageUrl {
+    final clean = imageUrl.trim();
+    if (clean.isEmpty) return '';
+    if (clean.startsWith('http://') || clean.startsWith('https://')) {
+      return clean;
+    }
+    // Relative upload path from backend storage (e.g. uploads/img_...)
+    final serverHost = ApiService.instance.baseUrl.replaceAll('/api', '');
+    final rel = clean.startsWith('/') ? clean.substring(1) : clean;
+    return '$serverHost/$rel';
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content;
+    final resolved = _resolvedImageUrl;
 
-    if (imageUrl.isEmpty) {
+    if (resolved.isEmpty) {
       content = _buildPlaceholder();
     } else {
       content = Image.network(
-        imageUrl,
+        resolved,
         width: width,
         height: height,
         fit: fit,

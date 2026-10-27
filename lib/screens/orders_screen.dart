@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/map_launcher_service.dart';
+import '../services/notification_service.dart';
 import '../state/cart_state.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
@@ -107,6 +109,83 @@ class _OrdersScreenState extends State<OrdersScreen>
                             'Delivered',
                             'Delivered (${allOrders.where((o) => o.status == "Delivered").length})',
                           ),
+                          const SizedBox(width: 12),
+                          // Notification Test Buttons
+                          InkWell(
+                            onTap: () async {
+                              await NotificationService.instance.showDemoArrivalTestNotification();
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('🔔 Local Notification Triggered: "Rider Arrived at Your Location!"'),
+                                    backgroundColor: Color(0xFF7E22CE),
+                                    duration: Duration(seconds: 3),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF3E8FF),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: const Color(0xFFC084FC)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.notifications_active_rounded, size: 14, color: Color(0xFF7E22CE)),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Test Arrival Alert 🔔',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF7E22CE),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () async {
+                              await NotificationService.instance.scheduleDemoMealReminderInSeconds(seconds: 10);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('⏰ Scheduled Notification set for 10 seconds from now! (Check notification tray)'),
+                                    backgroundColor: Colors.teal,
+                                    duration: Duration(seconds: 4),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.teal.shade50,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.teal.shade300),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.timer_outlined, size: 14, color: Colors.teal.shade800),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Schedule 10s Alert ⏰',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.teal.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -204,6 +283,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     final isPreparing = order.status == 'Preparing';
     final isAccepted = order.status == 'Accepted';
     final isOnTheWay = order.status == 'On the Way';
+    final isArrived = order.status == 'Arrived';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -479,26 +559,210 @@ class _OrdersScreenState extends State<OrdersScreen>
                       ],
                     ),
                   )
+                else if (isArrived)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAF5FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFC084FC), width: 1.5),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF7E22CE),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.pin_drop_rounded, size: 18, color: Colors.white),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Rider Has Arrived at Your Location! 📍',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF581C87),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    order.riderName != null
+                                        ? '${order.riderName} is outside your address (${order.deliveryAddress}). Please collect your order!'
+                                        : 'Rider is waiting outside at your doorstep. Please collect your food!',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF6B21A8),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            if (order.riderPhone != null && order.riderPhone!.isNotEmpty)
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Calling Rider: ${order.riderPhone}'),
+                                      backgroundColor: const Color(0xFF7E22CE),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.call, size: 14, color: Color(0xFF7E22CE)),
+                                label: Text(
+                                  'Call ${order.riderName ?? "Rider"}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF7E22CE),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Color(0xFFC084FC)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF3E8FF),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.notifications_active_rounded, size: 13, color: Color(0xFF7E22CE)),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Arrived Notification Sent',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF7E22CE),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
                 else if (isOnTheWay)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE3F2FD),
-                      borderRadius: BorderRadius.circular(8),
+                      color: const Color(0xFFF0F7FF),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: const Color(0xFF90CAF9)),
                     ),
-                    child: const Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.two_wheeler_rounded, size: 16, color: Color(0xFF1565C0)),
-                        SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            'Rider is on the way with your hot meal!',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1565C0),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF1976D2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.two_wheeler_rounded, size: 18, color: Colors.white),
                             ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Rider is Arriving at Your Location!',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF0D47A1),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    order.riderName != null
+                                        ? 'Rider: ${order.riderName} • ${order.riderPhone ?? "Active"}'
+                                        : 'Delivery partner has started navigation towards your destination',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF1565C0),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFBBDEFB)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.pin_drop_rounded, size: 15, color: Colors.redAccent),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Delivery Pin: ${order.deliveryAddress}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () => MapLauncherService.launchLocationPin(
+                                  lat: order.latitude,
+                                  lng: order.longitude,
+                                  fallbackAddress: order.deliveryAddress,
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.map_rounded, size: 13, color: Color(0xFF1A73E8)),
+                                    SizedBox(width: 3),
+                                    Text(
+                                      'View Pin',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFF1A73E8),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -523,6 +787,33 @@ class _OrdersScreenState extends State<OrdersScreen>
                               fontSize: 11.5,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF2E7D32),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (order.status == 'Cancelled')
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFEBEE),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFEF9A9A)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.cancel_rounded, size: 16, color: Color(0xFFC62828)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            order.rejectionReason != null && order.rejectionReason!.trim().isNotEmpty
+                                ? 'Order Cancelled: ${order.rejectionReason}'
+                                : 'Order cancelled / declined by store manager',
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFC62828),
                             ),
                           ),
                         ),
@@ -569,6 +860,32 @@ class _OrdersScreenState extends State<OrdersScreen>
   }
 
   Widget _buildTimelineStepper(UserOrder order) {
+    if (order.status == 'Cancelled') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFEBEE),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEF9A9A)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cancel_rounded, size: 14, color: Color(0xFFC62828)),
+            SizedBox(width: 5),
+            Text(
+              'Order Cancelled / Rejected',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFFC62828),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     int activeStep = 0;
     switch (order.status) {
       case 'Accepted':
@@ -580,6 +897,9 @@ class _OrdersScreenState extends State<OrdersScreen>
       case 'On the Way':
         activeStep = 2;
         break;
+      case 'Arrived':
+        activeStep = 2;
+        break;
       case 'Delivered':
         activeStep = 3;
         break;
@@ -587,10 +907,14 @@ class _OrdersScreenState extends State<OrdersScreen>
         activeStep = 0;
     }
 
+    final isArrived = order.status == 'Arrived';
     final steps = [
       {'label': 'Accepted', 'icon': Icons.check_rounded},
       {'label': 'Preparing', 'icon': Icons.soup_kitchen_rounded},
-      {'label': 'On the Way', 'icon': Icons.delivery_dining_rounded},
+      {
+        'label': isArrived ? 'Arrived 📍' : 'On the Way',
+        'icon': isArrived ? Icons.pin_drop_rounded : Icons.delivery_dining_rounded
+      },
       {'label': 'Delivered', 'icon': Icons.check_circle_rounded},
     ];
 
@@ -939,6 +1263,8 @@ class _OrdersScreenState extends State<OrdersScreen>
         return Colors.orangeAccent;
       case 'On the Way':
         return AppTheme.primary;
+      case 'Arrived':
+        return const Color(0xFF7E22CE);
       case 'Delivered':
         return const Color(0xFF28A745);
       default:

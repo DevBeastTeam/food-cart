@@ -14,8 +14,17 @@ class ApiService {
 
   ApiService._();
 
-  // Dynamic Base URL based on platform
+  /// Production Hostinger URL live on food.aztemp.com
+  static const String liveProductionUrl = 'https://food.aztemp.com/api';
+
+  /// Base URL override (defaults to live production Hostinger server)
+  static String? customBaseUrl = liveProductionUrl;
+
+  // Dynamic Base URL based on platform & environment
   String get baseUrl {
+    if (customBaseUrl != null && customBaseUrl!.trim().isNotEmpty) {
+      return customBaseUrl!.trim().replaceAll(RegExp(r'/+$'), '');
+    }
     if (kIsWeb) {
       return 'http://localhost:5000/api';
     }
@@ -47,16 +56,19 @@ class ApiService {
     try {
       final res = await http.get(Uri.parse('$baseUrl/content')).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
-        _isBackendConnected = true;
-        final data = jsonDecode(res.body)['data'] as Map<String, dynamic>;
-        _appContent = data;
+        final decoded = _safeJsonDecode(res.body);
+        if (decoded != null && decoded['data'] is Map<String, dynamic>) {
+          _isBackendConnected = true;
+          final data = decoded['data'] as Map<String, dynamic>;
+          _appContent = data;
 
-        // Sync Addresses into SampleData
-        if (data['addresses'] is List) {
-          final List<String> fetchedAddrs = List<String>.from(data['addresses']);
-          if (fetchedAddrs.isNotEmpty) {
-            SampleData.sampleAddresses.clear();
-            SampleData.sampleAddresses.addAll(fetchedAddrs);
+          // Sync Addresses into SampleData
+          if (data['addresses'] is List) {
+            final List<String> fetchedAddrs = List<String>.from(data['addresses']);
+            if (fetchedAddrs.isNotEmpty) {
+              SampleData.sampleAddresses.clear();
+              SampleData.sampleAddresses.addAll(fetchedAddrs);
+            }
           }
         }
       }
@@ -68,11 +80,13 @@ class ApiService {
     try {
       final res = await http.get(Uri.parse('$baseUrl/restaurants')).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
-        final list = jsonDecode(res.body)['data'] as List;
-        if (list.isNotEmpty) {
+        final decoded = _safeJsonDecode(res.body);
+        final list = decoded != null && decoded['data'] is List ? (decoded['data'] as List) : null;
+        if (list != null && list.isNotEmpty) {
           final foodRes = await http.get(Uri.parse('$baseUrl/food-items')).timeout(const Duration(seconds: 4));
-          final allFood = foodRes.statusCode == 200 
-              ? (jsonDecode(foodRes.body)['data'] as List).map((i) => _parseFoodItem(i)).toList()
+          final decodedFood = _safeJsonDecode(foodRes.body);
+          final allFood = foodRes.statusCode == 200 && decodedFood != null && decodedFood['data'] is List
+              ? (decodedFood['data'] as List).map((i) => _parseFoodItem(i)).toList()
               : <FoodItem>[];
 
           final List<Restaurant> parsedRestaurants = [];
@@ -111,29 +125,38 @@ class ApiService {
     try {
       final res = await http.get(Uri.parse('$baseUrl/daig-items')).timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
-        final list = jsonDecode(res.body)['data'] as List;
-        final List<DaigItem> parsedDaigs = [];
-        for (final d in list) {
-          parsedDaigs.add(DaigItem(
-            id: d['id'],
-            name: d['name'],
-            urduName: d['urduName'] ?? '',
-            description: d['description'] ?? '',
-            category: d['category'] ?? 'Biryani & Pulao',
-            fullDaigPrice: (d['fullDaigPrice'] as num).toDouble(),
-            halfDaigPrice: (d['halfDaigPrice'] as num).toDouble(),
-            fullDaigWeight: d['fullDaigWeight'] ?? '12 KG',
-            halfDaigWeight: d['halfDaigWeight'] ?? '6 KG',
-            imageUrl: d['imageUrl'],
-            rating: (d['rating'] as num?)?.toDouble() ?? 4.9,
-            badge: d['badge'] ?? '',
-            deliveryNotice: d['deliveryNotice'] ?? '',
-            includes: List<String>.from(d['includes'] ?? []),
-          ));
-        }
-        if (parsedDaigs.isNotEmpty) {
-          SampleData.daigDishes.clear();
-          SampleData.daigDishes.addAll(parsedDaigs);
+        final decoded = _safeJsonDecode(res.body);
+        final list = decoded != null && decoded['data'] is List ? (decoded['data'] as List) : null;
+        if (list != null) {
+          final List<DaigItem> parsedDaigs = [];
+          for (final d in list) {
+            final discPct = (d['discountPercent'] as num?)?.toInt() ?? 0;
+            parsedDaigs.add(DaigItem(
+              id: d['id'],
+              name: d['name'],
+              urduName: d['urduName'] ?? '',
+              description: d['description'] ?? '',
+              category: d['category'] ?? 'Biryani & Pulao',
+              fullDaigPrice: (d['fullDaigPrice'] as num).toDouble(),
+              halfDaigPrice: (d['halfDaigPrice'] as num).toDouble(),
+              fullDaigWeight: d['fullDaigWeight'] ?? '12 KG',
+              halfDaigWeight: d['halfDaigWeight'] ?? '6 KG',
+              imageUrl: d['imageUrl'],
+              rating: (d['rating'] as num?)?.toDouble() ?? 4.9,
+              badge: d['badge'] ?? '',
+              deliveryNotice: d['deliveryNotice'] ?? '',
+              includes: List<String>.from(d['includes'] ?? []),
+              discountPercent: discPct,
+              discountPrice: (d['discountPrice'] as num?)?.toDouble() ?? 0.0,
+              isDiscounted: d['isDiscounted'] == 1 || d['isDiscounted'] == true || discPct > 0,
+              promoBadge: d['promoBadge'] ?? '',
+              subAdminId: d['sub_admin_id'] ?? 'sub_admin_2',
+            ));
+          }
+          if (parsedDaigs.isNotEmpty) {
+            SampleData.daigDishes.clear();
+            SampleData.daigDishes.addAll(parsedDaigs);
+          }
         }
       }
     } catch (e) {
@@ -144,15 +167,24 @@ class ApiService {
     try {
       final bannerRes = await http.get(Uri.parse('$baseUrl/banners')).timeout(const Duration(seconds: 3));
       if (bannerRes.statusCode == 200) {
-        _promoBanners = List<Map<String, dynamic>>.from(jsonDecode(bannerRes.body)['data']);
+        final decoded = _safeJsonDecode(bannerRes.body);
+        if (decoded != null && decoded['data'] is List) {
+          _promoBanners = List<Map<String, dynamic>>.from(decoded['data']);
+        }
       }
       final dealsRes = await http.get(Uri.parse('$baseUrl/deals')).timeout(const Duration(seconds: 3));
       if (dealsRes.statusCode == 200) {
-        _activeDeals = List<Map<String, dynamic>>.from(jsonDecode(dealsRes.body)['data']);
+        final decoded = _safeJsonDecode(dealsRes.body);
+        if (decoded != null && decoded['data'] is List) {
+          _activeDeals = List<Map<String, dynamic>>.from(decoded['data']);
+        }
       }
       final settingsRes = await http.get(Uri.parse('$baseUrl/settings')).timeout(const Duration(seconds: 3));
       if (settingsRes.statusCode == 200) {
-        _appSettings = jsonDecode(settingsRes.body)['data'] as Map<String, dynamic>;
+        final decoded = _safeJsonDecode(settingsRes.body);
+        if (decoded != null && decoded['data'] is Map<String, dynamic>) {
+          _appSettings = decoded['data'] as Map<String, dynamic>;
+        }
       }
     } catch (e) {
       debugPrint('[ApiService] Secondary sync offline/fallback: $e');
@@ -163,32 +195,38 @@ class ApiService {
       try {
         final orderRes = await http.get(Uri.parse('$baseUrl/orders')).timeout(const Duration(seconds: 4));
         if (orderRes.statusCode == 200) {
-          final list = jsonDecode(orderRes.body)['data'] as List;
-          final List<UserOrder> syncedOrders = [];
-          for (final o in list) {
-            syncedOrders.add(UserOrder(
-              id: o['id'],
-              restaurantName: o['restaurantName'] ?? 'FoodCourt Central Kitchen',
-              restaurantImage: o['restaurantImage'] ?? '',
-              items: List<String>.from(o['items'] ?? []),
-              totalAmount: (o['totalAmount'] as num).toDouble(),
-              originalAmount: (o['originalAmount'] as num?)?.toDouble(),
-              discountInfo: o['discountInfo'],
-              orderDate: DateTime.tryParse(o['orderDate'] ?? '') ?? DateTime.now(),
-              status: o['status'] ?? 'Accepted',
-              isDaigBooking: o['isDaigBooking'] ?? false,
-              occasion: o['occasion'],
-              deliveryAddress: o['deliveryAddress'] ?? 'Lahore',
-              prepTime: o['prepTime'] ?? '25 mins',
-              riderName: o['riderName'],
-              riderPhone: o['riderPhone'],
-              customerName: o['customerName'] ?? 'Hassan Raza',
-              customerPhone: o['customerPhone'] ?? '+92 300 8472910',
-              notes: o['notes'],
-            ));
-          }
-          if (syncedOrders.isNotEmpty) {
-            userState.syncOrdersFromBackend(syncedOrders);
+          final decoded = _safeJsonDecode(orderRes.body);
+          final list = decoded != null && decoded['data'] is List ? (decoded['data'] as List) : null;
+          if (list != null) {
+            final List<UserOrder> syncedOrders = [];
+            for (final o in list) {
+              syncedOrders.add(UserOrder(
+                id: o['id'],
+                restaurantName: o['restaurantName'] ?? 'FoodCourt Central Kitchen',
+                restaurantImage: o['restaurantImage'] ?? '',
+                items: List<String>.from(o['items'] ?? []),
+                totalAmount: (o['totalAmount'] as num).toDouble(),
+                originalAmount: (o['originalAmount'] as num?)?.toDouble(),
+                discountInfo: o['discountInfo'],
+                orderDate: DateTime.tryParse(o['orderDate'] ?? '') ?? DateTime.now(),
+                status: o['status'] ?? 'Accepted',
+                isDaigBooking: o['isDaigBooking'] ?? false,
+                occasion: o['occasion'],
+                deliveryAddress: o['deliveryAddress'] ?? 'Lahore',
+                prepTime: o['prepTime'] ?? '25 mins',
+                riderName: o['riderName'],
+                riderPhone: o['riderPhone'],
+                customerName: o['customerName'] ?? 'Hassan Raza',
+                customerPhone: o['customerPhone'] ?? '+92 300 8472910',
+                notes: o['notes'],
+                rejectionReason: o['rejectionReason'],
+                latitude: (o['latitude'] as num?)?.toDouble() ?? 31.5204,
+                longitude: (o['longitude'] as num?)?.toDouble() ?? 74.3587,
+              ));
+            }
+            if (syncedOrders.isNotEmpty) {
+              userState.syncOrdersFromBackend(syncedOrders);
+            }
           }
         }
       } catch (e) {
@@ -205,7 +243,11 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(orderPayload),
       ).timeout(const Duration(seconds: 5));
-      return res.statusCode == 201;
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        _isBackendConnected = true;
+        return true;
+      }
+      return false;
     } catch (e) {
       debugPrint('[ApiService] Failed to send order to backend: $e');
       return false;
@@ -234,6 +276,119 @@ class ApiService {
       debugPrint('[ApiService] Failed to update order status on backend: $e');
       return false;
     }
+  }
+
+  dynamic _safeJsonDecode(String body) {
+    try {
+      final trimmed = body.trim();
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        return jsonDecode(trimmed);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // Authenticate user with PHP SQLite backend
+  Future<Map<String, dynamic>?> login({
+    required String email,
+    required String password,
+    UserState? userState,
+  }) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      ).timeout(const Duration(seconds: 5));
+
+      final data = _safeJsonDecode(res.body);
+      if (res.statusCode == 200 && data != null && data['success'] == true) {
+        _isBackendConnected = true;
+        final resData = data['data'] as Map<String, dynamic>?;
+        final uMap = resData?['user'] as Map<String, dynamic>?;
+        if (uMap != null && userState != null) {
+          final role = uMap['role'] ?? 'client';
+          if (role == 'rider') {
+            userState.setRole(UserRole.rider);
+            final outletName = uMap['outlet_name'] ?? uMap['assigned_outlet']?['businessName'] ?? 'Shahi Pakwan Center';
+            final outletId = uMap['assigned_sub_admin_id'] ?? uMap['assigned_outlet']?['id'] ?? 'sub_admin_2';
+            final outletPhone = uMap['outlet_phone'] ?? uMap['assigned_outlet']?['phone'] ?? '+92 301 4455667';
+            final outletAddress = uMap['outlet_address'] ?? uMap['assigned_outlet']?['address'] ?? 'Model Town, Lahore';
+            final outletType = uMap['outlet_type'] ?? uMap['assigned_outlet']?['businessType'] ?? 'pakwan';
+
+            userState.setRiderOutlet(
+              outletName: outletName,
+              outletId: outletId,
+              outletPhone: outletPhone,
+              outletAddress: outletAddress,
+              outletType: outletType,
+            );
+            userState.updateRiderProfile(
+              name: uMap['name'],
+              phone: uMap['phone'],
+            );
+          }
+        }
+        return resData;
+      } else if (data != null) {
+        debugPrint('[ApiService] Login rejected: ${data['message']}');
+      }
+    } catch (e) {
+      debugPrint('[ApiService] Login API exception: $e');
+    }
+    return null;
+  }
+
+  // Register new customer account in PHP SQLite backend
+  Future<Map<String, dynamic>?> register({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+    String role = 'client',
+  }) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/auth/signup'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'password': password,
+          'role': role,
+        }),
+      ).timeout(const Duration(seconds: 5));
+
+      final data = jsonDecode(res.body);
+      if ((res.statusCode == 201 || res.statusCode == 200) && data['success'] == true) {
+        _isBackendConnected = true;
+        return data['data'] as Map<String, dynamic>?;
+      } else {
+        debugPrint('[ApiService] Register rejected: ${data['message']}');
+      }
+    } catch (e) {
+      debugPrint('[ApiService] Register API exception: $e');
+    }
+    return null;
+  }
+
+  // Upload image to PHP backend storage (uploads/ folder)
+  Future<String?> uploadImage(File file) async {
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload'));
+      request.files.add(await http.MultipartFile.fromPath('image', file.path));
+      final streamed = await request.send().timeout(const Duration(seconds: 15));
+      final res = await http.Response.fromStream(streamed);
+
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data['data']?['url'] as String?;
+      }
+    } catch (e) {
+      debugPrint('[ApiService] File upload error: $e');
+    }
+    return null;
   }
 
 
@@ -276,6 +431,7 @@ class ApiService {
   }
 
   FoodItem _parseFoodItem(Map<String, dynamic> i) {
+    final discPct = (i['discountPercent'] as num?)?.toInt() ?? 0;
     return FoodItem(
       id: i['id'],
       restaurantId: i['restaurantId'] ?? 'rest_1',
@@ -289,6 +445,11 @@ class ApiService {
       isPopular: i['isPopular'] ?? true,
       isVegetarian: i['isVegetarian'] ?? false,
       badges: List<String>.from(i['badges'] ?? ['Special']),
+      discountPercent: discPct,
+      discountPrice: (i['discountPrice'] as num?)?.toDouble() ?? 0.0,
+      isDiscounted: i['isDiscounted'] == 1 || i['isDiscounted'] == true || discPct > 0,
+      promoBadge: i['promoBadge'] ?? '',
+      subAdminId: i['sub_admin_id'] ?? '',
     );
   }
 }

@@ -218,7 +218,7 @@ void main() {
   });
 
   group('Rider Dashboard Tests', () {
-    testWidgets('Renders Rider Dashboard and all 4 Bottom Nav items', (tester) async {
+    testWidgets('Renders Rider Dashboard, Bottom Nav, and Affiliated Outlet', (tester) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -226,7 +226,10 @@ void main() {
         tester.view.resetDevicePixelRatio();
       });
 
-      final userState = UserState();
+      final userState = UserState(enablePeriodicSync: false);
+      addTearDown(() {
+        userState.dispose();
+      });
       userState.setRole(UserRole.rider);
 
       await tester.pumpWidget(
@@ -234,48 +237,33 @@ void main() {
           home: RiderDashboardScreen(userState: userState),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
 
-      // Check BottomNavigationBar destinations: Home, Rides, Completed, Profile
+      // Check BottomNavigationBar destinations: Home, Rides, Profile
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Rides'), findsOneWidget);
-      expect(find.text('Completed'), findsOneWidget);
       expect(find.text('Profile'), findsOneWidget);
 
-      // Verify Home Analytics Metrics are shown
-      expect(find.text('Total Rides'), findsOneWidget);
-      expect(find.text('Delivered'), findsOneWidget);
-      expect(find.text('Accepted'), findsOneWidget);
-      expect(find.text('On the Way'), findsOneWidget);
-      expect(find.text('Cancelled'), findsOneWidget);
+      // Verify Home Affiliated Outlet and Metrics
+      expect(find.textContaining('Shahi Pakwan Center'), findsAtLeast(1));
+      expect(find.text('Rider Earnings'), findsOneWidget);
+      expect(find.text('Orders Completed'), findsOneWidget);
+      expect(find.text('Pending Rides'), findsOneWidget);
 
-      // Tap on Rides (Active / Uncompleted Rides)
+      // Tap on Rides
       await tester.tap(find.text('Rides'));
-      await tester.pumpAndSettle();
-      expect(find.text('Active Rides'), findsOneWidget);
-      expect(find.textContaining('All Active'), findsOneWidget);
-
-      // Tap on Completed Rides (Checkmark destination)
-      await tester.tap(find.text('Completed'));
-      await tester.pumpAndSettle();
-      expect(find.text('Completed Rides'), findsOneWidget);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.textContaining('Pending Rides'), findsOneWidget);
+      expect(find.textContaining('Completed ('), findsOneWidget);
 
       // Tap on Profile
       await tester.tap(find.text('Profile'));
-      await tester.pumpAndSettle();
-      expect(find.text('Rider Profile'), findsOneWidget);
-      expect(find.text('Manage Personal Details'), findsOneWidget);
-      expect(find.text('Change Password & Security'), findsOneWidget);
-
-      // Test App Bar Profile Avatar navigation
-      await tester.tap(find.text('Home'));
-      await tester.pumpAndSettle();
-      expect(find.text('Rider Analytics'), findsOneWidget);
-
-      // Tap the profile avatar in the AppBar
-      await tester.tap(find.byTooltip('My Profile'));
-      await tester.pumpAndSettle();
-      expect(find.text('Rider Profile'), findsOneWidget);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('AFFILIATED OUTLET / PAKWAN'), findsOneWidget);
+      expect(find.text('Captain Ali Raza'), findsAtLeast(1));
     });
   });
 }

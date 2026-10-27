@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/map_launcher_service.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/rider_google_map_view.dart';
@@ -115,15 +116,16 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                   widget.userState.riderName,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 15,
+                    fontSize: 14.5,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 Text(
-                  '${widget.userState.riderVehicle} • ${widget.userState.riderCity}',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 11,
+                  '📍 ${widget.userState.riderOutletName} • ${widget.userState.riderVehicle}',
+                  style: TextStyle(
+                    color: Colors.amber.shade300,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -342,6 +344,58 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                       subtext: 'Fuel saving route',
                     ),
                   ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(20),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white.withAlpha(35)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.soup_kitchen_rounded, color: Colors.amber, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'ASSIGNED OUTLET / PAKWAN CENTER',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            Text(
+                              widget.userState.riderOutletName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade600,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'CONNECTED',
+                          style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -851,9 +905,12 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
   // ----------------------------------------------------
   Widget _buildPendingOrderCard(UserOrder order) {
     final isOnTheWay = order.status == 'On the Way';
+    final isArrived = order.status == 'Arrived';
     final isMapExpanded = _expandedMapOrderId == order.id;
 
-    Color statusColor = isOnTheWay ? Colors.blue.shade700 : Colors.orange.shade800;
+    Color statusColor = isArrived
+        ? Colors.deepPurple.shade700
+        : (isOnTheWay ? Colors.blue.shade700 : Colors.orange.shade800);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -861,12 +918,17 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isOnTheWay ? const Color(0xFF2563EB) : const Color(0xFFCBD5E1),
-          width: isOnTheWay ? 2.0 : 1.2,
+          color: isArrived
+              ? Colors.deepPurple.shade600
+              : (isOnTheWay ? const Color(0xFF2563EB) : const Color(0xFFCBD5E1)),
+          width: (isOnTheWay || isArrived) ? 2.0 : 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: (isOnTheWay ? const Color(0xFF2563EB) : Colors.black).withAlpha(18),
+            color: (isArrived
+                    ? Colors.deepPurple.shade700
+                    : (isOnTheWay ? const Color(0xFF2563EB) : Colors.black))
+                .withAlpha(18),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1163,6 +1225,7 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                               DropdownMenuItem(value: 'Accepted', child: Text('Accepted', style: TextStyle(fontSize: 12))),
                               DropdownMenuItem(value: 'Preparing', child: Text('Preparing in Kitchen', style: TextStyle(fontSize: 12))),
                               DropdownMenuItem(value: 'On the Way', child: Text('On the Way (En Route)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+                              DropdownMenuItem(value: 'Arrived', child: Text('Rider Arrived 📍', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6B21A8)))),
                               DropdownMenuItem(value: 'Delivered', child: Text('Delivered & Paid', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
                             ],
                             onChanged: (newStatus) {
@@ -1180,27 +1243,109 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                     const SizedBox(width: 8),
 
                     // Primary Action Button
-                    if (!isOnTheWay)
+                    if (!isOnTheWay && !isArrived)
                       ElevatedButton.icon(
-                        onPressed: () {
+                        onPressed: () async {
                           widget.userState.updateOrderStatus(order.id, 'On the Way');
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Order #${order.id} started! GPS Navigation ready.'),
-                              backgroundColor: Colors.blue.shade700,
+                              content: Text('Order #${order.id} started! Launching Google Maps Turn-by-Turn GPS...'),
+                              backgroundColor: const Color(0xFF1A73E8),
+                              duration: const Duration(seconds: 2),
                             ),
+                          );
+                          await MapLauncherService.launchRiderNavigation(
+                            lat: order.latitude,
+                            lng: order.longitude,
+                            fallbackAddress: order.deliveryAddress,
                           );
                         },
                         icon: const Icon(Icons.two_wheeler, size: 16),
-                        label: const Text('Start Run'),
+                        label: const Text('Start Run & GPS'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
+                          backgroundColor: const Color(0xFF1A73E8),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                       )
-                    else
+                    else if (isOnTheWay) ...[
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          await MapLauncherService.launchRiderNavigation(
+                            lat: order.latitude,
+                            lng: order.longitude,
+                            fallbackAddress: order.deliveryAddress,
+                          );
+                        },
+                        icon: const Icon(Icons.navigation_rounded, size: 14, color: Color(0xFF1A73E8)),
+                        label: const Text('GPS', style: TextStyle(fontSize: 11, color: Color(0xFF1A73E8))),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF1A73E8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          widget.userState.updateOrderStatus(order.id, 'Arrived');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Customer notified: Rider has Arrived at location for Order #${order.id}! 📍'),
+                              backgroundColor: Colors.deepPurple.shade700,
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.pin_drop_rounded, size: 14),
+                        label: const Text('Arrived 📍', style: TextStyle(fontSize: 11)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple.shade700,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          widget.userState.updateOrderStatus(order.id, 'Delivered');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Order #${order.id} marked Delivered! Cash of Rs. ${order.totalAmount.toInt()} collected.'),
+                              backgroundColor: Colors.green.shade700,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.check_circle_rounded, size: 15),
+                        label: const Text('Done', style: TextStyle(fontSize: 11)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade700,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ] else ...[
+                      // isArrived
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.deepPurple.shade200),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: Colors.deepPurple.shade700),
+                            const SizedBox(width: 4),
+                            Text('At Doorstep', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.deepPurple.shade700)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
                       ElevatedButton.icon(
                         onPressed: () {
                           widget.userState.updateOrderStatus(order.id, 'Delivered');
@@ -1212,7 +1357,7 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                           );
                         },
                         icon: const Icon(Icons.check_circle_rounded, size: 16),
-                        label: const Text('Delivered'),
+                        label: const Text('Delivered & Paid'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green.shade700,
                           foregroundColor: Colors.white,
@@ -1220,6 +1365,7 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                       ),
+                    ],
                   ],
                 ),
               ],
@@ -1477,6 +1623,120 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Assigned Pakwan Center / Outlet Card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.amber.shade300, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.amber.withAlpha(20),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.soup_kitchen_rounded, color: Colors.orange, size: 20),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'AFFILIATED OUTLET / PAKWAN',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.textSecondary,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                Text(
+                                  widget.userState.riderOutletName,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        border: Border.all(color: Colors.green.shade300),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        widget.userState.riderOutletType.toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.green.shade800,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Divider(height: 1, color: AppTheme.border),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, size: 15, color: Colors.redAccent),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        widget.userState.riderOutletAddress,
+                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.phone_rounded, size: 15, color: Colors.green),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Kitchen Manager: ${widget.userState.riderOutletPhone}',
+                        style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

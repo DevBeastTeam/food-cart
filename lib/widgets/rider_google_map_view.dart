@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/map_launcher_service.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
 
@@ -473,24 +474,27 @@ class _RiderGoogleMapViewState extends State<RiderGoogleMapView>
                         children: [
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () {
-                                setState(() => _isNavigating = !_isNavigating);
+                              onPressed: () async {
+                                setState(() => _isNavigating = true);
+                                final lat = order?.latitude ?? 31.5204;
+                                final lng = order?.longitude ?? 74.3587;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text(
-                                      _isNavigating
-                                          ? 'Google Maps Turn-by-Turn GPS Active!'
-                                          : 'Navigation paused',
-                                    ),
-                                    backgroundColor: _isNavigating ? Colors.blue.shade800 : Colors.grey.shade800,
+                                    content: Text('Starting Google Maps Turn-by-Turn GPS for $customer...'),
+                                    backgroundColor: const Color(0xFF1A73E8),
                                     duration: const Duration(seconds: 2),
                                   ),
                                 );
+                                await MapLauncherService.launchRiderNavigation(
+                                  lat: lat,
+                                  lng: lng,
+                                  fallbackAddress: destination,
+                                );
                               },
-                              icon: Icon(_isNavigating ? Icons.stop_circle_outlined : Icons.navigation_rounded),
-                              label: Text(_isNavigating ? 'Stop Navigation' : 'Start Google GPS'),
+                              icon: const Icon(Icons.navigation_rounded),
+                              label: const Text('Start Official GPS'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _isNavigating ? Colors.red.shade600 : const Color(0xFF1A73E8), // Google Blue
+                                backgroundColor: const Color(0xFF1A73E8), // Official Google Blue
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(vertical: 11),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -499,15 +503,17 @@ class _RiderGoogleMapViewState extends State<RiderGoogleMapView>
                           ),
                           const SizedBox(width: 10),
                           OutlinedButton.icon(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Launching Google Maps app for "$destination"...'),
-                                ),
+                            onPressed: () async {
+                              final lat = order?.latitude ?? 31.5204;
+                              final lng = order?.longitude ?? 74.3587;
+                              await MapLauncherService.launchRiderNavigation(
+                                lat: lat,
+                                lng: lng,
+                                fallbackAddress: destination,
                               );
                             },
                             icon: const Icon(Icons.open_in_new, size: 16),
-                            label: const Text('Open App'),
+                            label: const Text('Google Maps'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF1A73E8),
                               side: const BorderSide(color: Color(0xFF1A73E8)),

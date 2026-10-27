@@ -15,7 +15,13 @@ class CartItem {
     this.specialInstructions = '',
   });
 
-  double get totalPrice => foodItem.price * quantity;
+  double get totalPrice => foodItem.effectivePrice * quantity;
+
+  double get originalTotalPrice => foodItem.price * quantity;
+
+  bool get hasDiscount => foodItem.isDiscounted && foodItem.savingsAmount > 0;
 
   String get formattedTotalPrice => 'Rs. ${totalPrice.toInt()}';
+
+  String get formattedOriginalTotalPrice => 'Rs. ${originalTotalPrice.toInt()}';
 }

@@ -567,15 +567,27 @@ class _DaigCardState extends State<DaigCard> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1B2E).withAlpha(220),
+                    color: (widget.daig.promoBadge.isNotEmpty || widget.daig.discountPercent > 0)
+                        ? const Color(0xFFC62828)
+                        : const Color(0xFF1E1B2E).withAlpha(220),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.outdoor_grill_rounded, size: 14, color: Color(0xFFFBBF24)),
+                      Icon(
+                        (widget.daig.promoBadge.isNotEmpty || widget.daig.discountPercent > 0)
+                            ? Icons.local_offer_rounded
+                            : Icons.outdoor_grill_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 5),
                       Text(
-                        widget.daig.badge,
+                        widget.daig.promoBadge.isNotEmpty
+                            ? widget.daig.promoBadge
+                            : (widget.daig.discountPercent > 0
+                                ? '🔥 ${widget.daig.discountPercent}% OFF'
+                                : widget.daig.badge),
                         style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
                       ),
                     ],
@@ -619,10 +631,11 @@ class _DaigCardState extends State<DaigCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
+                      flex: 3,
                       child: Text(
                         widget.daig.name,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w800,
                           color: AppTheme.textPrimary,
                         ),
@@ -630,14 +643,23 @@ class _DaigCardState extends State<DaigCard> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Text(
-                      widget.daig.urduName,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF6B7280),
+                    if (widget.daig.urduName.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        flex: 2,
+                        child: Text(
+                          widget.daig.urduName,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF6B7280),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -706,13 +728,32 @@ class _DaigCardState extends State<DaigCard> {
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Rs. ${widget.daig.fullDaigPrice.toInt()}',
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.primary,
-                              ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  widget.daig.discountPrice > 0
+                                      ? 'Rs. ${widget.daig.discountPrice.toInt()}'
+                                      : (widget.daig.discountPercent > 0
+                                          ? 'Rs. ${(widget.daig.fullDaigPrice * (1 - widget.daig.discountPercent / 100)).toInt()}'
+                                          : 'Rs. ${widget.daig.fullDaigPrice.toInt()}'),
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppTheme.primary,
+                                  ),
+                                ),
+                                if (widget.daig.discountPrice > 0 || widget.daig.discountPercent > 0) ...[
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Rs. ${widget.daig.fullDaigPrice.toInt()}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      decoration: TextDecoration.lineThrough,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ],

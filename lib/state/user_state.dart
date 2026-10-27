@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
+import '../services/notification_service.dart';
 
 class UserAddress {
   final String label;
@@ -56,6 +58,9 @@ class UserOrder {
   String? riderPhone;
   final String customerName;
   final String customerPhone;
+  final String? rejectionReason;
+  final double latitude;
+  final double longitude;
 
   String get address => deliveryAddress;
 
@@ -80,6 +85,9 @@ class UserOrder {
     this.riderPhone,
     this.customerName = 'Hassan Raza',
     this.customerPhone = '+92 300 8472910',
+    this.rejectionReason,
+    this.latitude = 31.5204,
+    this.longitude = 74.3587,
   });
 
   UserOrder copyWith({
@@ -92,6 +100,9 @@ class UserOrder {
     String? discountInfo,
     String? customerName,
     String? customerPhone,
+    String? rejectionReason,
+    double? latitude,
+    double? longitude,
   }) {
     return UserOrder(
       id: id,
@@ -114,6 +125,9 @@ class UserOrder {
       riderPhone: riderPhone ?? this.riderPhone,
       customerName: customerName ?? this.customerName,
       customerPhone: customerPhone ?? this.customerPhone,
+      rejectionReason: rejectionReason ?? this.rejectionReason,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }
@@ -139,6 +153,38 @@ class UserProfile {
 }
 
 class UserState extends ChangeNotifier {
+  Timer? _liveSyncTimer;
+  final Map<String, String> _lastKnownOrderStatuses = {};
+
+  UserState({bool enablePeriodicSync = true}) {
+    _initOrderTracking(enablePeriodicSync: enablePeriodicSync);
+  }
+
+  void _initOrderTracking({bool enablePeriodicSync = true}) {
+    for (final o in _orders) {
+      _lastKnownOrderStatuses[o.id] = o.status;
+    }
+    // Periodic live sync for active orders every 10 seconds
+    if (enablePeriodicSync) {
+      _liveSyncTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+        _pollBackendForUpdates();
+      });
+    }
+  }
+
+  void _pollBackendForUpdates() {
+    final hasActive = _orders.any((o) => o.status != 'Delivered' && o.status != 'Cancelled');
+    if (hasActive) {
+      ApiService.instance.syncWithBackend(userState: this);
+    }
+  }
+
+  @override
+  void dispose() {
+    _liveSyncTimer?.cancel();
+    super.dispose();
+  }
+
   bool _isLoggedIn = true;
   UserProfile? _user = UserProfile(
     name: 'Hassan Raza',
@@ -329,6 +375,11 @@ class UserState extends ChangeNotifier {
   String _riderCity = 'Lahore (Gulberg & DHA)';
   String _riderCnic = '35202-8492019-1';
   bool _riderIsOnline = true;
+  String _riderOutletName = 'Shahi Pakwan Center (Deg & Catering)';
+  String _riderOutletId = 'sub_admin_2';
+  String _riderOutletPhone = '+92 301 4455667';
+  String _riderOutletAddress = 'Bungalow 18-C, Model Town, Lahore';
+  String _riderOutletType = 'pakwan';
 
   // Getters
   bool get isLoggedIn => _isLoggedIn;
@@ -341,6 +392,26 @@ class UserState extends ChangeNotifier {
   String get riderCity => _riderCity;
   String get riderCnic => _riderCnic;
   bool get riderIsOnline => _riderIsOnline;
+  String get riderOutletName => _riderOutletName;
+  String get riderOutletId => _riderOutletId;
+  String get riderOutletPhone => _riderOutletPhone;
+  String get riderOutletAddress => _riderOutletAddress;
+  String get riderOutletType => _riderOutletType;
+
+  void setRiderOutlet({
+    required String outletName,
+    required String outletId,
+    String? outletPhone,
+    String? outletAddress,
+    String? outletType,
+  }) {
+    _riderOutletName = outletName;
+    _riderOutletId = outletId;
+    if (outletPhone != null && outletPhone.isNotEmpty) _riderOutletPhone = outletPhone;
+    if (outletAddress != null && outletAddress.isNotEmpty) _riderOutletAddress = outletAddress;
+    if (outletType != null && outletType.isNotEmpty) _riderOutletType = outletType;
+    notifyListeners();
+  }
   List<UserAddress> get addresses => List.unmodifiable(_addresses);
   List<UserOrder> get orders => List.unmodifiable(_orders);
 
@@ -410,8 +481,14 @@ class UserState extends ChangeNotifier {
     String? occasion,
     String? foodItemId,
     String? notes,
+    String? restaurantId,
+    String? subAdminId,
+    double? latitude,
+    double? longitude,
   }) {
     final newId = 'FC-${(DateTime.now().millisecondsSinceEpoch % 10000).toString().padLeft(4, '0')}';
+    final orderLat = latitude ?? 31.5204;
+    final orderLng = longitude ?? 74.3587;
     final newOrder = UserOrder(
       id: newId,
       restaurantName: restaurantName,
@@ -428,13 +505,35 @@ class UserState extends ChangeNotifier {
       prepTime: prepTime,
       foodItemId: foodItemId,
       notes: notes,
+      latitude: orderLat,
+      longitude: orderLng,
     );
     _orders.insert(0, newOrder);
+    _lastKnownOrderStatuses[newId] = 'Accepted';
     notifyListeners();
 
-    // Persist new order to backend
+    // Trigger instant local notification for order confirmation
+    NotificationService.instance.showStatusUpdateNotification(
+      orderId: newId,
+      newStatus: 'Accepted',
+      restaurantName: restaurantName,
+      address: deliveryAddress,
+    );
+
+    // If Daig booking, schedule reminder for 2 hours before the event
+    if (isDaigBooking) {
+      NotificationService.instance.scheduleDaigBookingReminder(
+        orderId: newId,
+        occasion: occasion ?? 'Special Dawat',
+        eventTime: DateTime.now().add(const Duration(hours: 4)),
+      );
+    }
+
+    // Persist new order to PHP SQLite backend
     ApiService.instance.sendOrderToBackend({
+      'id': newId,
       'restaurantName': restaurantName,
+      'restaurantId': restaurantId ?? '',
       'restaurantImage': restaurantImage,
       'items': items,
       'totalAmount': totalAmount,
@@ -447,10 +546,30 @@ class UserState extends ChangeNotifier {
       'isDaigBooking': isDaigBooking,
       'occasion': occasion,
       'notes': notes ?? '',
+      'sub_admin_id': subAdminId ?? '',
+      'latitude': orderLat,
+      'longitude': orderLng,
     });
   }
 
   void syncOrdersFromBackend(List<UserOrder> syncedOrders) {
+    for (final order in syncedOrders) {
+      final prevStatus = _lastKnownOrderStatuses[order.id];
+      if (prevStatus != null &&
+          prevStatus.trim().toLowerCase() != order.status.trim().toLowerCase()) {
+        debugPrint(
+            '[UserState] Live status changed for order ${order.id}: "$prevStatus" -> "${order.status}"');
+        // Trigger local notification for customer!
+        NotificationService.instance.showStatusUpdateNotification(
+          orderId: order.id,
+          newStatus: order.status,
+          restaurantName: order.restaurantName,
+          riderName: order.riderName,
+          address: order.deliveryAddress,
+        );
+      }
+      _lastKnownOrderStatuses[order.id] = order.status;
+    }
     _orders.clear();
     _orders.addAll(syncedOrders);
     notifyListeners();
@@ -459,9 +578,21 @@ class UserState extends ChangeNotifier {
   void updateOrderStatus(String orderId, String newStatus, {String? prepTime}) {
     final idx = _orders.indexWhere((o) => o.id == orderId);
     if (idx >= 0) {
+      final prevStatus = _orders[idx].status;
       _orders[idx].status = newStatus;
       if (prepTime != null && prepTime.isNotEmpty) {
         _orders[idx].prepTime = prepTime;
+      }
+      if (prevStatus.trim().toLowerCase() != newStatus.trim().toLowerCase()) {
+        _lastKnownOrderStatuses[orderId] = newStatus;
+        // Trigger local notification
+        NotificationService.instance.showStatusUpdateNotification(
+          orderId: orderId,
+          newStatus: newStatus,
+          restaurantName: _orders[idx].restaurantName,
+          riderName: _orders[idx].riderName,
+          address: _orders[idx].deliveryAddress,
+        );
       }
       notifyListeners();
       ApiService.instance.updateOrderStatusOnBackend(orderId, newStatus, prepTime: prepTime);
@@ -474,7 +605,16 @@ class UserState extends ChangeNotifier {
       _orders[idx].riderName = riderName ?? 'Ali Raza (Rider #R-41)';
       _orders[idx].riderPhone = riderPhone ?? '+92 301 5551234';
       _orders[idx].status = 'On the Way';
+      _lastKnownOrderStatuses[orderId] = 'On the Way';
+      NotificationService.instance.showStatusUpdateNotification(
+        orderId: orderId,
+        newStatus: 'On the Way',
+        restaurantName: _orders[idx].restaurantName,
+        riderName: _orders[idx].riderName,
+        address: _orders[idx].deliveryAddress,
+      );
       notifyListeners();
+      ApiService.instance.updateOrderStatusOnBackend(orderId, 'On the Way');
     }
   }
 
@@ -486,19 +626,49 @@ class UserState extends ChangeNotifier {
     }
   }
 
-  // Local / Mock Login with Role support
-  void login({
+  // Live Login with PHP SQLite Backend Authentication
+  Future<bool> login({
     required String email,
     required String password,
     String? name,
     String? phone,
     UserRole? role,
-  }) {
+  }) async {
     final cleanEmail = email.trim();
     final detectedName = name != null && name.trim().isNotEmpty
         ? name.trim()
         : _extractNameFromEmail(cleanEmail);
 
+    // Call live PHP SQLite backend API
+    final apiRes = await ApiService.instance.login(email: cleanEmail, password: password);
+    if (apiRes != null && apiRes['user'] != null) {
+      final u = apiRes['user'] as Map<String, dynamic>;
+      final roleStr = (u['role'] as String? ?? 'client').toLowerCase();
+      if (roleStr.contains('admin')) {
+        _currentRole = UserRole.admin;
+      } else if (roleStr.contains('rider')) {
+        _currentRole = UserRole.rider;
+      } else {
+        _currentRole = UserRole.client;
+      }
+
+      _user = UserProfile(
+        name: u['name'] ?? detectedName,
+        email: u['email'] ?? cleanEmail,
+        phone: u['phone'] ?? (phone != null && phone.trim().isNotEmpty ? phone.trim() : '+92 300 1234567'),
+        city: u['city'] ?? 'Lahore',
+        membershipTier: u['membershipTier'] ?? (_currentRole == UserRole.admin
+            ? 'Admin Manager 🛠️'
+            : (_currentRole == UserRole.rider ? 'Delivery Rider 🛵' : 'Valued Member')),
+        walletBalance: (u['walletBalance'] as num?)?.toDouble() ?? 2450.0,
+        loyaltyCoins: (u['loyaltyCoins'] as num?)?.toInt() ?? 580,
+      );
+      _isLoggedIn = true;
+      notifyListeners();
+      return true;
+    }
+
+    // Fallback: Local offline authentication
     if (role != null) {
       _currentRole = role;
     } else if (cleanEmail == 'admin@gmail.com' || cleanEmail == 'admin@foodcourt.pk') {
@@ -522,17 +692,29 @@ class UserState extends ChangeNotifier {
     );
     _isLoggedIn = true;
     notifyListeners();
+    return true;
   }
 
-  // Local / Mock Sign Up
-  void signup({
+  // Live Registration on PHP SQLite Backend
+  Future<bool> signup({
     required String name,
     required String email,
     required String phone,
     required String password,
     UserRole role = UserRole.client,
-  }) {
+  }) async {
     _currentRole = role;
+    final roleStr = role == UserRole.rider ? 'rider' : (role == UserRole.admin ? 'admin' : 'client');
+
+    // Register on live PHP SQLite backend
+    final apiRes = await ApiService.instance.register(
+      name: name,
+      email: email,
+      phone: phone,
+      password: password,
+      role: roleStr,
+    );
+
     _user = UserProfile(
       name: name.trim().isNotEmpty ? name.trim() : 'Foodie Member',
       email: email.trim().isNotEmpty ? email.trim() : 'member@foodcourt.pk',
@@ -544,6 +726,7 @@ class UserState extends ChangeNotifier {
     );
     _isLoggedIn = true;
     notifyListeners();
+    return apiRes != null;
   }
 
   void logout() {

@@ -68,18 +68,25 @@ class _CartScreenState extends State<CartScreen> {
         .map((i) => '${i.quantity}x ${i.foodItem.name}')
         .toList();
     final totalAmount = widget.cartState.grandTotal;
+    final totalSavings = widget.cartState.totalSavings;
+    final originalAmount = totalSavings > 0 ? (totalAmount + totalSavings) : totalAmount;
+    final discountInfo = totalSavings > 0 ? 'Special Promo: Saved Rs. ${totalSavings.toInt()}' : null;
     final deliveryAddress = widget.cartState.deliveryAddress;
     final isDaig = widget.cartState.items.any((i) =>
-        i.foodItem.category == 'Daig' || i.foodItem.name.contains('Daig'));
+        i.foodItem.category == 'Daig' || i.foodItem.name.contains('Daig') || i.foodItem.category == 'Deg');
     final prepTime = isDaig ? '2-3 hours (Daig preparation)' : '25-35 mins';
     final image = widget.cartState.items.first.foodItem.imageUrl;
     final notes = widget.cartState.specialInstructions;
 
     widget.userState?.placeOrder(
       restaurantName: restName,
+      restaurantId: widget.cartState.restaurantId,
+      subAdminId: widget.cartState.subAdminId,
       restaurantImage: image,
       items: itemsList,
       totalAmount: totalAmount,
+      originalAmount: originalAmount,
+      discountInfo: discountInfo,
       deliveryAddress: deliveryAddress,
       prepTime: prepTime,
       isDaigBooking: isDaig,
@@ -507,13 +514,45 @@ class _CartScreenState extends State<CartScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(
-          'Rs. ${(cartItem.foodItem.price * cartItem.quantity).toStringAsFixed(0)}',
-          style: const TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textSecondary,
-          ),
+        subtitle: Row(
+          children: [
+            Text(
+              cartItem.formattedTotalPrice,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primary,
+              ),
+            ),
+            if (cartItem.hasDiscount) ...[
+              const SizedBox(width: 6),
+              Text(
+                cartItem.formattedOriginalTotalPrice,
+                style: const TextStyle(
+                  fontSize: 11,
+                  decoration: TextDecoration.lineThrough,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  '${cartItem.foodItem.discountPercent}% OFF',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.red.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

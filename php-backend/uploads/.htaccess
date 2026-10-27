@@ -1,0 +1,9 @@
+# php-backend/uploads/.htaccess
+# Secure upload directory: allow image viewing, disable PHP execution
+
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phps|cgi|pl|py|sh|bash)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+Options -Indexes -ExecCGI

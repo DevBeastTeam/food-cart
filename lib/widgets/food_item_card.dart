@@ -129,7 +129,26 @@ class FoodItemCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (item.isPopular)
+                if (item.isDiscounted && (item.discountPercent > 0 || item.promoBadge.isNotEmpty))
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFECEB),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: const Color(0xFFFFB4AC)),
+                    ),
+                    child: Text(
+                      item.promoBadge.isNotEmpty ? item.promoBadge : '🔥 ${item.discountPercent}% OFF',
+                      style: const TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFC62828),
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  )
+                else if (item.isPopular)
                   Container(
                     margin: const EdgeInsets.only(bottom: 5),
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -181,6 +200,16 @@ class FoodItemCard extends StatelessWidget {
                         color: AppTheme.primary,
                       ),
                     ),
+                    if (item.isDiscounted && item.savingsAmount > 0)
+                      Text(
+                        item.formattedOriginalPrice,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          decoration: TextDecoration.lineThrough,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     if (item.calories > 0)
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -368,13 +397,28 @@ class FoodItemCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      item.formattedPrice,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primary,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          item.formattedPrice,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                        if (item.isDiscounted && item.savingsAmount > 0) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            item.formattedOriginalPrice,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              decoration: TextDecoration.lineThrough,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     InkWell(
                       onTap: () => _handleAdd(context),

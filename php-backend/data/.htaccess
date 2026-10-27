@@ -1,0 +1,2 @@
+# Deny direct browser access to SQLite database files
+Deny from all

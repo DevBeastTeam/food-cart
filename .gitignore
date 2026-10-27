@@ -50,3 +50,4 @@ app.*.map.json
 .env
 .env.*
 
+php-backend-deploy.zip

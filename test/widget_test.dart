@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:food_delivery/data/sample_data.dart';
 import 'package:food_delivery/main.dart';
+import 'package:food_delivery/models/food_item.dart';
 import 'package:food_delivery/screens/orders_screen.dart';
 import 'package:food_delivery/screens/user_dashboard_screen.dart';
 import 'package:food_delivery/state/cart_state.dart';
@@ -317,6 +318,40 @@ void main() {
       expect(cart.totalItemCount, 0);
       expect(cart.subtotal, 0.0);
       expect(cart.grandTotal, 0.0);
+    });
+
+    test('Vendor promo 50% discount and subAdminId routing verification', () {
+      final cart = CartState();
+      const discountedDish = FoodItem(
+        id: 'promo_test_1',
+        restaurantId: 'rest_1',
+        name: 'Promo 50% OFF Biryani',
+        description: 'Test Biryani',
+        price: 1000.0,
+        imageUrl: '',
+        category: 'Biryani',
+        discountPercent: 50,
+        discountPrice: 500.0,
+        isDiscounted: true,
+        promoBadge: '🔥 50% OFF',
+        subAdminId: 'sub_admin_1',
+      );
+
+      expect(discountedDish.effectivePrice, 500.0);
+      expect(discountedDish.savingsAmount, 500.0);
+      expect(discountedDish.formattedPrice, 'Rs. 500');
+      expect(discountedDish.formattedOriginalPrice, 'Rs. 1000');
+
+      cart.addItem(discountedDish, 'rest_1', 'Bannu Beef Pulao');
+      expect(cart.totalItemCount, 1);
+      expect(cart.subtotal, 500.0);
+      expect(cart.totalSavings, 500.0);
+      expect(cart.subAdminId, 'sub_admin_1');
+
+      cart.increment('promo_test_1');
+      expect(cart.totalItemCount, 2);
+      expect(cart.subtotal, 1000.0);
+      expect(cart.totalSavings, 1000.0);
     });
   });
 

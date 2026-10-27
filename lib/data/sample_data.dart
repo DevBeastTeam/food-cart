@@ -81,6 +81,7 @@ class SampleData {
           rating: 4.9,
           calories: 680,
           isPopular: true,
+          subAdminId: 'sub_admin_1',
         ),
         const FoodItem(
           id: 'item_102',
@@ -93,6 +94,7 @@ class SampleData {
           rating: 4.8,
           calories: 740,
           isPopular: true,
+          subAdminId: 'sub_admin_1',
         ),
         const FoodItem(
           id: 'item_103',
@@ -104,6 +106,11 @@ class SampleData {
           category: 'Tikka & Kabab',
           rating: 4.7,
           calories: 510,
+          discountPercent: 50,
+          discountPrice: 410,
+          isDiscounted: true,
+          promoBadge: '🔥 50% OFF',
+          subAdminId: 'sub_admin_1',
         ),
         const FoodItem(
           id: 'item_104',
@@ -570,6 +577,11 @@ class SampleData {
       rating: 4.9,
       badge: '👑 Most Ordered Deg',
       includes: ['Atta-sealed Hot Daig', 'Spicy Zeera Raita Tub (2 Litre)', 'Fresh Kachumber Salad (1 Kg)'],
+      discountPercent: 50,
+      discountPrice: 4750,
+      isDiscounted: true,
+      promoBadge: '🔥 50% OFF',
+      subAdminId: 'sub_admin_2',
     ),
     DaigItem(
       id: 'daig_2',
