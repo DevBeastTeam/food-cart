@@ -2310,163 +2310,191 @@ if ($liveSuper) {
     </div>
 
     <!-- ======================================================================= -->
-    <!-- MODAL: DISH & DAIG DETAILS POPUP -->
+    <!-- SLIDE-OVER SHEET: DISH & DAIG DETAILS (RIGHT-SIDE DRAWER) -->
+    <!-- 90% width on mobile (w-[90vw]), max-w-lg on desktop, smooth slide-in -->
     <!-- ======================================================================= -->
-    <div x-show="modal.dishDetail" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md" style="overscroll-behavior: contain;" x-cloak>
-        <div class="w-full max-w-lg cupertino-glass rounded-[28px] p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-white/10" @click.outside="modal.dishDetail = false">
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-white/5 pb-3">
-                <div class="flex items-center gap-2">
-                    <template x-if="selectedDishType === 'pakwan'">
-                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
-                            <i data-lucide="crown" class="w-3.5 h-3.5"></i>
-                            <span>Shahi Pakwan Daig Details</span>
-                        </span>
-                    </template>
-                    <template x-if="selectedDishType === 'restaurant'">
-                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1.5">
-                            <i data-lucide="utensils" class="w-3.5 h-3.5"></i>
-                            <span>Restaurant Dish Details</span>
-                        </span>
-                    </template>
-                </div>
-                <button type="button" @click="modal.dishDetail = false" class="w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center transition-colors">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
+    <div x-show="modal.dishDetail" class="fixed inset-0 z-50 overflow-hidden" x-cloak>
+        <!-- Backdrop -->
+        <div x-show="modal.dishDetail" 
+            x-transition:enter="transition-opacity ease-linear duration-300" 
+            x-transition:enter-start="opacity-0" 
+            x-transition:enter-end="opacity-100" 
+            x-transition:leave="transition-opacity ease-linear duration-300" 
+            x-transition:leave-start="opacity-100" 
+            x-transition:leave-end="opacity-0"
+            @click="modal.dishDetail = false" 
+            class="fixed inset-0 bg-black/80 backdrop-blur-md">
+        </div>
 
-            <!-- Dish Image & Basic Info -->
-            <div class="space-y-3">
-                <div class="relative w-full h-56 sm:h-64 rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shadow-inner">
-                    <img :src="selectedDish?.imageUrl" class="w-full h-full object-cover" :alt="selectedDish?.name">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                    
-                    <!-- Badges overlay -->
-                    <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                        <span x-show="selectedDish?.badge" class="px-2 py-0.5 rounded-lg text-xs font-bold bg-amber-500 text-black shadow" x-text="selectedDish?.badge"></span>
-                        <span x-show="selectedDish?.category" class="px-2 py-0.5 rounded-lg text-xs font-semibold bg-black/60 text-white backdrop-blur-md border border-white/10" x-text="selectedDish?.category"></span>
-                    </div>
-
-                    <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between">
-                        <div>
-                            <h3 class="text-lg font-black text-white leading-tight drop-shadow-md" x-text="selectedDish?.name"></h3>
-                            <p x-show="selectedDish?.urduName" class="text-sm font-semibold text-amber-300 drop-shadow-sm mt-0.5" x-text="selectedDish?.urduName"></p>
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
+            <div x-show="modal.dishDetail" 
+                x-transition:enter="transform transition ease-in-out duration-300" 
+                x-transition:enter-start="translate-x-full" 
+                x-transition:enter-end="translate-x-0" 
+                x-transition:leave="transform transition ease-in-out duration-300" 
+                x-transition:leave-start="translate-x-0" 
+                x-transition:leave-end="translate-x-full"
+                class="w-[90vw] max-w-md sm:max-w-lg bg-zinc-950/98 border-l border-white/10 shadow-2xl p-4 sm:p-6 flex flex-col justify-between overflow-y-auto">
+                
+                <div class="space-y-4">
+                    <!-- Sheet Header -->
+                    <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                        <div class="flex items-center gap-2">
+                            <template x-if="selectedDishType === 'pakwan'">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+                                    <i data-lucide="crown" class="w-3.5 h-3.5"></i>
+                                    <span>Shahi Pakwan Daig Details</span>
+                                </span>
+                            </template>
+                            <template x-if="selectedDishType === 'restaurant'">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1.5">
+                                    <i data-lucide="utensils" class="w-3.5 h-3.5"></i>
+                                    <span>Restaurant Dish Details</span>
+                                </span>
+                            </template>
                         </div>
-                        <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-black/70 text-amber-400 backdrop-blur-md border border-amber-500/30 shrink-0" x-text="'★ ' + (selectedDish?.rating || 4.9)"></span>
+                        <button type="button" @click="modal.dishDetail = false" 
+                            class="p-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all border border-white/10" 
+                            aria-label="Close sheet">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
                     </div>
-                </div>
 
-                <!-- Description -->
-                <div class="p-3 rounded-xl bg-zinc-900/60 border border-white/5 space-y-1">
-                    <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Dish Description</div>
-                    <p class="text-xs text-zinc-300 leading-relaxed" x-text="selectedDish?.description || 'Authentic traditional recipe prepared with fresh meat and aromatic basmati rice by expert masters.'"></p>
-                </div>
-
-                <!-- Pakwan Daig Specific Details -->
-                <template x-if="selectedDishType === 'pakwan'">
+                    <!-- Dish Image & Basic Info -->
                     <div class="space-y-3">
-                        <!-- Full vs Half Daig Rates & Servings -->
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <!-- Full Daig -->
-                            <div class="p-3 rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 space-y-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wide">Full Daig (Bari)</span>
-                                    <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <div class="relative w-full h-52 sm:h-60 rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shadow-inner">
+                            <img :src="selectedDish?.imageUrl" class="w-full h-full object-cover" :alt="selectedDish?.name">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent"></div>
+                            
+                            <!-- Badges overlay -->
+                            <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                                <span x-show="selectedDish?.badge" class="px-2 py-0.5 rounded-lg text-xs font-bold bg-amber-500 text-black shadow" x-text="selectedDish?.badge"></span>
+                                <span x-show="selectedDish?.category" class="px-2 py-0.5 rounded-lg text-xs font-semibold bg-black/60 text-white backdrop-blur-md border border-white/10" x-text="selectedDish?.category"></span>
+                            </div>
+
+                            <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                                <div class="min-w-0 pr-2">
+                                    <h3 class="text-base sm:text-lg font-black text-white leading-tight drop-shadow-md truncate" x-text="selectedDish?.name"></h3>
+                                    <p x-show="selectedDish?.urduName" class="text-xs sm:text-sm font-semibold text-amber-300 drop-shadow-sm mt-0.5 truncate" x-text="selectedDish?.urduName"></p>
                                 </div>
-                                <div class="text-base font-black text-amber-300 tabular-nums" x-text="'Rs. ' + Number(selectedDish?.fullDaigPrice || 0).toLocaleString()"></div>
-                                <div class="text-[10.5px] text-zinc-400 font-medium" x-text="selectedDish?.fullDaigWeight || '12 KG (Serves 35-40 Persons)'"></div>
+                                <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-black/70 text-amber-400 backdrop-blur-md border border-amber-500/30 shrink-0" x-text="'★ ' + (selectedDish?.rating || 4.9)"></span>
                             </div>
+                        </div>
 
-                            <!-- Half Daig -->
-                            <div class="p-3 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Half Daig (Choti)</span>
-                                    <i data-lucide="soup" class="w-3.5 h-3.5 text-zinc-400"></i>
+                        <!-- Description -->
+                        <div class="p-3 rounded-xl bg-zinc-900/60 border border-white/5 space-y-1">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Dish Description</div>
+                            <p class="text-xs text-zinc-300 leading-relaxed" x-text="selectedDish?.description || 'Authentic traditional recipe prepared with fresh ingredients by expert masters.'"></p>
+                        </div>
+
+                        <!-- Pakwan Daig Specific Details -->
+                        <template x-if="selectedDishType === 'pakwan'">
+                            <div class="space-y-3">
+                                <!-- Full vs Half Daig Rates & Servings -->
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    <!-- Full Daig -->
+                                    <div class="p-3 rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wide">Full Daig (Bari)</span>
+                                            <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i>
+                                        </div>
+                                        <div class="text-sm sm:text-base font-black text-amber-300 tabular-nums" x-text="'Rs. ' + Number(selectedDish?.fullDaigPrice || 0).toLocaleString()"></div>
+                                        <div class="text-[10px] sm:text-[10.5px] text-zinc-400 font-medium" x-text="selectedDish?.fullDaigWeight || '12 KG (Serves 35-40 Persons)'"></div>
+                                    </div>
+
+                                    <!-- Half Daig -->
+                                    <div class="p-3 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Half Daig (Choti)</span>
+                                            <i data-lucide="soup" class="w-3.5 h-3.5 text-zinc-400"></i>
+                                        </div>
+                                        <div class="text-sm sm:text-base font-black text-white tabular-nums" x-text="'Rs. ' + Number(selectedDish?.halfDaigPrice || 0).toLocaleString()"></div>
+                                        <div class="text-[10px] sm:text-[10.5px] text-zinc-400 font-medium" x-text="selectedDish?.halfDaigWeight || '6 KG (Serves 18-20 Persons)'"></div>
+                                    </div>
                                 </div>
-                                <div class="text-base font-black text-white tabular-nums" x-text="'Rs. ' + Number(selectedDish?.halfDaigPrice || 0).toLocaleString()"></div>
-                                <div class="text-[10.5px] text-zinc-400 font-medium" x-text="selectedDish?.halfDaigWeight || '6 KG (Serves 18-20 Persons)'"></div>
-                            </div>
-                        </div>
 
-                        <!-- Complimentary Inclusions -->
-                        <div class="p-3 rounded-xl bg-zinc-900/60 border border-white/5 space-y-1.5" x-show="(selectedDish?.includes || []).length > 0">
-                            <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Daig ke Sath Shamil Lamazmat</div>
-                            <div class="flex flex-wrap gap-1.5">
-                                <template x-for="(inc, idx) in (selectedDish?.includes || [])" :key="idx">
-                                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-zinc-800 text-zinc-200 border border-white/5 flex items-center gap-1">
-                                        <i data-lucide="check" class="w-3 h-3 text-emerald-400"></i>
-                                        <span x-text="inc"></span>
-                                    </span>
-                                </template>
-                            </div>
-                        </div>
+                                <!-- Complimentary Inclusions -->
+                                <div class="p-3 rounded-xl bg-zinc-900/60 border border-white/5 space-y-1.5" x-show="(selectedDish?.includes || []).length > 0">
+                                    <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Daig ke Sath Shamil Lamazmat</div>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        <template x-for="(inc, idx) in (selectedDish?.includes || [])" :key="idx">
+                                            <span class="px-2.5 py-1 rounded-lg text-[10.5px] font-semibold bg-zinc-800 text-zinc-200 border border-white/5 flex items-center gap-1">
+                                                <i data-lucide="check" class="w-3 h-3 text-emerald-400"></i>
+                                                <span x-text="inc"></span>
+                                            </span>
+                                        </template>
+                                    </div>
+                                </div>
 
-                        <!-- Delivery Notice -->
-                        <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[11px] text-amber-200">
-                            <i data-lucide="clock" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
-                            <div>
-                                <span class="font-bold">Booking Notice: </span>
-                                <span x-text="selectedDish?.deliveryNotice || 'Daig orders require minimum 2 to 3 hours notice for fresh preparation on wood fire.'"></span>
+                                <!-- Delivery Notice -->
+                                <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[11px] text-amber-200">
+                                    <i data-lucide="clock" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                                    <div>
+                                        <span class="font-bold">Booking Notice: </span>
+                                        <span x-text="selectedDish?.deliveryNotice || 'Daig orders require minimum 2 to 3 hours notice for fresh preparation on wood fire.'"></span>
+                                    </div>
+                                </div>
                             </div>
+                        </template>
+
+                        <!-- Restaurant Specific Details -->
+                        <template x-if="selectedDishType === 'restaurant'">
+                            <div class="space-y-3">
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    <div class="p-3 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-1">
+                                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Dish Price</span>
+                                        <div class="text-sm sm:text-base font-black text-emerald-400 tabular-nums" x-text="'Rs. ' + Number(selectedDish?.price || 0).toLocaleString()"></div>
+                                        <div class="text-[10.5px] text-zinc-400">Per single standard serving</div>
+                                    </div>
+
+                                    <div class="p-3 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-1">
+                                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Nutritional Estimate</span>
+                                        <div class="text-sm sm:text-base font-black text-white tabular-nums" x-text="(selectedDish?.calories || 450) + ' kcal'"></div>
+                                        <div class="text-[10.5px] text-zinc-400">Calorie estimation</div>
+                                    </div>
+                                </div>
+
+                                <!-- Dietary Badges -->
+                                <div class="flex flex-wrap gap-2 pt-1" x-show="selectedDish?.isVegetarian || selectedDish?.isPopular || (selectedDish?.badges || []).length > 0">
+                                    <template x-if="selectedDish?.isVegetarian">
+                                        <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">🌱 100% Vegetarian</span>
+                                    </template>
+                                    <template x-if="selectedDish?.isPopular">
+                                        <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/25">🔥 Popular Item</span>
+                                    </template>
+                                    <template x-for="(bg, bidx) in (selectedDish?.badges || [])" :key="bidx">
+                                        <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25" x-text="bg"></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Vendor Information Card -->
+                        <div class="p-3 rounded-xl bg-zinc-950/70 border border-white/5 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center font-black">
+                                    <i data-lucide="store" class="w-4 h-4"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-bold text-white truncate" x-text="viewingCenter?.businessName"></div>
+                                    <div class="text-[10.5px] text-zinc-400 truncate" x-text="viewingCenter?.city + ' • ' + (viewingCenter?.phone || '')"></div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shrink-0">
+                                Active Menu
+                            </span>
                         </div>
                     </div>
-                </template>
-
-                <!-- Restaurant Specific Details -->
-                <template x-if="selectedDishType === 'restaurant'">
-                    <div class="space-y-3">
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <div class="p-3 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-1">
-                                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Dish Price</span>
-                                <div class="text-base font-black text-emerald-400 tabular-nums" x-text="'Rs. ' + Number(selectedDish?.price || 0).toLocaleString()"></div>
-                                <div class="text-[10.5px] text-zinc-400">Per single standard serving</div>
-                            </div>
-
-                            <div class="p-3 rounded-2xl bg-zinc-900/80 border border-white/10 space-y-1">
-                                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Nutritional Estimate</span>
-                                <div class="text-base font-black text-white tabular-nums" x-text="(selectedDish?.calories || 450) + ' kcal'"></div>
-                                <div class="text-[10.5px] text-zinc-400">Calorie estimation</div>
-                            </div>
-                        </div>
-
-                        <!-- Dietary Badges -->
-                        <div class="flex flex-wrap gap-2 pt-1" x-show="selectedDish?.isVegetarian || selectedDish?.isPopular || (selectedDish?.badges || []).length > 0">
-                            <template x-if="selectedDish?.isVegetarian">
-                                <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">🌱 100% Vegetarian</span>
-                            </template>
-                            <template x-if="selectedDish?.isPopular">
-                                <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/25">🔥 Popular Item</span>
-                            </template>
-                            <template x-for="(bg, bidx) in (selectedDish?.badges || [])" :key="bidx">
-                                <span class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/25" x-text="bg"></span>
-                            </template>
-                        </div>
-                    </div>
-                </template>
-
-                <!-- Vendor Information Card -->
-                <div class="p-3 rounded-xl bg-zinc-950/70 border border-white/5 flex items-center justify-between text-xs">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center font-black">
-                            <i data-lucide="store" class="w-4 h-4"></i>
-                        </div>
-                        <div>
-                            <div class="font-bold text-white" x-text="viewingCenter?.businessName"></div>
-                            <div class="text-[10.5px] text-zinc-400" x-text="viewingCenter?.city + ' • ' + (viewingCenter?.phone || '')"></div>
-                        </div>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
-                        Active Menu
-                    </span>
                 </div>
-            </div>
 
-            <!-- Modal Footer -->
-            <div class="pt-2 border-t border-white/5 flex justify-end">
-                <button type="button" @click="modal.dishDetail = false"
-                    class="px-5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-all shadow-sm">
-                    Band Karein (Close)
-                </button>
+                <!-- Sheet Footer -->
+                <div class="pt-4 mt-4 border-t border-white/10 flex justify-end">
+                    <button type="button" @click="modal.dishDetail = false"
+                        class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        <span>Band Karein (Close Sheet)</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
