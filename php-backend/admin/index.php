@@ -1944,13 +1944,34 @@ if ($liveSuper) {
                                 class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#FF9500]">
                         </div>
 
-                        <div>
-                            <label for="notifPriority" class="block font-semibold text-zinc-300 mb-1">Priority Level</label>
-                            <select id="notifPriority" x-model="newNotification.priority" class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#FF9500]">
-                                <option value="normal">Standard Announcement 📢</option>
-                                <option value="important">Important Notification ⚠️</option>
-                                <option value="urgent">Urgent / Action Required 🚨</option>
-                            </select>
+                        <div class="relative" x-data="{ openPriority: false }">
+                            <label class="block font-semibold text-zinc-300 mb-1">Priority Level</label>
+                            <button type="button" @click="openPriority = !openPriority; $nextTick(() => lucide.createIcons())"
+                                class="w-full px-3 py-2 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-xl text-white text-xs flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
+                                <span x-text="newNotification.priority === 'urgent' ? 'Urgent / Action Required 🚨' : (newNotification.priority === 'important' ? 'Important Notification ⚠️' : 'Standard Announcement 📢')"></span>
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-[#FF9500] transition-transform" :class="openPriority ? 'rotate-180' : ''"></i>
+                            </button>
+                            <div x-show="openPriority" @click.outside="openPriority = false" x-cloak
+                                class="absolute left-0 mt-1 w-full cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                <button type="button" @click="newNotification.priority = 'normal'; openPriority = false"
+                                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                    :class="newNotification.priority === 'normal' ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                    <span>Standard Announcement 📢</span>
+                                    <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="newNotification.priority === 'normal'"></i>
+                                </button>
+                                <button type="button" @click="newNotification.priority = 'important'; openPriority = false"
+                                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                    :class="newNotification.priority === 'important' ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                    <span>Important Notification ⚠️</span>
+                                    <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="newNotification.priority === 'important'"></i>
+                                </button>
+                                <button type="button" @click="newNotification.priority = 'urgent'; openPriority = false"
+                                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                    :class="newNotification.priority === 'urgent' ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                    <span>Urgent / Action Required 🚨</span>
+                                    <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="newNotification.priority === 'urgent'"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div>
@@ -2007,11 +2028,34 @@ if ($liveSuper) {
                     </div>
                     <div>
                         <label class="block font-semibold text-zinc-400 mb-1">Category / Type</label>
-                        <select x-model="editingSubAdmin.businessType" class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#FF9500]">
-                            <option value="pakwan">👑 Shahi Pakwan Center</option>
-                            <option value="both">👑🍽️ Pakwan + Restaurant</option>
-                            <option value="restaurant">🍽️ Restaurant Type</option>
-                        </select>
+                        <div class="relative" x-data="{ open: false }">
+                            <button type="button" @click="open = !open"
+                                class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-white text-xs flex items-center justify-between hover:border-amber-500/50 transition">
+                                <span class="truncate" x-text="editingSubAdmin.businessType === 'pakwan' ? '👑 Shahi Pakwan Center' : (editingSubAdmin.businessType === 'restaurant' ? '🍽️ Restaurant Type' : '👑🍽️ Pakwan + Restaurant')"></span>
+                                <svg class="w-3.5 h-3.5 text-zinc-400 transition-transform flex-shrink-0 ml-1" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" @click.outside="open = false" x-cloak
+                                class="absolute left-0 right-0 mt-1 bg-zinc-900/95 backdrop-blur-xl border border-white/15 rounded-xl shadow-2xl py-1 z-30 space-y-0.5 text-xs">
+                                <div @click="editingSubAdmin.businessType = 'pakwan'; open = false"
+                                    :class="editingSubAdmin.businessType === 'pakwan' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-zinc-300 hover:bg-white/5'"
+                                    class="px-3 py-1.5 cursor-pointer flex items-center justify-between transition">
+                                    <span>👑 Shahi Pakwan Center</span>
+                                    <span x-show="editingSubAdmin.businessType === 'pakwan'" class="text-amber-400">✓</span>
+                                </div>
+                                <div @click="editingSubAdmin.businessType = 'both'; open = false"
+                                    :class="editingSubAdmin.businessType === 'both' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-zinc-300 hover:bg-white/5'"
+                                    class="px-3 py-1.5 cursor-pointer flex items-center justify-between transition">
+                                    <span>👑🍽️ Pakwan + Restaurant</span>
+                                    <span x-show="editingSubAdmin.businessType === 'both'" class="text-amber-400">✓</span>
+                                </div>
+                                <div @click="editingSubAdmin.businessType = 'restaurant'; open = false"
+                                    :class="editingSubAdmin.businessType === 'restaurant' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-zinc-300 hover:bg-white/5'"
+                                    class="px-3 py-1.5 cursor-pointer flex items-center justify-between transition">
+                                    <span>🍽️ Restaurant Type</span>
+                                    <span x-show="editingSubAdmin.businessType === 'restaurant'" class="text-amber-400">✓</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2100,11 +2144,34 @@ if ($liveSuper) {
                     </div>
                     <div>
                         <label class="block font-semibold text-zinc-400 mb-1">Category / Type</label>
-                        <select x-model="newSubAdmin.businessType" class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#FF9500]">
-                            <option value="pakwan">👑 Shahi Pakwan Center</option>
-                            <option value="both">👑🍽️ Pakwan + Restaurant</option>
-                            <option value="restaurant">🍽️ Restaurant Type</option>
-                        </select>
+                        <div class="relative" x-data="{ open: false }">
+                            <button type="button" @click="open = !open"
+                                class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-white text-xs flex items-center justify-between hover:border-amber-500/50 transition">
+                                <span class="truncate" x-text="newSubAdmin.businessType === 'pakwan' ? '👑 Shahi Pakwan Center' : (newSubAdmin.businessType === 'restaurant' ? '🍽️ Restaurant Type' : '👑🍽️ Pakwan + Restaurant')"></span>
+                                <svg class="w-3.5 h-3.5 text-zinc-400 transition-transform flex-shrink-0 ml-1" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" @click.outside="open = false" x-cloak
+                                class="absolute left-0 right-0 mt-1 bg-zinc-900/95 backdrop-blur-xl border border-white/15 rounded-xl shadow-2xl py-1 z-30 space-y-0.5 text-xs">
+                                <div @click="newSubAdmin.businessType = 'pakwan'; open = false"
+                                    :class="newSubAdmin.businessType === 'pakwan' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-zinc-300 hover:bg-white/5'"
+                                    class="px-3 py-1.5 cursor-pointer flex items-center justify-between transition">
+                                    <span>👑 Shahi Pakwan Center</span>
+                                    <span x-show="newSubAdmin.businessType === 'pakwan'" class="text-amber-400">✓</span>
+                                </div>
+                                <div @click="newSubAdmin.businessType = 'both'; open = false"
+                                    :class="newSubAdmin.businessType === 'both' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-zinc-300 hover:bg-white/5'"
+                                    class="px-3 py-1.5 cursor-pointer flex items-center justify-between transition">
+                                    <span>👑🍽️ Pakwan + Restaurant</span>
+                                    <span x-show="newSubAdmin.businessType === 'both'" class="text-amber-400">✓</span>
+                                </div>
+                                <div @click="newSubAdmin.businessType = 'restaurant'; open = false"
+                                    :class="newSubAdmin.businessType === 'restaurant' ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-zinc-300 hover:bg-white/5'"
+                                    class="px-3 py-1.5 cursor-pointer flex items-center justify-between transition">
+                                    <span>🍽️ Restaurant Type</span>
+                                    <span x-show="newSubAdmin.businessType === 'restaurant'" class="text-amber-400">✓</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2173,11 +2240,27 @@ if ($liveSuper) {
             <form @submit.prevent="submitCreateRider()" class="space-y-2.5 text-xs">
                 <div>
                     <label class="block font-semibold text-zinc-400 mb-1">Assigned Pakwan Center</label>
-                    <select x-model="newRider.assigned_sub_admin_id" required class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-[#FF9500]">
-                        <template x-for="sa in subAdmins" :key="sa.id">
-                            <option :value="sa.id" x-text="sa.businessName + ' (' + (sa.businessType === 'pakwan' ? 'Pakwan' : 'Restaurant') + ')'"></option>
-                        </template>
-                    </select>
+                    <div class="relative" x-data="{ open: false }">
+                        <button type="button" @click="open = !open"
+                            class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-white text-xs flex items-center justify-between hover:border-amber-500/50 transition">
+                            <span class="truncate" x-text="(() => {
+                                const found = subAdmins.find(s => s.id == newRider.assigned_sub_admin_id);
+                                return found ? found.businessName + ' (' + (found.businessType === 'pakwan' ? 'Pakwan' : 'Restaurant') + ')' : 'Select Pakwan Center';
+                            })()"></span>
+                            <svg class="w-3.5 h-3.5 text-zinc-400 transition-transform flex-shrink-0 ml-1" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div x-show="open" @click.outside="open = false" x-cloak
+                            class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-zinc-900/95 backdrop-blur-xl border border-white/15 rounded-xl shadow-2xl py-1 z-30 space-y-0.5 text-xs">
+                            <template x-for="sa in subAdmins" :key="sa.id">
+                                <div @click="newRider.assigned_sub_admin_id = sa.id; open = false"
+                                    :class="newRider.assigned_sub_admin_id == sa.id ? 'bg-amber-500/20 text-amber-300 font-bold' : 'text-zinc-300 hover:bg-white/5'"
+                                    class="px-3 py-1.5 cursor-pointer flex items-center justify-between transition">
+                                    <span class="truncate" x-text="sa.businessName + ' (' + (sa.businessType === 'pakwan' ? 'Pakwan' : 'Restaurant') + ')'"></span>
+                                    <span x-show="newRider.assigned_sub_admin_id == sa.id" class="text-amber-400 ml-1">✓</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
                 </div>
 
                 <div>

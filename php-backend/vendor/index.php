@@ -1244,13 +1244,34 @@ $adminUser = $_SESSION['admin_user'];
                                         <input type="text" x-model="profileForm.city"
                                             class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
                                     </div>
-                                    <div>
+                                    <div class="relative" x-data="{ openBizType: false }">
                                         <label class="block text-[11px] font-semibold text-zinc-400 mb-0.5">Category</label>
-                                        <select x-model="profileForm.businessType" class="w-full px-2.5 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
-                                            <option value="pakwan">👑 Shahi Pakwan Center</option>
-                                            <option value="restaurant">🍽️ Restaurant Fast Food</option>
-                                            <option value="both">👑🍽️ Hybrid (Both)</option>
-                                        </select>
+                                        <button type="button" @click="openBizType = !openBizType; $nextTick(() => lucide.createIcons())"
+                                            class="w-full px-2.5 py-1.5 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
+                                            <span x-text="profileForm.businessType === 'pakwan' ? '👑 Shahi Pakwan' : (profileForm.businessType === 'restaurant' ? '🍽️ Restaurant Fast Food' : '👑🍽️ Hybrid (Both)')"></span>
+                                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-[#FF9500] transition-transform" :class="openBizType ? 'rotate-180' : ''"></i>
+                                        </button>
+                                        <div x-show="openBizType" @click.outside="openBizType = false" x-cloak
+                                            class="absolute left-0 mt-1 w-full cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                            <button type="button" @click="profileForm.businessType = 'pakwan'; openBizType = false"
+                                                class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                                :class="profileForm.businessType === 'pakwan' ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                                <span>👑 Shahi Pakwan Center</span>
+                                                <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="profileForm.businessType === 'pakwan'"></i>
+                                            </button>
+                                            <button type="button" @click="profileForm.businessType = 'restaurant'; openBizType = false"
+                                                class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                                :class="profileForm.businessType === 'restaurant' ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                                <span>🍽️ Restaurant Fast Food</span>
+                                                <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="profileForm.businessType === 'restaurant'"></i>
+                                            </button>
+                                            <button type="button" @click="profileForm.businessType = 'both'; openBizType = false"
+                                                class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                                :class="profileForm.businessType === 'both' ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                                <span>👑🍽️ Hybrid (Both)</span>
+                                                <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="profileForm.businessType === 'both'"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1566,17 +1587,24 @@ $adminUser = $_SESSION['admin_user'];
                             class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
                     </div>
 
-                    <div>
+                    <div class="relative" x-data="{ openCategory: false, categories: ['Biryani', 'Karahi & Handi', 'BBQ & Grill', 'Burgers', 'Desi Gravy', 'Desserts', 'Beverages'] }">
                         <label class="block text-[11px] font-semibold text-zinc-400 mb-0.5">Category</label>
-                        <select x-model="foodForm.category" class="w-full px-2.5 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
-                            <option value="Biryani">Biryani & Rice</option>
-                            <option value="Karahi & Handi">Karahi & Handi</option>
-                            <option value="BBQ & Grill">BBQ & Grill</option>
-                            <option value="Burgers">Burgers & Fast Food</option>
-                            <option value="Desi Gravy">Desi Gravy</option>
-                            <option value="Desserts">Desserts & Sweets</option>
-                            <option value="Beverages">Beverages & Drinks</option>
-                        </select>
+                        <button type="button" @click="openCategory = !openCategory; $nextTick(() => lucide.createIcons())"
+                            class="w-full px-2.5 py-1.5 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
+                            <span x-text="foodForm.category || 'Select Category'"></span>
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-[#FF9500] transition-transform" :class="openCategory ? 'rotate-180' : ''"></i>
+                        </button>
+                        <div x-show="openCategory" @click.outside="openCategory = false" x-cloak
+                            class="absolute left-0 mt-1 w-full max-h-48 overflow-y-auto cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                            <template x-for="cat in categories" :key="cat">
+                                <button type="button" @click="foodForm.category = cat; openCategory = false"
+                                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                    :class="foodForm.category === cat ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                    <span x-text="cat"></span>
+                                    <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="foodForm.category === cat"></i>
+                                </button>
+                            </template>
+                        </div>
                     </div>
                 </div>
 
@@ -1608,16 +1636,24 @@ $adminUser = $_SESSION['admin_user'];
                     </div>
 
                     <div x-show="foodForm.isDiscounted" class="grid grid-cols-2 gap-2 pt-1 border-t border-white/10">
-                        <div>
+                        <div class="relative" x-data="{ openDiscount: false }">
                             <label class="block text-[10px] font-semibold text-zinc-300 mb-0.5">Discount Percentage (%)</label>
-                            <select x-model.number="foodForm.discountPercent" @change="recalcFoodDiscount()" class="w-full px-2 py-1 bg-zinc-900 border border-white/10 rounded-lg text-xs text-white">
-                                <option value="10">10% OFF</option>
-                                <option value="20">20% OFF</option>
-                                <option value="30">30% OFF</option>
-                                <option value="40">40% OFF</option>
-                                <option value="50">50% OFF (Half Price!)</option>
-                                <option value="60">60% OFF</option>
-                            </select>
+                            <button type="button" @click="openDiscount = !openDiscount; $nextTick(() => lucide.createIcons())"
+                                class="w-full px-2 py-1 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-lg text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
+                                <span x-text="(foodForm.discountPercent || 10) + '% OFF' + (foodForm.discountPercent === 50 ? ' (Half Price!)' : '')"></span>
+                                <i data-lucide="chevron-down" class="w-3 h-3 text-[#FF9500] transition-transform" :class="openDiscount ? 'rotate-180' : ''"></i>
+                            </button>
+                            <div x-show="openDiscount" @click.outside="openDiscount = false" x-cloak
+                                class="absolute left-0 mt-1 w-full max-h-40 overflow-y-auto cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                                <template x-for="pct in [10, 20, 30, 40, 50, 60, 70]" :key="pct">
+                                    <button type="button" @click="foodForm.discountPercent = pct; recalcFoodDiscount(); openDiscount = false"
+                                        class="w-full flex items-center justify-between px-2 py-1 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                        :class="foodForm.discountPercent === pct ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                        <span x-text="pct + '% OFF' + (pct === 50 ? ' (Half Price!)' : '')"></span>
+                                        <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="foodForm.discountPercent === pct"></i>
+                                    </button>
+                                </template>
+                            </div>
                         </div>
 
                         <div>
