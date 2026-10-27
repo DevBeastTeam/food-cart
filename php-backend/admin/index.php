@@ -550,8 +550,8 @@ if ($liveSuper) {
 
                         </div>
 
-                        <!-- Bottom Row: Date-wise Filter & Sorting Controls -->
-                        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/5 text-xs">
+                        <!-- Bottom Row: Date-wise Filter & Sorting Controls (Custom Non-Cutting Dropdowns) -->
+                        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-white/5 text-xs">
                             
                             <!-- Date-wise Quick Filters & Range Pickers -->
                             <div class="flex flex-wrap items-center gap-2">
@@ -560,14 +560,54 @@ if ($liveSuper) {
                                     <span>Date Filter:</span>
                                 </div>
 
-                                <!-- Date Preset Select -->
-                                <select x-model="datePresetFilter" class="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
-                                    <option value="all">All Dates (Lifetime)</option>
-                                    <option value="today">Joined Today ⚡</option>
-                                    <option value="week">Joined Past 7 Days (New ⭐)</option>
-                                    <option value="month">Joined Past 30 Days</option>
-                                    <option value="custom">Custom Date Range 📅</option>
-                                </select>
+                                <!-- Custom Date Preset Dropdown -->
+                                <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                                    <button type="button" @click="open = !open"
+                                        class="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-white/20 rounded-xl text-xs text-white font-medium flex items-center gap-2 transition-all shadow-sm">
+                                        <span x-text="{
+                                            'all': 'All Dates (Lifetime)',
+                                            'today': 'Joined Today ⚡',
+                                            'week': 'Joined Past 7 Days (New ⭐)',
+                                            'month': 'Joined Past 30 Days',
+                                            'custom': 'Custom Date Range 📅'
+                                        }[datePresetFilter] || 'All Dates (Lifetime)'"></span>
+                                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#FF9500]' : ''"></i>
+                                    </button>
+
+                                    <div x-show="open" x-transition.opacity.duration.150ms
+                                        class="absolute left-0 mt-1.5 z-50 min-w-[230px] bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl p-1.5 space-y-0.5" style="display: none;">
+                                        <button type="button" @click="datePresetFilter = 'all'; open = false"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                            :class="datePresetFilter === 'all' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                            <span>All Dates (Lifetime)</span>
+                                            <i data-lucide="check" class="w-3.5 h-3.5" x-show="datePresetFilter === 'all'"></i>
+                                        </button>
+                                        <button type="button" @click="datePresetFilter = 'today'; open = false"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                            :class="datePresetFilter === 'today' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                            <span>Joined Today ⚡</span>
+                                            <i data-lucide="check" class="w-3.5 h-3.5" x-show="datePresetFilter === 'today'"></i>
+                                        </button>
+                                        <button type="button" @click="datePresetFilter = 'week'; open = false"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                            :class="datePresetFilter === 'week' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                            <span>Joined Past 7 Days (New ⭐)</span>
+                                            <i data-lucide="check" class="w-3.5 h-3.5" x-show="datePresetFilter === 'week'"></i>
+                                        </button>
+                                        <button type="button" @click="datePresetFilter = 'month'; open = false"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                            :class="datePresetFilter === 'month' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                            <span>Joined Past 30 Days</span>
+                                            <i data-lucide="check" class="w-3.5 h-3.5" x-show="datePresetFilter === 'month'"></i>
+                                        </button>
+                                        <button type="button" @click="datePresetFilter = 'custom'; open = false"
+                                            class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                            :class="datePresetFilter === 'custom' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                            <span>Custom Date Range 📅</span>
+                                            <i data-lucide="check" class="w-3.5 h-3.5" x-show="datePresetFilter === 'custom'"></i>
+                                        </button>
+                                    </div>
+                                </div>
 
                                 <!-- Custom Date Range Inputs -->
                                 <div x-show="datePresetFilter === 'custom'" class="flex items-center gap-1.5">
@@ -581,30 +621,93 @@ if ($liveSuper) {
                                 </div>
                             </div>
 
-                            <!-- Vendor Status, Sorting & Results Counter -->
-                            <div class="flex flex-wrap items-center gap-2.5">
-                                <!-- Vendor Status Filter (All, Active, Banned) -->
+                            <!-- Vendor Status, Sorting & Results Counter (Custom Non-Cutting Dropdowns) -->
+                            <div class="flex flex-wrap items-center gap-3">
+                                
+                                <!-- Custom Vendor Status Dropdown -->
                                 <div class="flex items-center gap-1.5">
-                                    <label class="text-[11px] font-semibold text-zinc-400">Status:</label>
-                                    <select x-model="selectedVendorStatusFilter" class="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
-                                        <option value="all">All Vendors (Active & Banned)</option>
-                                        <option value="active">Active Centers Only 🟢</option>
-                                        <option value="banned">Suspended / Banned Only 🔴</option>
-                                    </select>
+                                    <span class="text-[11px] font-semibold text-zinc-400">Status:</span>
+                                    <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                                        <button type="button" @click="open = !open"
+                                            class="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-white/20 rounded-xl text-xs text-white font-medium flex items-center gap-2 transition-all shadow-sm">
+                                            <span x-text="{
+                                                'all': 'All Vendors (Active & Banned)',
+                                                'active': 'Active Vendors Only 🟢',
+                                                'banned': 'Suspended / Banned Only 🔴'
+                                            }[selectedVendorStatusFilter] || 'All Vendors'"></span>
+                                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#FF9500]' : ''"></i>
+                                        </button>
+
+                                        <div x-show="open" x-transition.opacity.duration.150ms
+                                            class="absolute right-0 sm:left-0 mt-1.5 z-50 min-w-[240px] bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl p-1.5 space-y-0.5" style="display: none;">
+                                            <button type="button" @click="selectedVendorStatusFilter = 'all'; open = false"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                                :class="selectedVendorStatusFilter === 'all' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                                <span>All Vendors (Active & Banned)</span>
+                                                <i data-lucide="check" class="w-3.5 h-3.5" x-show="selectedVendorStatusFilter === 'all'"></i>
+                                            </button>
+                                            <button type="button" @click="selectedVendorStatusFilter = 'active'; open = false"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                                :class="selectedVendorStatusFilter === 'active' ? 'bg-emerald-500/20 text-emerald-400 font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                                <span>Active Vendors Only 🟢</span>
+                                                <i data-lucide="check" class="w-3.5 h-3.5" x-show="selectedVendorStatusFilter === 'active'"></i>
+                                            </button>
+                                            <button type="button" @click="selectedVendorStatusFilter = 'banned'; open = false"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                                :class="selectedVendorStatusFilter === 'banned' ? 'bg-red-500/20 text-red-400 font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                                <span>Suspended / Banned Only 🔴</span>
+                                                <i data-lucide="check" class="w-3.5 h-3.5" x-show="selectedVendorStatusFilter === 'banned'"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <!-- Sorting Options -->
+                                <!-- Custom Sorting Options Dropdown -->
                                 <div class="flex items-center gap-1.5">
-                                    <label class="text-[11px] font-semibold text-zinc-400">Sort by:</label>
-                                    <select x-model="sortBy" class="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
-                                        <option value="newest">Newest Joined First</option>
-                                        <option value="oldest">Oldest First</option>
-                                        <option value="sales">Highest Sales</option>
-                                        <option value="orders">Most Orders</option>
-                                    </select>
+                                    <span class="text-[11px] font-semibold text-zinc-400">Sort by:</span>
+                                    <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                                        <button type="button" @click="open = !open"
+                                            class="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-white/20 rounded-xl text-xs text-white font-medium flex items-center gap-2 transition-all shadow-sm">
+                                            <span x-text="{
+                                                'newest': 'Newest Joined First',
+                                                'oldest': 'Oldest First',
+                                                'sales': 'Highest Sales',
+                                                'orders': 'Most Orders'
+                                            }[sortBy] || 'Sort by'"></span>
+                                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#FF9500]' : ''"></i>
+                                        </button>
 
-                                    <span class="text-[10.5px] text-zinc-400 pl-1 font-mono" x-text="filteredPakwanCentersList.length + ' Centers matched'"></span>
+                                        <div x-show="open" x-transition.opacity.duration.150ms
+                                            class="absolute right-0 mt-1.5 z-50 min-w-[200px] bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl p-1.5 space-y-0.5" style="display: none;">
+                                            <button type="button" @click="sortBy = 'newest'; open = false"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                                :class="sortBy === 'newest' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                                <span>Newest Joined First</span>
+                                                <i data-lucide="check" class="w-3.5 h-3.5" x-show="sortBy === 'newest'"></i>
+                                            </button>
+                                            <button type="button" @click="sortBy = 'oldest'; open = false"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                                :class="sortBy === 'oldest' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                                <span>Oldest First</span>
+                                                <i data-lucide="check" class="w-3.5 h-3.5" x-show="sortBy === 'oldest'"></i>
+                                            </button>
+                                            <button type="button" @click="sortBy = 'sales'; open = false"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                                :class="sortBy === 'sales' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                                <span>Highest Sales</span>
+                                                <i data-lucide="check" class="w-3.5 h-3.5" x-show="sortBy === 'sales'"></i>
+                                            </button>
+                                            <button type="button" @click="sortBy = 'orders'; open = false"
+                                                class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                                :class="sortBy === 'orders' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                                <span>Most Orders</span>
+                                                <i data-lucide="check" class="w-3.5 h-3.5" x-show="sortBy === 'orders'"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <span class="text-[10.5px] text-zinc-400 pl-1 font-mono whitespace-nowrap" x-text="filteredPakwanCentersList.length + ' Vendors matched'"></span>
                             </div>
 
                         </div>

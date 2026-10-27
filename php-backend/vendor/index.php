@@ -229,13 +229,6 @@ $adminUser = $_SESSION['admin_user'];
                     <i data-lucide="bell" class="w-3.5 h-3.5"></i>
                 </button>
 
-                <!-- Seed Demo Data Button -->
-                <button type="button" @click="seedDatabaseDemo()"
-                    class="px-2.5 py-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold rounded-xl text-[11px] flex items-center gap-1 shadow-sm transition-all"
-                    title="Seed / Reset Demo Data (Customers, Dedicated Riders, Orders across all stages)">
-                    <i data-lucide="sparkles" class="w-3 h-3 text-black"></i>
-                    <span class="hidden sm:inline">🌱 Seed Data</span>
-                </button>
 
                 <div class="h-4 w-px bg-white/10"></div>
 
@@ -2424,27 +2417,6 @@ $adminUser = $_SESSION['admin_user'];
                         }
                     } catch(e) {
                         this.showToast('Password update error: ' + e.message, 'error');
-                    }
-                },
-
-                async seedDatabaseDemo() {
-                    if (!confirm('Kya aap dummy data seed karna chahte hain? Is se 4 Pakwan Centers, 8 Dedicated Riders, 8 Customers, aur tamaam lifecycle ke orders (Approval, Preparing, Dispatch, Delivered, Rejected) database me load ho jayenge.')) return;
-                    this.loading = true;
-                    try {
-                        const res = await fetch('../api/database/seed', { method: 'POST' });
-                        const data = await res.json();
-                        if (data.success) {
-                            const s = data.summary || {};
-                            this.showToast(`✅ Data Seeded: ${s.sub_admins || 4} Pakwan Centers, ${s.riders || 8} Riders, ${s.customers || 8} Customers, ${s.orders || 10} Orders!`);
-                            await this.refreshAll();
-                        } else {
-                            this.showToast('Seeding failed: ' + data.message, 'error');
-                        }
-                    } catch (e) {
-                        this.showToast('Seeding error: ' + e.message, 'error');
-                    } finally {
-                        this.loading = false;
-                        this.$nextTick(() => lucide.createIcons());
                     }
                 }
             }
