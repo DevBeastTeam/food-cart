@@ -3,6 +3,12 @@
 // Vendor & Pakwan Center Partner Portal — Full-Width Split-Screen Responsive Auth (50% Left / 50% Right)
 session_start();
 
+// Enforce zero browser caching so changes reflect instantly
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+
 require_once __DIR__ . '/../config/database.php';
 $pdo = getDb();
 

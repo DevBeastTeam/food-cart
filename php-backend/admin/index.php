@@ -263,10 +263,10 @@ if ($liveSuper) {
                         <p class="text-[10px] text-zinc-400 mt-0.5">Active field fleet</p>
                     </div>
 
-                    <!-- Pakwan Centers Overview -->
+                    <!-- Vendors Overview -->
                     <div class="p-3 rounded-2xl cupertino-card flex flex-col justify-between">
                         <div class="flex items-center justify-between text-zinc-400">
-                            <span class="text-[9.5px] font-bold uppercase tracking-wider">Pakwan Centers</span>
+                            <span class="text-[9.5px] font-bold uppercase tracking-wider">Registered Vendors</span>
                             <i data-lucide="store" class="w-3.5 h-3.5 text-amber-400"></i>
                         </div>
                         <h4 class="text-lg font-black text-amber-400 mt-1 tabular-nums" x-text="stats?.metrics?.totalSubAdmins || 0"></h4>
@@ -487,12 +487,12 @@ if ($liveSuper) {
             </div>
 
             <!-- =============================================================== -->
-            <!-- TAB 2: PAKWAN CENTERS (LIST VIEW & COMPREHENSIVE DETAIL VIEW) -->
+            <!-- TAB 2: VENDORS (LIST VIEW & COMPREHENSIVE DETAIL VIEW) -->
             <!-- =============================================================== -->
-            <div x-show="activeTab === 'pakwan-centers'" class="space-y-3.5">
+            <div x-show="activeTab === 'vendors'" class="space-y-3.5">
                 
                 <!-- =========================================================== -->
-                <!-- VIEW A: LIST OF PAKWAN CENTERS IN TABLE FORMAT -->
+                <!-- VIEW A: LIST OF VENDORS IN TABLE FORMAT -->
                 <!-- =========================================================== -->
                 <div x-show="!viewingCenter" class="space-y-3">
                     
@@ -500,10 +500,10 @@ if ($liveSuper) {
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                         <div>
                             <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                                <i data-lucide="soup" class="w-4 h-4 text-[#FF9500]"></i>
-                                <span>Pakwan Centers</span>
+                                <i data-lucide="store" class="w-4 h-4 text-[#FF9500]"></i>
+                                <span>Vendors</span>
                             </h3>
-                            <p class="text-[11px] text-zinc-400">List of all registered Shahi Pakwan Centers, riders fleet, orders analytics & instant messaging</p>
+                            <p class="text-[11px] text-zinc-400">List of all registered Vendors (Pakwan Centers & Restaurants), riders fleet, orders analytics & instant messaging</p>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button type="button" @click="openCreateRiderModal()" class="px-3 py-1.5 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
@@ -512,49 +512,57 @@ if ($liveSuper) {
                             </button>
                             <button type="button" @click="openCreateSubAdminModal()" class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
                                 <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-                                <span>+ Naya Pakwan Center Kholein</span>
+                                <span>+ Naya Vendor Kholein</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Search, 3 Type Buttons (All, Restaurant, Pakwan) & Date-wise Filter Bar -->
+                    <!-- Search, Category Type Buttons (All, Pakwan, Restaurant, Both) & Date-wise Filter Bar -->
                     <div class="space-y-2.5 cupertino-card p-3 rounded-2xl border border-white/5">
                         
-                        <!-- Top Row: Search Input & The 3 Main Category Buttons (All, Restaurant, Pakwan) -->
+                        <!-- Top Row: Search Input & The Category Type Buttons -->
                         <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
                             
                             <!-- Search Bar (Searches Name, Owner, Email, Phone, City, ID, Date) -->
                             <div class="relative flex-1">
                                 <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5"></i>
-                                <input type="text" x-model="searchPakwanQuery" placeholder="Search by Pakwan Center name, manager, email, phone, city, ID or date..."
+                                <input type="text" x-model="searchPakwanQuery" placeholder="Search by vendor name, manager, email, phone, city, ID or date..."
                                     class="w-full pl-8 pr-8 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
                                 <button type="button" x-show="searchPakwanQuery" @click="searchPakwanQuery = ''" class="absolute right-2.5 top-2 text-zinc-500 hover:text-white text-xs">✕</button>
                             </div>
 
-                            <!-- THE 3 REQUIRED TYPE BUTTONS: ALL, RESTAURANT, PAKWAN -->
-                            <div class="flex items-center gap-1.5 shrink-0 text-xs font-semibold">
+                            <!-- THE REQUIRED TYPE BUTTONS: ALL, PAKWAN CENTERS, RESTAURANTS, BOTH -->
+                            <div class="flex items-center gap-1.5 shrink-0 text-xs font-semibold flex-wrap">
                                 <!-- Button 1: All -->
                                 <button type="button" @click="selectedBusinessTypeFilter = 'All'"
-                                    class="px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1 active:scale-95"
+                                    class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95"
                                     :class="selectedBusinessTypeFilter === 'All' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/5'">
-                                    <span>All</span>
+                                    <span>All Vendors</span>
                                     <span class="px-1.5 py-0.2 rounded-full text-[9.5px]" :class="selectedBusinessTypeFilter === 'All' ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-400'" x-text="subAdmins.length"></span>
                                 </button>
 
-                                <!-- Button 2: Restaurant -->
+                                <!-- Button 2: Pakwan Centers -->
+                                <button type="button" @click="selectedBusinessTypeFilter = 'pakwan'"
+                                    class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95"
+                                    :class="selectedBusinessTypeFilter === 'pakwan' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/5'">
+                                    <span>👑 Pakwan Centers</span>
+                                    <span class="px-1.5 py-0.2 rounded-full text-[9.5px]" :class="selectedBusinessTypeFilter === 'pakwan' ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-400'" x-text="subAdmins.filter(s => s.businessType === 'pakwan' || s.businessType === 'both').length"></span>
+                                </button>
+
+                                <!-- Button 3: Restaurant -->
                                 <button type="button" @click="selectedBusinessTypeFilter = 'restaurant'"
-                                    class="px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1 active:scale-95"
+                                    class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95"
                                     :class="selectedBusinessTypeFilter === 'restaurant' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/5'">
-                                    <span>🍽️ Restaurant</span>
+                                    <span>🍽️ Restaurants</span>
                                     <span class="px-1.5 py-0.2 rounded-full text-[9.5px]" :class="selectedBusinessTypeFilter === 'restaurant' ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-400'" x-text="subAdmins.filter(s => s.businessType === 'restaurant' || s.businessType === 'both').length"></span>
                                 </button>
 
-                                <!-- Button 3: Pakwan -->
-                                <button type="button" @click="selectedBusinessTypeFilter = 'pakwan'"
-                                    class="px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1 active:scale-95"
-                                    :class="selectedBusinessTypeFilter === 'pakwan' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/5'">
-                                    <span>👑 Pakwan</span>
-                                    <span class="px-1.5 py-0.2 rounded-full text-[9.5px]" :class="selectedBusinessTypeFilter === 'pakwan' ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-400'" x-text="subAdmins.filter(s => s.businessType === 'pakwan' || s.businessType === 'both').length"></span>
+                                <!-- Button 4: Both -->
+                                <button type="button" @click="selectedBusinessTypeFilter = 'both'"
+                                    class="px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95"
+                                    :class="selectedBusinessTypeFilter === 'both' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-white/5'">
+                                    <span>👑🍽️ Both</span>
+                                    <span class="px-1.5 py-0.2 rounded-full text-[9.5px]" :class="selectedBusinessTypeFilter === 'both' ? 'bg-black/20 text-black' : 'bg-zinc-800 text-zinc-400'" x-text="subAdmins.filter(s => s.businessType === 'both').length"></span>
                                 </button>
                             </div>
 
@@ -626,14 +634,14 @@ if ($liveSuper) {
                         <button type="button" @click="selectedVendorStatusFilter = 'all'"
                             class="p-2 rounded-xl cupertino-card transition-all cursor-pointer border text-center active:scale-95"
                             :class="selectedVendorStatusFilter === 'all' ? 'border-[#FF9500]/60 bg-[#FF9500]/10 ring-1 ring-[#FF9500]/30 shadow-sm' : 'border-white/5 hover:border-white/20'">
-                            <p class="text-[9px] uppercase font-bold text-zinc-400">Total Pakwan Centers</p>
+                            <p class="text-[9px] uppercase font-bold text-zinc-400">Total Vendors</p>
                             <p class="text-sm font-black text-white mt-0.5 tabular-nums" x-text="subAdmins.length"></p>
                         </button>
 
                         <button type="button" @click="selectedVendorStatusFilter = 'active'"
                             class="p-2 rounded-xl cupertino-card transition-all cursor-pointer border text-center active:scale-95"
                             :class="selectedVendorStatusFilter === 'active' ? 'border-emerald-500/60 bg-emerald-500/15 ring-1 ring-emerald-500/30 shadow-sm' : 'border-white/5 hover:border-emerald-500/30'">
-                            <p class="text-[9px] uppercase font-bold text-emerald-400">Active Centers 🟢</p>
+                            <p class="text-[9px] uppercase font-bold text-emerald-400">Active Vendors 🟢</p>
                             <p class="text-sm font-black text-emerald-300 mt-0.5 tabular-nums" x-text="subAdmins.filter(s => !s.banned).length"></p>
                         </button>
 
@@ -655,41 +663,41 @@ if ($liveSuper) {
                         </div>
                     </div>
 
-                    <!-- PAKWAN CENTERS COMPLETE TABLE (CORE USER REQUIREMENT) -->
+                    <!-- VENDORS COMPLETE TABLE (WIDER RIDERS & CUSTOMERS COLUMNS, STRICT SINGLE-LINE BADGES) -->
                     <div class="cupertino-card rounded-2xl overflow-hidden shadow-sm">
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
+                            <table class="w-full text-left text-xs min-w-[1300px]">
                                 <thead class="bg-zinc-950/70 text-zinc-400 uppercase font-semibold text-[9.5px] border-b border-white/5">
                                     <tr>
-                                        <th class="py-2.5 px-3">Pakwan Center & ID</th>
-                                        <th class="py-2.5 px-3">Manager & Contact</th>
-                                        <th class="py-2.5 px-3">Location & GPS</th>
-                                        <th class="py-2.5 px-3 text-center">Joined Date</th>
-                                        <th class="py-2.5 px-3 text-center">Riders</th>
-                                        <th class="py-2.5 px-3 text-center">Customers</th>
-                                        <th class="py-2.5 px-3 text-center">Total Orders</th>
-                                        <th class="py-2.5 px-3 text-center">Delivered</th>
-                                        <th class="py-2.5 px-3 text-center">Pending</th>
-                                        <th class="py-2.5 px-3 text-center">Rejected</th>
-                                        <th class="py-2.5 px-3">Gross Sales</th>
-                                        <th class="py-2.5 px-3">Status</th>
-                                        <th class="py-2.5 px-3 text-right">Actions</th>
+                                        <th class="py-3 px-3.5 min-w-[210px] whitespace-nowrap">Vendor & ID</th>
+                                        <th class="py-3 px-3 min-w-[150px] whitespace-nowrap">Manager & Contact</th>
+                                        <th class="py-3 px-3 min-w-[160px] whitespace-nowrap">Location & GPS</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[110px]">Joined Date</th>
+                                        <th class="py-3 px-4 text-center whitespace-nowrap min-w-[140px]">Riders Fleet</th>
+                                        <th class="py-3 px-4 text-center whitespace-nowrap min-w-[140px]">Customers</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[90px]">Total Orders</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[80px]">Delivered</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[80px]">Pending</th>
+                                        <th class="py-3 px-3 text-center whitespace-nowrap min-w-[80px]">Rejected</th>
+                                        <th class="py-3 px-3 whitespace-nowrap min-w-[110px]">Gross Sales</th>
+                                        <th class="py-3 px-3 whitespace-nowrap min-w-[100px]">Status</th>
+                                        <th class="py-3 px-3 text-right whitespace-nowrap min-w-[140px]">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-white/5 font-medium text-zinc-300">
                                     <template x-for="sa in filteredPakwanCentersList" :key="sa.id">
                                         <tr class="hover:bg-zinc-800/40 transition-colors cursor-pointer" @click="viewCenterDetails(sa)">
                                             
-                                            <!-- Center & ID -->
-                                            <td class="py-2.5 px-3">
-                                                <div class="flex items-center gap-2">
+                                            <!-- Vendor & ID -->
+                                            <td class="py-3 px-3.5">
+                                                <div class="flex items-center gap-2.5">
                                                     <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 border"
                                                         :class="sa.businessType === 'pakwan' ? 'bg-orange-500/20 border-orange-500/30 text-[#FF9500]' : (sa.businessType === 'restaurant' ? 'bg-amber-500/20 border-amber-500/30 text-amber-300' : 'bg-purple-500/20 border-purple-500/30 text-purple-300')">
                                                         <span x-text="sa.businessType === 'pakwan' ? '👑' : (sa.businessType === 'restaurant' ? '🍽️' : '👑🍽️')"></span>
                                                     </div>
                                                     <div class="min-w-0">
                                                         <div class="font-bold text-white text-xs truncate max-w-[170px]" x-text="sa.businessName || sa.name"></div>
-                                                        <div class="flex items-center gap-1 mt-0.5">
+                                                        <div class="flex items-center gap-1 mt-0.5 whitespace-nowrap">
                                                             <span class="font-mono text-[9px] text-zinc-400" x-text="sa.id"></span>
                                                             <span class="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase tracking-wider bg-zinc-800 text-zinc-300"
                                                                 x-text="sa.businessType">
@@ -700,69 +708,75 @@ if ($liveSuper) {
                                             </td>
 
                                             <!-- Manager & Contact -->
-                                            <td class="py-2.5 px-3">
-                                                <div class="font-semibold text-white" x-text="sa.name"></div>
+                                            <td class="py-3 px-3 whitespace-nowrap">
+                                                <div class="font-semibold text-white truncate max-w-[140px]" x-text="sa.name"></div>
                                                 <div class="text-[10px] text-zinc-400 font-mono" x-text="sa.phone || '—'"></div>
                                             </td>
 
                                             <!-- Location & GPS Link -->
-                                            <td class="py-2.5 px-3" @click.stop>
-                                                <div class="text-[11px] text-zinc-300 truncate max-w-[140px]" x-text="(sa.address || 'Lahore') + ' • ' + (sa.city || 'Lahore')"></div>
-                                                <a :href="'https://www.google.com/maps/search/?api=1&query=' + (sa.latitude || 31.5204) + ',' + (sa.longitude || 74.3587)" target="_blank" rel="noopener noreferrer" class="text-[10px] text-[#FF9500] hover:underline font-bold inline-flex items-center gap-0.5 mt-0.5">
+                                            <td class="py-3 px-3" @click.stop>
+                                                <div class="text-[11px] text-zinc-300 truncate max-w-[150px]" x-text="(sa.address || 'Lahore') + ' • ' + (sa.city || 'Lahore')"></div>
+                                                <a :href="'https://www.google.com/maps/search/?api=1&query=' + (sa.latitude || 31.5204) + ',' + (sa.longitude || 74.3587)" target="_blank" rel="noopener noreferrer" class="text-[10px] text-[#FF9500] hover:underline font-bold inline-flex items-center gap-0.5 mt-0.5 whitespace-nowrap">
                                                     <i data-lucide="navigation" class="w-2.5 h-2.5"></i>
                                                     <span>📍 GPS Map</span>
                                                 </a>
                                             </td>
 
                                             <!-- Joined Date & Status -->
-                                            <td class="py-2.5 px-3 text-center whitespace-nowrap">
+                                            <td class="py-3 px-3 text-center whitespace-nowrap">
                                                 <div class="text-[11px] font-semibold text-zinc-200" x-text="formatDateShort(sa.createdAt)"></div>
                                                 <template x-if="isNewJoiner(sa.createdAt)">
-                                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-[#FF9500]/20 text-[#FF9500] border border-orange-500/30">NEW ⭐</span>
+                                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-[#FF9500]/20 text-[#FF9500] border border-orange-500/30 whitespace-nowrap">NEW ⭐</span>
                                                 </template>
                                             </td>
 
-                                            <!-- Riders Count -->
-                                            <td class="py-2.5 px-3 text-center">
-                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/15 text-sky-400 border border-sky-500/25 tabular-nums"
-                                                    x-text="(sa.ridersCount || getOutletRiders(sa.id).length) + ' 🛵'">
-                                                </span>
+                                            <!-- Riders Count (Wider Column, Guaranteed Single Line Badge) -->
+                                            <td class="py-3 px-4 text-center whitespace-nowrap min-w-[140px]">
+                                                <div class="inline-flex items-center justify-center whitespace-nowrap">
+                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 tabular-nums whitespace-nowrap shadow-sm select-none">
+                                                        <i data-lucide="bike" class="w-3.5 h-3.5 text-sky-400 shrink-0"></i>
+                                                        <span class="whitespace-nowrap font-bold" x-text="(sa.ridersCount || getOutletRiders(sa.id).length) + ' Riders'"></span>
+                                                    </span>
+                                                </div>
                                             </td>
 
-                                            <!-- Customers Count -->
-                                            <td class="py-2.5 px-3 text-center">
-                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25 tabular-nums"
-                                                    x-text="(sa.customersCount || 0) + ' 👤'">
-                                                </span>
+                                            <!-- Customers Count (Wider Column, Guaranteed Single Line Badge) -->
+                                            <td class="py-3 px-4 text-center whitespace-nowrap min-w-[140px]">
+                                                <div class="inline-flex items-center justify-center whitespace-nowrap">
+                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30 tabular-nums whitespace-nowrap shadow-sm select-none">
+                                                        <i data-lucide="users" class="w-3.5 h-3.5 text-purple-400 shrink-0"></i>
+                                                        <span class="whitespace-nowrap font-bold" x-text="(sa.customersCount || 0) + ' Customers'"></span>
+                                                    </span>
+                                                </div>
                                             </td>
 
                                             <!-- Total Orders -->
-                                            <td class="py-2.5 px-3 text-center">
+                                            <td class="py-3 px-3 text-center whitespace-nowrap">
                                                 <span class="font-bold text-white tabular-nums text-xs" x-text="sa.totalOrders || 0"></span>
                                             </td>
 
                                             <!-- Delivered -->
-                                            <td class="py-2.5 px-3 text-center">
+                                            <td class="py-3 px-3 text-center whitespace-nowrap">
                                                 <span class="font-bold text-emerald-400 tabular-nums text-xs" x-text="sa.deliveredOrders || sa.completedOrders || 0"></span>
                                             </td>
 
                                             <!-- Pending -->
-                                            <td class="py-2.5 px-3 text-center">
+                                            <td class="py-3 px-3 text-center whitespace-nowrap">
                                                 <span class="font-bold text-amber-400 tabular-nums text-xs" x-text="sa.pendingOrders || 0"></span>
                                             </td>
 
                                             <!-- Rejected -->
-                                            <td class="py-2.5 px-3 text-center">
+                                            <td class="py-3 px-3 text-center whitespace-nowrap">
                                                 <span class="font-bold text-red-400 tabular-nums text-xs" x-text="sa.cancelledOrders || 0"></span>
                                             </td>
 
                                             <!-- Gross Sales -->
-                                            <td class="py-2.5 px-3 font-black text-[#FF9500] tabular-nums whitespace-nowrap" x-text="'Rs. ' + Number(sa.totalSales || 0).toLocaleString()"></td>
+                                            <td class="py-3 px-3 font-black text-[#FF9500] tabular-nums whitespace-nowrap" x-text="'Rs. ' + Number(sa.totalSales || 0).toLocaleString()"></td>
 
                                             <!-- Status (Active / Suspended) -->
-                                            <td class="py-2.5 px-3 whitespace-nowrap" @click.stop>
+                                            <td class="py-3 px-3 whitespace-nowrap" @click.stop>
                                                 <button type="button" @click="toggleBanSubAdmin(sa)"
-                                                    class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider inline-flex items-center gap-1 transition-transform active:scale-95 border"
+                                                    class="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider inline-flex items-center gap-1 transition-transform active:scale-95 border whitespace-nowrap"
                                                     :class="sa.banned ? 'bg-red-500/20 text-red-300 border-red-500/40 hover:bg-red-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'"
                                                     :title="sa.banned ? 'Vendor is BANNED (Click to UNBAN / ACTIVATE)' : 'Vendor is ACTIVE (Click to BAN / SUSPEND)'">
                                                     <span class="w-1.5 h-1.5 rounded-full" :class="sa.banned ? 'bg-red-400 animate-pulse' : 'bg-emerald-400'"></span>
@@ -771,7 +785,7 @@ if ($liveSuper) {
                                             </td>
 
                                             <!-- Actions Row Buttons -->
-                                            <td class="py-2.5 px-3 text-right whitespace-nowrap" @click.stop>
+                                            <td class="py-3 px-3 text-right whitespace-nowrap" @click.stop>
                                                 <div class="inline-flex items-center gap-1">
                                                     <!-- View Button -->
                                                     <button type="button" @click="viewCenterDetails(sa)" class="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg transition-all" title="View Detailed Analytics & History">
@@ -806,7 +820,7 @@ if ($liveSuper) {
                                     </template>
                                     <template x-if="filteredPakwanCentersList.length === 0">
                                         <tr>
-                                            <td colspan="13" class="text-center py-8 text-zinc-500 italic">No Pakwan Centers found matching query.</td>
+                                            <td colspan="13" class="text-center py-8 text-zinc-500 italic">No Vendors found matching query.</td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -817,7 +831,7 @@ if ($liveSuper) {
                 </div>
 
                 <!-- =========================================================== -->
-                <!-- VIEW B: COMPREHENSIVE DEDICATED DETAIL PAGE FOR PAKWAN CENTER -->
+                <!-- VIEW B: COMPREHENSIVE DEDICATED DETAIL PAGE FOR VENDOR -->
                 <!-- =========================================================== -->
                 <div x-show="viewingCenter" class="space-y-3.5">
                     
@@ -825,7 +839,7 @@ if ($liveSuper) {
                     <div class="flex items-center justify-between pb-1">
                         <button type="button" @click="viewingCenter = null" class="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-white/5 transition-all">
                             <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-[#FF9500]"></i>
-                            <span>Wapis Pakwan Centers List Par Jayein</span>
+                            <span>Wapis Vendors List Par Jayein</span>
                         </button>
 
                         <div class="flex items-center gap-2">
@@ -835,7 +849,7 @@ if ($liveSuper) {
                             </button>
                             <button type="button" @click="openEditSubAdminModal(viewingCenter)" class="px-3 py-1.5 bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-sky-500/30 transition-all">
                                 <i data-lucide="edit" class="w-3.5 h-3.5"></i>
-                                <span>Edit Center</span>
+                                <span>Edit Vendor</span>
                             </button>
                         </div>
                     </div>
@@ -2022,7 +2036,7 @@ if ($liveSuper) {
 
                 tabs: [
                     { id: 'analytics', label: 'Platform Analytics', icon: 'line-chart' },
-                    { id: 'pakwan-centers', label: 'Pakwan Centers', icon: 'soup' },
+                    { id: 'vendors', label: 'Vendors', icon: 'store' },
                     { id: 'all-orders', label: 'Global Orders Hub', icon: 'shopping-bag' },
                     { id: 'settings-db', label: 'Database & Seeding Hub', icon: 'database' },
                     { id: 'profile', label: 'Admin Profile', icon: 'user' }
@@ -2083,12 +2097,14 @@ if ($liveSuper) {
                         if (this.selectedVendorStatusFilter === 'active' && s.banned) return false;
                         if (this.selectedVendorStatusFilter === 'banned' && !s.banned) return false;
 
-                        // 1. Business Type Filter (All, Restaurant, Pakwan)
+                        // 1. Business Type Filter (All, Pakwan, Restaurant, Both)
                         let matchType = true;
                         if (typeFilter === 'pakwan') {
                             matchType = (s.businessType === 'pakwan' || s.businessType === 'both');
                         } else if (typeFilter === 'restaurant') {
                             matchType = (s.businessType === 'restaurant' || s.businessType === 'both');
+                        } else if (typeFilter === 'both') {
+                            matchType = (s.businessType === 'both');
                         }
 
                         // 2. Date-wise Filter
