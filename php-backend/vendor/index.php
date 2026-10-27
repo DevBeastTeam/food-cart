@@ -463,6 +463,150 @@ $adminUser = $_SESSION['admin_user'];
 
                 </div>
 
+                <!-- SECTION: TODAY'S RECENT ORDERS LIST (REQUESTED BY USER) -->
+                <div class="cupertino-card rounded-2xl overflow-hidden shadow-sm border border-white/5 space-y-3 p-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-white/5">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl bg-orange-500/15 text-[#FF9500] flex items-center justify-center font-bold text-sm">
+                                🛍️
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-bold text-white">Today's Recent Orders</h4>
+                                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Live Stream
+                                    </span>
+                                </div>
+                                <p class="text-[10.5px] text-zinc-400">Latest incoming orders, preparation status &amp; direct rider dispatch</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-zinc-400" x-text="todayRecentOrders.length + ' orders shown'"></span>
+                            <button type="button" @click="setTab('orders')"
+                                class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-xs font-bold text-[#FF9500] hover:text-orange-400 rounded-xl border border-white/10 hover:border-orange-500/30 flex items-center gap-1 transition-all">
+                                <span>View All Orders in Hub</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-zinc-950/70 text-zinc-400 uppercase font-semibold text-[9.5px] border-b border-white/5">
+                                <tr>
+                                    <th class="py-2.5 px-3">Order ID &amp; Time</th>
+                                    <th class="py-2.5 px-3">Customer &amp; Phone</th>
+                                    <th class="py-2.5 px-3">Type</th>
+                                    <th class="py-2.5 px-3">Ordered Items</th>
+                                    <th class="py-2.5 px-3">Total Amount</th>
+                                    <th class="py-2.5 px-3">Assigned Rider</th>
+                                    <th class="py-2.5 px-3">Prep Time</th>
+                                    <th class="py-2.5 px-3">Status</th>
+                                    <th class="py-2.5 px-3 text-right">Quick Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 font-medium text-zinc-300">
+                                <template x-for="ord in todayRecentOrders" :key="ord.id">
+                                    <tr class="hover:bg-zinc-800/40 transition-colors">
+                                        <!-- Order ID & Time -->
+                                        <td class="py-2.5 px-3 whitespace-nowrap">
+                                            <div class="font-bold text-white font-mono text-xs" x-text="'#' + ord.id"></div>
+                                            <div class="text-[10px] text-zinc-400 font-mono mt-0.5" x-text="formatDateShort(ord.orderDate || ord.createdAt)"></div>
+                                        </td>
+
+                                        <!-- Customer & Phone -->
+                                        <td class="py-2.5 px-3">
+                                            <div class="font-semibold text-white" x-text="ord.customerName || 'Walk-in Customer'"></div>
+                                            <div class="text-[10px] text-[#FF9500] font-mono" x-text="ord.customerPhone || '—'"></div>
+                                        </td>
+
+                                        <!-- Order Type -->
+                                        <td class="py-2.5 px-3 whitespace-nowrap">
+                                            <span class="px-2 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider"
+                                                :class="ord.isDaigBooking ? 'bg-amber-500/15 text-amber-300 border border-amber-500/25' : 'bg-orange-500/15 text-[#FF9500] border border-orange-500/25'"
+                                                x-text="ord.isDaigBooking ? '👑 DAIG' : '🍽️ FOOD'">
+                                            </span>
+                                        </td>
+
+                                        <!-- Items Summary -->
+                                        <td class="py-2.5 px-3">
+                                            <div class="text-[11px] text-zinc-200 line-clamp-1 max-w-[190px]" x-text="formatOrderItemsSummary(ord.items)"></div>
+                                        </td>
+
+                                        <!-- Total Amount -->
+                                        <td class="py-2.5 px-3 font-black text-[#FF9500] tabular-nums whitespace-nowrap"
+                                            x-text="'Rs. ' + Number(ord.totalAmount || 0).toLocaleString()">
+                                        </td>
+
+                                        <!-- Assigned Rider -->
+                                        <td class="py-2.5 px-3 whitespace-nowrap">
+                                            <template x-if="ord.riderName">
+                                                <div class="flex items-center gap-1">
+                                                    <span class="text-sky-400">🛵</span>
+                                                    <div>
+                                                        <p class="font-semibold text-white text-[11px]" x-text="ord.riderName"></p>
+                                                        <p class="text-[9.5px] text-zinc-400 font-mono" x-text="ord.riderPhone"></p>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template x-if="!ord.riderName">
+                                                <button type="button" @click="openAssignRiderModal(ord)"
+                                                    class="px-2 py-0.5 bg-sky-500/15 hover:bg-sky-500/25 text-sky-400 rounded-lg text-[10px] font-bold border border-sky-500/30 transition-all">
+                                                    + Assign Rider
+                                                </button>
+                                            </template>
+                                        </td>
+
+                                        <!-- Prep Time -->
+                                        <td class="py-2.5 px-3 text-[11px] font-mono text-zinc-400 whitespace-nowrap" x-text="ord.prepTime || '25-35 min'"></td>
+
+                                        <!-- Status Badge -->
+                                        <td class="py-2.5 px-3 whitespace-nowrap">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                                                :class="getStatusBadgeClass(ord.status)"
+                                                x-text="ord.status">
+                                            </span>
+                                        </td>
+
+                                        <!-- Quick Action -->
+                                        <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                                            <div class="inline-flex items-center gap-1">
+                                                <template x-if="ord.status === 'Accepted'">
+                                                    <button type="button" @click="updateOrderStatus(ord.id, 'Preparing')"
+                                                        class="px-2 py-1 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg text-[10px] transition-all">
+                                                        Start Prep 🍳
+                                                    </button>
+                                                </template>
+                                                <template x-if="ord.status === 'Preparing'">
+                                                    <button type="button" @click="openAssignRiderModal(ord)"
+                                                        class="px-2 py-1 bg-sky-500 hover:bg-sky-400 text-black font-bold rounded-lg text-[10px] transition-all">
+                                                        Dispatch 🛵
+                                                    </button>
+                                                </template>
+                                                <template x-if="ord.status === 'On the Way'">
+                                                    <button type="button" @click="updateOrderStatus(ord.id, 'Delivered')"
+                                                        class="px-2 py-1 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg text-[10px] transition-all">
+                                                        Delivered ✅
+                                                    </button>
+                                                </template>
+                                                <button type="button" @click="openOrderDetailModal(ord)" class="p-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-all" title="View Full Order Info">
+                                                    <i data-lucide="eye" class="w-3.5 h-3.5 text-[#FF9500]"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template x-if="todayRecentOrders.length === 0">
+                                    <tr>
+                                        <td colspan="9" class="text-center py-8 text-zinc-500 italic">No orders recorded for today yet. Incoming orders will stream here automatically.</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </section>
 
             <!-- =============================================================== -->
@@ -2251,6 +2395,16 @@ $adminUser = $_SESSION['admin_user'];
 
                 get activeOrdersCount() {
                     return this.orders.filter(o => ['Accepted', 'Preparing', 'On the Way', 'Arrived'].includes(o.status)).length;
+                },
+
+                get todayRecentOrders() {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todays = this.orders.filter(o => (o.orderDate || o.createdAt || '').startsWith(todayStr));
+                    if (todays.length > 0) {
+                        return [...todays].sort((a, b) => new Date(b.orderDate || b.createdAt || 0) - new Date(a.orderDate || a.createdAt || 0));
+                    }
+                    // Fallback to latest 10 most recent orders so the list is always active & visible
+                    return [...this.orders].sort((a, b) => new Date(b.orderDate || b.createdAt || 0) - new Date(a.orderDate || a.createdAt || 0)).slice(0, 10);
                 },
 
                 get totalMenuCount() {
