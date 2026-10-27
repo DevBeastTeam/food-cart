@@ -73,6 +73,42 @@ if ($liveSuper) {
         ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-track { background: #09090b; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 9999px; }
+
+        /* Universal Custom Dropdown Styling (Zero Cut-Off, Custom Orange Chevron, Dark Themed) */
+        select, .custom-select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23FF9500' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 10px center !important;
+            background-size: 13px 13px !important;
+            padding-right: 28px !important;
+            cursor: pointer !important;
+            background-color: #18181b !important;
+            color: #f4f4f5 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            outline: none !important;
+            box-sizing: border-box !important;
+            transition: all 0.2s ease !important;
+        }
+        select:hover, .custom-select:hover {
+            border-color: rgba(255, 149, 0, 0.5) !important;
+        }
+        select:focus, .custom-select:focus {
+            border-color: #FF9500 !important;
+            box-shadow: 0 0 0 1px #FF9500 !important;
+        }
+        select option {
+            background-color: #18181b !important;
+            color: #f4f4f5 !important;
+            padding: 8px 12px !important;
+            font-size: 12px !important;
+        }
+        select option:checked {
+            background-color: #ea580c !important;
+            color: #ffffff !important;
+        }
         ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
     </style>
 </head>
@@ -1329,28 +1365,93 @@ if ($liveSuper) {
                         <p class="text-[11px] text-zinc-400">Filter orders by Pakwan Center, order type, or lifecycle status</p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        <select x-model="selectedSubAdminFilter" class="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
-                            <option value="All">All Pakwan Centers</option>
-                            <template x-for="sa in subAdmins" :key="sa.id">
-                                <option :value="sa.id" x-text="sa.businessName"></option>
-                            </template>
-                        </select>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Custom SubAdmin / Vendor Selector -->
+                        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                            <button type="button" @click="open = !open"
+                                class="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-white/20 rounded-xl text-xs text-white font-medium flex items-center gap-2 transition-all shadow-sm">
+                                <span x-text="selectedSubAdminFilter === 'All' ? 'All Vendors' : ((subAdmins.find(s => s.id === selectedSubAdminFilter)?.businessName) || 'Selected Vendor')"></span>
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#FF9500]' : ''"></i>
+                            </button>
+                            <div x-show="open" x-transition.opacity.duration.150ms
+                                class="absolute left-0 mt-1.5 z-50 min-w-[220px] max-h-60 overflow-y-auto bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl p-1.5 space-y-0.5" style="display: none;">
+                                <button type="button" @click="selectedSubAdminFilter = 'All'; open = false"
+                                    class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                    :class="selectedSubAdminFilter === 'All' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                    <span>All Vendors</span>
+                                    <i data-lucide="check" class="w-3.5 h-3.5" x-show="selectedSubAdminFilter === 'All'"></i>
+                                </button>
+                                <template x-for="sa in subAdmins" :key="sa.id">
+                                    <button type="button" @click="selectedSubAdminFilter = sa.id; open = false"
+                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                        :class="selectedSubAdminFilter === sa.id ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                        <span x-text="sa.businessName"></span>
+                                        <i data-lucide="check" class="w-3.5 h-3.5" x-show="selectedSubAdminFilter === sa.id"></i>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
 
-                        <select x-model="selectedOrderTypeFilter" class="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
-                            <option value="All">All Types (Pakwan & Food)</option>
-                            <option value="pakwan">👑 Shahi Daigs Only</option>
-                            <option value="restaurant">🍽️ Restaurant Dishes Only</option>
-                        </select>
+                        <!-- Custom Order Type Selector -->
+                        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                            <button type="button" @click="open = !open"
+                                class="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-white/20 rounded-xl text-xs text-white font-medium flex items-center gap-2 transition-all shadow-sm">
+                                <span x-text="{
+                                    'All': 'All Types (Pakwan & Food)',
+                                    'pakwan': '👑 Shahi Daigs Only',
+                                    'restaurant': '🍽️ Restaurant Dishes Only'
+                                }[selectedOrderTypeFilter] || 'All Types'"></span>
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#FF9500]' : ''"></i>
+                            </button>
+                            <div x-show="open" x-transition.opacity.duration.150ms
+                                class="absolute left-0 mt-1.5 z-50 min-w-[210px] bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl p-1.5 space-y-0.5" style="display: none;">
+                                <button type="button" @click="selectedOrderTypeFilter = 'All'; open = false"
+                                    class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                    :class="selectedOrderTypeFilter === 'All' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                    <span>All Types (Pakwan & Food)</span>
+                                    <i data-lucide="check" class="w-3.5 h-3.5" x-show="selectedOrderTypeFilter === 'All'"></i>
+                                </button>
+                                <button type="button" @click="selectedOrderTypeFilter = 'pakwan'; open = false"
+                                    class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                    :class="selectedOrderTypeFilter === 'pakwan' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                    <span>👑 Shahi Daigs Only</span>
+                                    <i data-lucide="check" class="w-3.5 h-3.5" x-show="selectedOrderTypeFilter === 'pakwan'"></i>
+                                </button>
+                                <button type="button" @click="selectedOrderTypeFilter = 'restaurant'; open = false"
+                                    class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                    :class="selectedOrderTypeFilter === 'restaurant' ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                    <span>🍽️ Restaurant Dishes Only</span>
+                                    <i data-lucide="check" class="w-3.5 h-3.5" x-show="selectedOrderTypeFilter === 'restaurant'"></i>
+                                </button>
+                            </div>
+                        </div>
 
-                        <select x-model="selectedOrderStatusFilter" class="px-2.5 py-1 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
-                            <option value="All">All Statuses</option>
-                            <option value="Accepted">Accepted</option>
-                            <option value="Preparing">Preparing</option>
-                            <option value="On the Way">On the Way</option>
-                            <option value="Delivered">Delivered</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
+                        <!-- Custom Order Status Selector -->
+                        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                            <button type="button" @click="open = !open"
+                                class="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-white/20 rounded-xl text-xs text-white font-medium flex items-center gap-2 transition-all shadow-sm">
+                                <span x-text="{
+                                    'All': 'All Statuses',
+                                    'Accepted': 'Accepted 🟢',
+                                    'Preparing': 'Preparing 👨‍🍳',
+                                    'On the Way': 'On the Way 🛵',
+                                    'Delivered': 'Delivered 🎉',
+                                    'Cancelled': 'Cancelled ❌'
+                                }[selectedOrderStatusFilter] || 'All Statuses'"></span>
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#FF9500]' : ''"></i>
+                            </button>
+                            <div x-show="open" x-transition.opacity.duration.150ms
+                                class="absolute right-0 mt-1.5 z-50 min-w-[170px] bg-zinc-900/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl p-1.5 space-y-0.5" style="display: none;">
+                                <template x-for="st in ['All', 'Accepted', 'Preparing', 'On the Way', 'Delivered', 'Cancelled']" :key="st">
+                                    <button type="button" @click="selectedOrderStatusFilter = st; open = false"
+                                        class="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors"
+                                        :class="selectedOrderStatusFilter === st ? 'bg-[#FF9500]/20 text-[#FF9500] font-bold' : 'text-zinc-300 hover:bg-white/5 hover:text-white'">
+                                        <span x-text="st === 'All' ? 'All Statuses' : st"></span>
+                                        <i data-lucide="check" class="w-3.5 h-3.5" x-show="selectedOrderStatusFilter === st"></i>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

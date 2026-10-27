@@ -311,6 +311,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ::-webkit-scrollbar-thumb:hover {
             background: #3f3f46;
         }
+
+        /* Universal Custom Dropdown Styling (Zero Cut-Off, Custom Orange Chevron, Dark Themed) */
+        select, .custom-select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23FF9500' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 10px center !important;
+            background-size: 13px 13px !important;
+            padding-right: 28px !important;
+            cursor: pointer !important;
+            background-color: #18181b !important;
+            color: #f4f4f5 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            outline: none !important;
+            box-sizing: border-box !important;
+            transition: all 0.2s ease !important;
+        }
+        select:hover, .custom-select:hover {
+            border-color: rgba(255, 149, 0, 0.5) !important;
+        }
+        select:focus, .custom-select:focus {
+            border-color: #FF9500 !important;
+            box-shadow: 0 0 0 1px #FF9500 !important;
+        }
+        select option {
+            background-color: #18181b !important;
+            color: #f4f4f5 !important;
+            padding: 8px 12px !important;
+            font-size: 12px !important;
+        }
+        select option:checked {
+            background-color: #ea580c !important;
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body class="min-h-screen w-full bg-[#09090b] text-zinc-100 overflow-x-hidden selection:bg-orange-500/30 selection:text-orange-200"

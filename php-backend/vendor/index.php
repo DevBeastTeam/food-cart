@@ -89,6 +89,42 @@ $adminUser = $_SESSION['admin_user'];
         ::-webkit-scrollbar-track { background: #09090b; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+
+        /* Universal Custom Dropdown Styling (Zero Cut-Off, Custom Orange Chevron, Dark Themed) */
+        select, .custom-select {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23FF9500' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 10px center !important;
+            background-size: 13px 13px !important;
+            padding-right: 28px !important;
+            cursor: pointer !important;
+            background-color: #18181b !important;
+            color: #f4f4f5 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            outline: none !important;
+            box-sizing: border-box !important;
+            transition: all 0.2s ease !important;
+        }
+        select:hover, .custom-select:hover {
+            border-color: rgba(255, 149, 0, 0.5) !important;
+        }
+        select:focus, .custom-select:focus {
+            border-color: #FF9500 !important;
+            box-shadow: 0 0 0 1px #FF9500 !important;
+        }
+        select option {
+            background-color: #18181b !important;
+            color: #f4f4f5 !important;
+            padding: 8px 12px !important;
+            font-size: 12px !important;
+        }
+        select option:checked {
+            background-color: #ea580c !important;
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body class="h-full flex overflow-hidden font-sans antialiased bg-[#09090b] text-zinc-100" x-data="vendorApp()" x-init="initApp()" x-cloak>
@@ -212,14 +248,45 @@ $adminUser = $_SESSION['admin_user'];
             <!-- Right Action Pill Buttons -->
             <div class="flex items-center gap-1.5">
                 
-                <!-- Store Availability Selector -->
-                <div class="flex items-center gap-1 bg-zinc-900 border border-white/10 px-2 py-0.5 rounded-xl text-[11px]">
-                    <span class="w-1.5 h-1.5 rounded-full" :class="storeAvailability === 'open' ? 'bg-emerald-400' : (storeAvailability === 'busy' ? 'bg-amber-400' : 'bg-red-400')"></span>
-                    <select x-model="storeAvailability" class="bg-transparent text-xs text-zinc-200 font-semibold focus:outline-none">
-                        <option value="open">Open 🟢</option>
-                        <option value="busy">Kitchen Busy 🟡</option>
-                        <option value="closed">Closed 🔴</option>
-                    </select>
+                <!-- Store Availability Custom Dropdown (Zero Clipping) -->
+                <div class="relative" x-data="{ openAvailability: false }">
+                    <button type="button" @click="openAvailability = !openAvailability; $nextTick(() => lucide.createIcons())"
+                        class="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-orange-500/30 px-3 py-1 rounded-xl text-xs font-semibold text-zinc-200 transition-all shadow-sm">
+                        <span class="w-2 h-2 rounded-full shrink-0" :class="storeAvailability === 'open' ? 'bg-emerald-400 animate-pulse' : (storeAvailability === 'busy' ? 'bg-amber-400' : 'bg-red-400')"></span>
+                        <span x-text="storeAvailability === 'open' ? 'Open 🟢' : (storeAvailability === 'busy' ? 'Kitchen Busy 🟡' : 'Closed 🔴')"></span>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400 transition-transform" :class="openAvailability ? 'rotate-180 text-[#FF9500]' : ''"></i>
+                    </button>
+                    <!-- Custom Floating Dropdown Menu -->
+                    <div x-show="openAvailability" @click.outside="openAvailability = false" x-cloak
+                        class="absolute right-0 mt-1.5 w-44 cupertino-glass rounded-xl p-1.5 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                        <button type="button" @click="storeAvailability = 'open'; openAvailability = false; $nextTick(() => lucide.createIcons())"
+                            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-emerald-500/15"
+                            :class="storeAvailability === 'open' ? 'text-emerald-400 font-bold bg-emerald-500/10' : 'text-zinc-300'">
+                            <span class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                <span>Open 🟢</span>
+                            </span>
+                            <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400" x-show="storeAvailability === 'open'"></i>
+                        </button>
+                        <button type="button" @click="storeAvailability = 'busy'; openAvailability = false; $nextTick(() => lucide.createIcons())"
+                            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-amber-500/15"
+                            :class="storeAvailability === 'busy' ? 'text-amber-400 font-bold bg-amber-500/10' : 'text-zinc-300'">
+                            <span class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                <span>Kitchen Busy 🟡</span>
+                            </span>
+                            <i data-lucide="check" class="w-3.5 h-3.5 text-amber-400" x-show="storeAvailability === 'busy'"></i>
+                        </button>
+                        <button type="button" @click="storeAvailability = 'closed'; openAvailability = false; $nextTick(() => lucide.createIcons())"
+                            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-red-500/15"
+                            :class="storeAvailability === 'closed' ? 'text-red-400 font-bold bg-red-500/10' : 'text-zinc-300'">
+                            <span class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-red-400"></span>
+                                <span>Closed 🔴</span>
+                            </span>
+                            <i data-lucide="check" class="w-3.5 h-3.5 text-red-400" x-show="storeAvailability === 'closed'"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Desktop Alert Test Audio Chime -->
@@ -228,17 +295,6 @@ $adminUser = $_SESSION['admin_user'];
                     title="Test Kitchen Audio Bell">
                     <i data-lucide="bell" class="w-3.5 h-3.5"></i>
                 </button>
-
-
-                <div class="h-4 w-px bg-white/10"></div>
-
-                <!-- Link to Super Admin Portal -->
-                <a href="../admin/index.php" target="_blank"
-                    class="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl text-[11px] font-bold border border-white/10 flex items-center gap-1 transition-colors"
-                    title="Open Platform Super Admin Portal">
-                    <i data-lucide="shield" class="w-3 h-3 text-[#FF9500]"></i>
-                    <span class="hidden sm:inline">Super Admin (/admin)</span>
-                </a>
             </div>
         </header>
 
