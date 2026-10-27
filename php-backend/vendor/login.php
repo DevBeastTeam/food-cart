@@ -609,43 +609,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </button>
                         </p>
                     </div>
-
-                    <!-- Quick Demo Accounts (Streamlined & Clean) -->
-                    <div class="mt-8 pt-6 border-t border-white/10">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-[10px] font-extrabold uppercase tracking-widest text-zinc-400">Quick Demo Accounts</span>
-                            <span class="text-[10px] text-zinc-400 font-mono">Password: 123456</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2.5">
-                            <button type="button" @click="fillLogin('shahi.pakwan@foodcourt.pk', '123456')"
-                                class="p-2.5 bg-zinc-900/80 hover:bg-zinc-800/80 rounded-xl border border-white/5 hover:border-orange-500/40 text-left transition-all active:scale-[0.98]">
-                                <div class="text-[10px] font-bold text-amber-400 uppercase truncate">👑 Shahi Pakwan</div>
-                                <div class="text-xs font-semibold text-white truncate">Chaudhry Tariq</div>
-                                <div class="text-[10px] text-zinc-400 truncate">shahi.pakwan@…</div>
-                            </button>
-
-                            <button type="button" @click="fillLogin('bannu.admin@foodcourt.pk', '123456')"
-                                class="p-2.5 bg-zinc-900/80 hover:bg-zinc-800/80 rounded-xl border border-white/5 hover:border-orange-500/40 text-left transition-all active:scale-[0.98]">
-                                <div class="text-[10px] font-bold text-[#FF9500] uppercase truncate">🍽️ Bannu Beef Pulao</div>
-                                <div class="text-xs font-semibold text-white truncate">Tariq Mehmood</div>
-                                <div class="text-[10px] text-zinc-400 truncate">bannu.admin@…</div>
-                            </button>
-
-                            <button type="button" @click="fillLogin('dawat.admin@foodcourt.pk', '123456')"
-                                class="p-2.5 bg-zinc-900/80 hover:bg-zinc-800/80 rounded-xl border border-white/5 hover:border-orange-500/40 text-left transition-all active:scale-[0.98]">
-                                <div class="text-[10px] font-bold text-purple-400 uppercase truncate">👑🍽️ Dawat Khana</div>
-                                <div class="text-xs font-semibold text-white truncate">Malik Sohail</div>
-                                <div class="text-[10px] text-zinc-400 truncate">dawat.admin@…</div>
-                            </button>
-
-                            <button type="button" @click="fillLogin('madina.pakwan@foodcourt.pk', '123456')"
-                                class="p-2.5 bg-zinc-900/80 hover:bg-zinc-800/80 rounded-xl border border-white/5 hover:border-orange-500/40 text-left transition-all active:scale-[0.98]">
-                                <div class="text-[10px] font-bold text-emerald-400 uppercase truncate">👑 Madina Pakwan</div>
-                                <div class="text-xs font-semibold text-white truncate">Haji Abdul Rehman</div>
-                                <div class="text-[10px] text-zinc-400 truncate">madina.pakwan@…</div>
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- =========================================================== -->
@@ -798,11 +761,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
-            <!-- FOOTER INFO IN RIGHT PANEL -->
-            <footer class="w-full max-w-lg mx-auto pt-6 border-t border-white/10 text-[11px] text-zinc-400 flex items-center justify-between">
-                <span>Enterprise Encrypted &bull; 256-bit SSL</span>
-                <span class="text-zinc-400">FoodCourt Partner v2.4</span>
-            </footer>
+
         </section>
 
     </main>
