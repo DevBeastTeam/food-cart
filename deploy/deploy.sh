@@ -126,6 +126,12 @@ if [ -f "$ENV_DEPLOY_FILE" ]; then
         SSH_PORT="${DEPLOY_SSH_PORT:-22}"
         rsync -avz -e "ssh -p $SSH_PORT" --exclude '.git' --exclude 'data/foodcourt.sqlite' php-backend/ "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}:${DEPLOY_SSH_REMOTE_PATH}/"
         echo -e "  ${GREEN}✓ Direct SSH sync completed!${RESET}"
+
+        # Clear PHP OPcache on server to immediately reflect changes
+        echo -e "  🔄 Flushing PHP OPcache on server..."
+        ssh -p "$SSH_PORT" "${DEPLOY_SSH_USER}@${DEPLOY_SSH_HOST}" \
+            "echo '<?php if(function_exists(\"opcache_reset\")){ opcache_reset(); echo \"OPCACHE_RESET_OK\"; } unlink(__FILE__); ?>' > ${DEPLOY_SSH_REMOTE_PATH}/opcache_clear.php && curl -s https://${DEPLOY_SSH_HOST}/opcache_clear.php > /dev/null 2>&1"
+        echo -e "  ${GREEN}✓ Remote PHP OPcache flushed successfully!${RESET}"
     elif [ -n "$DEPLOY_FTP_HOST" ] && [ -n "$DEPLOY_FTP_USER" ]; then
         echo -e "  📡 Direct FTP credentials detected. (Using FTP transfer if lftp/curl is installed)..."
         # Optional FTP logic
