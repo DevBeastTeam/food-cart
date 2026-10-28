@@ -3,9 +3,10 @@
 
 RewriteEngine On
 
-# 0. Canonicalize directory URLs (/admin -> /admin/, /vendor -> /vendor/)
+# 0. Canonicalize directory URLs (/admin -> /admin/, /vendor -> /vendor/, /seeding -> /seeding/)
 RewriteRule ^admin$ admin/ [R=301,L]
 RewriteRule ^vendor$ vendor/ [R=301,L]
+RewriteRule ^seeding$ seeding/ [R=301,L]
 RewriteRule ^super$ admin/ [R=301,L]
 
 # 1. API routes -> api/index.php
@@ -22,6 +23,9 @@ RewriteRule ^admin/logout/?$ admin/logout.php [L]
 RewriteRule ^vendor/?$ vendor/index.php [L]
 RewriteRule ^vendor/login/?$ vendor/login.php [L]
 RewriteRule ^vendor/logout/?$ vendor/logout.php [L]
+
+# 4. Database Seeding Tool Clean URLs (/seeding -> seeding/index.php)
+RewriteRule ^seeding/?$ seeding/index.php [L]
 
 # 4. Backward Compatibility: /super redirects to /admin
 RewriteRule ^super(/.*)?$ /admin$1 [R=301,L]

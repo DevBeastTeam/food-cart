@@ -152,6 +152,7 @@ ENDPOINTS=(
     "https://food.aztemp.com/|Live Home / Hub Landing"
     "https://food.aztemp.com/vendor/login.php|Vendor Portal (Auth & Management)"
     "https://food.aztemp.com/admin/login.php|Sub-Admin / Store Manager Login"
+    "https://food.aztemp.com/seeding|Database Seeding Manager"
     "https://food.aztemp.com/api/dashboard/stats|REST API Live Endpoint"
 )
 
@@ -182,6 +183,7 @@ if [ "$ALL_HEALTHY" = true ]; then
     echo -e "${GREEN}✓ Status:${RESET} Live on Production (${CURRENT_COMMIT})"
     echo -e "${GREEN}✓ Vendor Portal:${RESET} https://food.aztemp.com/vendor/login.php"
     echo -e "${GREEN}✓ Admin Portal:${RESET}  https://food.aztemp.com/admin/login.php"
+    echo -e "${GREEN}✓ Seeding Hub:${RESET}   https://food.aztemp.com/seeding"
     echo -e "${GREEN}✓ API Service:${RESET}   https://food.aztemp.com/api/"
     echo -e "${GREEN}✓ Offline Zip:${RESET}   $REPO_ROOT/php-backend-deploy.zip"
     echo -e "\n${BOLD}${PURPLE}You can now test the latest changes directly on the live site!${RESET}\n"

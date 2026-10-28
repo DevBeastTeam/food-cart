@@ -108,3 +108,14 @@ This document specifies the complete functional architecture, workflows, operati
   - APK URL: `https://food.aztemp.com/uploads/foodcourt-app.apk`
 - **Communication Rule**:
   - **ALWAYS RESPOND IN ROMAN URDU** when communicating with the user.
+
+---
+
+## 9. 🌱 Database Seeding & External Dataset (`/seeding`)
+- **Dedicated Seeding Route**:
+  - Accessible directly at `/seeding` (`https://food.aztemp.com/seeding` or `http://localhost:5000/seeding`).
+- **External Dataset Rule**:
+  - The complete dummy seeding dataset is **ALWAYS kept externally outside the codebase** in the root directory (`seed_data.sql` and `seed_data.json`).
+  - Stored outside so developers, QA testers, and administrators can customize, add, or alter dummy records (dishes, daigs, categories, outlets, riders, customers) from the outside without modifying PHP source code.
+  - The `/seeding` route reads this external file and imports the entire dataset directly into SQLite3 (`data/foodcourt.sqlite`) in a safe transaction.
+

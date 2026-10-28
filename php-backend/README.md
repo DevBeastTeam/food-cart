@@ -36,7 +36,21 @@ A complete, standalone, zero-external-database, zero-npm-build PHP + SQLite 3 so
 
 ---
 
-### 3. 📱 Mobile App (Flutter) Alignment
+### 3. 🌱 Database Seeding & Dummy Data Import Tool (`/seeding`)
+- **URL Path:** `https://yourdomain.com/seeding` (or `http://localhost:5000/seeding`)
+- **Crucial Architectural Rule:**
+  - **The database dummy seeding data is ALWAYS stored externally outside the codebase (`seed_data.sql` and `seed_data.json`) in the root directory.**
+  - Stored outside so anyone can easily customize or add dummy dishes, daigs, and vendors from the outside without modifying PHP source code.
+- **Key Features:**
+  - **1-Click External Import:** Imports the entire `seed_data.sql` dataset directly into SQLite3 (`data/foodcourt.sqlite`) in milliseconds.
+  - **Live Table Statistics:** Real-time counters showing active rows across `users`, `restaurants`, `food_items`, `daig_items`, `orders`, `banners`, and `settings`.
+  - **Built-in Seeder:** Optional engine executing programmatic seeding across all 5 order lifecycle stages.
+  - **Snapshot Export:** One-click utility exporting current live database records back into `seed_data.sql` and `seed_data.json`.
+  - **Custom SQL Importer:** Textarea and file upload to run custom SQL queries.
+
+---
+
+### 4. 📱 Mobile App (Flutter) Alignment
 - **Customer Role:** Two primary tabs:
   - **Pakwan Centers:** Shows ceremonial 12kg/6kg Daigs uploaded by Pakwan Sub-Admins.
   - **Restaurants:** Shows dining platters and dishes uploaded by Restaurant Sub-Admins.
@@ -54,11 +68,16 @@ A complete, standalone, zero-external-database, zero-npm-build PHP + SQLite 3 so
    public_html/
    ├── .htaccess
    ├── index.php
+   ├── seed_data.sql          <-- External dummy database seed dataset
+   ├── seed_data.json         <-- External JSON dataset backup
+   ├── seeding.php            <-- Direct entry for /seeding
+   ├── seeding/
+   │   └── index.php          <-- Database Seeding & Import Manager Dashboard
    ├── config/
    │   └── database.php
    ├── api/
    │   └── index.php
-   ├── super/
+   ├── vendor/
    │   ├── index.php
    │   ├── login.php
    │   └── logout.php

@@ -209,10 +209,6 @@ if ($liveSuper) {
                 <button type="button" @click="refreshAll()" class="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl border border-white/5 transition-all text-[11px] font-medium flex items-center gap-1" title="Refresh Live Data" aria-label="Sync Live Data">
                     <i data-lucide="refresh-cw" class="w-3 h-3" :class="loading ? 'animate-spin' : ''" aria-hidden="true"></i>
                 </button>
-                <button type="button" @click="seedDatabaseDemo()" class="px-2.5 py-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold rounded-xl text-[11px] flex items-center gap-1 shadow-sm transition-all" title="Seed / Reset Demo Data (Customers, Pakwan Centers, Store Riders, Orders across all stages)">
-                    <i data-lucide="sparkles" class="w-3 h-3 text-black" aria-hidden="true"></i>
-                    <span>🌱 Seed Data</span>
-                </button>
                 <div class="h-4 w-px bg-zinc-800 mx-0.5" aria-hidden="true"></div>
                 <a href="../vendor/login.php" target="_blank" class="px-2.5 py-1 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 rounded-xl text-[11px] font-medium border border-white/5 flex items-center gap-1 transition-colors" title="Open Vendor & Pakwan Center Portal">
                     <i data-lucide="store" class="w-3 h-3 text-[#FF9500]" aria-hidden="true"></i>
@@ -1597,11 +1593,11 @@ if ($liveSuper) {
                         <p class="text-[11px] text-zinc-400">Reset demo records, test rider logins, view all outlet users and clear passwords</p>
                     </div>
 
-                    <button type="button" @click="seedDatabaseDemo()"
-                        class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
-                        <i data-lucide="refresh-cw" class="w-3 h-3"></i>
-                        <span>Reset & Seed Demo Data</span>
-                    </button>
+                    <a href="../seeding" target="_blank"
+                        class="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        <span>Open Seeding Tool (/seeding)</span>
+                    </a>
                 </div>
 
                 <!-- Database Metrics -->
