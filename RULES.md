@@ -6,7 +6,7 @@ This document specifies the complete functional architecture, workflows, operati
 
 ## 1. 🌐 Core Tech Stack & Zero-Firebase Architecture
 - **Mobile Application**: Flutter (Android/iOS).
-- **Backend API & Portals**: Pure PHP (`php-backend/`) with SQLite database (`php-backend/database/foodcourt.db`).
+- **Backend API & Portals**: Pure PHP (`php-backend/`) with SQLite database (`php-backend/data/foodcourt.sqlite`).
 - **Web Portals**:
   - Admin Portal: `https://food.aztemp.com/admin/` (`admin/index.php`, `admin/login.php`)
   - Vendor Portal: `https://food.aztemp.com/vendor/` (`vendor/index.php`, `vendor/login.php`)
@@ -15,80 +15,96 @@ This document specifies the complete functional architecture, workflows, operati
 
 ---
 
-## 2. 🔐 Guest Mode & Authentication Flow
+## 2. 🏪 Multi-Branch Vendor Architecture & Entity Scoping
+- **Multiple Physical Branches & Chauks**:
+  - Vendors represent distinct physical outlets, restaurants, or Pakwan catering centers located at different chauks, neighborhoods, or cities.
+- **Vendor Autonomy & Privacy**:
+  - Each vendor strictly manages **their own assigned riders** and **their own customers**.
+  - Vendors cannot access or modify riders or customer histories of other vendors.
+- **Block & Unblock Authority**:
+  - **Vendor Authority**:
+    - A vendor can view, add, manage, and **block/unblock** their assigned delivery riders (`POST /api/users/{id}/ban`).
+    - A vendor can view, manage, and **block/unblock** customers ordering from their outlet (`POST /api/vendor/customers/ban`).
+  - **Super Admin Authority**:
+    - Super Administrator has master control over the platform and can view, edit, approve, and **block/unblock vendors** (`POST /api/sub-admins/{id}/ban`).
+
+---
+
+## 3. 🍱 Food Listings & Categorization (Restaurant vs Pakwan)
+- **Partitioned Listing Tabs**:
+  - In the customer mobile application, listings are split into two primary category modes:
+    1. **🍽️ Restaurant Dishes Tab**: Displays restaurant items, fast food, biryanis, karahis, BBQ, platters, and desserts.
+    2. **🍲 Shahi Pakwan Tab**: Displays ceremonial Shahi Daigs (Full/Half/Medium sizes, wood-fire dum, kg weights, catering packages).
+- **Location Filtering Matrix**:
+  - When **"Location: All"** is selected at the top:
+    - Displays food items / daigs from **all registered vendors across all cities & chauks**.
+    - Top promo banner acts as an auto-scrolling carousel (5-8s interval) cycling through offers from all vendors.
+  - When a **Specific Vendor / Location** is selected:
+    - Filters both restaurant dishes and Shahi daigs strictly to **that specific vendor**.
+    - Displays only that specific vendor's active promotional offer card.
+
+---
+
+## 4. 📄 Dual Top & Bottom Pagination
+- **Mandatory Dual Pagination**:
+  - Food item listings and Daig listings must provide page navigation controls at **both the TOP and the BOTTOM** of the list.
+  - Controls include:
+    - `< Previous Page` button
+    - Current page badge: `Page X of Y` (with total item count)
+    - `Next Page >` button
+  - Top pagination allows fast switching without having to scroll to the bottom, while bottom pagination enables seamless continuation after browsing the page.
+
+---
+
+## 5. 🔍 Real-Time Live API Search with AppBar Toggle
+- **AppBar Search Icon & Field**:
+  - AppBar / Top Bar contains a dedicated search action button.
+  - Tapping the search icon smoothly reveals an inline search input field.
+  - Inside the search field, an active **Cross (X) button** clears the search query and closes/hides the search bar.
+- **100% Live API Driven (Zero Hardcoded Data)**:
+  - As the user types, real-time live search queries are sent to the PHP backend (`/api/food-items?search=...` and `/api/daig-items?search=...`).
+  - No static or mock fallback overrides live API data. Everything syncs live with production database.
+
+---
+
+## 6. ℹ️ Item Detail Screen & Collapsible Vendor Offer Strip
+- **Shop / Kitchen Location**:
+  - Tapping any food dish or Shahi daig opens the comprehensive item detail view.
+  - Displays the exact physical shop / kitchen location address with a map pin icon (e.g. *Main Boulevard, Gulberg III, Lahore*).
+- **Collapsible Promo Offer Strip**:
+  - If the item's vendor has an active promotional offer or banner:
+    - A **collapsible offer strip** is rendered inside the item detail screen.
+    - **Collapsed State**: A sleek, compact colored banner showing discount percentage tag (e.g. `🏷️ 40% OFF`) and offer title with an expand chevron (`Tap to view offer ▼`).
+    - **Expanded State**: Clicking un-collapses the strip into full offer details with promo banner image, discount badge, eligible items/freebies, and terms.
+- **Design Preservation**:
+  - Retains all existing rich Cupertino and Material design styling, portion selectors, spice adjustments, and add-to-cart buttons.
+
+---
+
+## 7. 🔐 Guest Mode & Authentication Flow
 - **Guest Browsing**:
   - Users can browse restaurants, food dishes, and shahi daigs without logging in.
-  - Users can see full dish descriptions, ingredients, cut prices, and discounts.
   - Users can add items to cart and view/edit their cart (`CartScreen`).
 - **Checkout Interception**:
-  - When a guest clicks **"Submit Order" / Checkout**, the app must intercept with a dialog/popup:
+  - Clicking "Submit Order" intercepts unauthenticated users with a dialog:
     `"Please login first to submit order"` (`پلیز لاگ ان فرسٹ ٹو سبمٹ ارڈر`).
-  - The dialog provides a direct action to redirect to the **Auth/Login Screen** (`AuthScreen`).
-- **Auth Screen Specifications**:
-  - Two role tabs at the top:
-    - **Customer Tab** (Left side, default selected).
-    - **Rider Tab** (Right side).
-  - Both Customer and Rider sections support toggle between **Login** and **Sign Up**.
-  - Once logged in, the user state is preserved and they can complete the order checkout.
+- **Auth Screen**:
+  - Two role tabs: **Customer (Left, Default)** and **Rider (Right)**.
+  - Bottom toggle to switch between Login and Sign Up.
 
 ---
 
-## 3. 📍 Home Location Dropdown & Vendor Bottom Sheet
-- **Header Dropdown**:
-  - In `HomeScreen`, the top deliver-to header displays `Deliver to:` with `Location: All` by default.
-  - Tapping this dropdown opens an animated Modal Bottom Sheet.
-- **Bottom Sheet Features**:
-  - **Search Bar**: Live search filter for restaurant/vendor names and addresses.
-  - **Shimmer Loading**: Shimmer effect when loading/refreshing vendor lists.
-  - **"All Locations" Option**: Displays all food items, daigs, and offers from all vendors across the platform.
-  - **Vendor List Tiles**: Displays registered restaurants and pakwan centers with their name, type, and kitchen/outlet location address.
-- **Location Filtering Behavior**:
-  - When "All" is selected:
-    - Food items from all vendors are displayed.
-    - Shahi Daigs from all pakwan vendors are displayed.
-    - The top Promo Offer card automatically cycles (auto-swiping carousel every 5-10 seconds) displaying active offers from all vendors.
-  - When a specific vendor/location is selected:
-    - Only that vendor's restaurant/pakwan dishes and daigs are displayed.
-    - The top promo banner displays only that specific vendor's active offer.
-
----
-
-## 4. 🏷️ Vendor Promo Offers System
-- **Vendor Portal (`vendor/index.php`)**:
-  - Each vendor can add and manage their own promo banners/offers:
-    - **Offer Title** (e.g. "Special Weekend Deal", "Karahi Dhamaka")
-    - **Discount Percentage (%)** (e.g. 20%, 40%)
-    - **Subtitle / Included Items** (e.g. "Free Naan & Drink on orders above Rs. 1000")
-    - **Banner Image**: File upload or Image URL.
-    - Stored in SQLite `banners` table with `sub_admin_id` identifying the vendor.
-- **Admin Portal (`admin/index.php`)**:
-  - Master control to view, approve, edit, or remove promo offers of all vendors.
-- **Mobile Display**:
-  - Banners are fetched from `/api/index.php?endpoint=banners`.
-  - Carousel auto-slides every 5-8 seconds when viewing "All".
-
----
-
-## 5. 🍲 Food Items & Pakwan Daigs Specifications
-- **Restaurant Dishes**:
-  - Fields: Title, description, category, actual price, cut price (original price before discount), discount percentage, `showCutPrice` flag, image upload/URL, and `sub_admin_id`.
-- **Pakwan Daigs**:
-  - Specialized for large catering/daig orders (12kg, 10kg, etc.).
-  - Includes daig weight variations, servicing count, spicy level, kitchen location address, cut prices, and meat selection.
-
----
-
-## 6. 🚀 Mandatory Deployment Rules
+## 8. 🚀 Mandatory Deployment Rules
 - **Automatic Deployment Command**:
   Whenever code changes are made to the PHP backend, admin, or vendor portal:
   ```bash
   bash deploy/deploy.sh "Brief description of changes made"
   ```
 - **Flutter APK Builds**:
-  - APK build command:
+  - Build command:
     ```bash
     flutter build apk --debug --android-skip-build-dependency-validation
     ```
-  - APK uploaded to server: `https://food.aztemp.com/uploads/foodcourt-app.apk`
+  - APK URL: `https://food.aztemp.com/uploads/foodcourt-app.apk`
 - **Communication Rule**:
   - **ALWAYS RESPOND IN ROMAN URDU** when communicating with the user.

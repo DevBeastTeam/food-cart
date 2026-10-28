@@ -388,13 +388,19 @@ class ApiService {
 
 
   // Search food items from backend with local fallback
-  Future<List<FoodItem>> searchFoodItems(String query) async {
+  Future<List<FoodItem>> searchFoodItems(String query, {String? subAdminId, int? page, int? limit}) async {
     final cleanQuery = query.trim().toLowerCase();
-    if (cleanQuery.isEmpty) return [];
 
     try {
+      var uriStr = '$baseUrl/food-items?search=${Uri.encodeComponent(cleanQuery)}';
+      if (subAdminId != null && subAdminId != 'all' && subAdminId.isNotEmpty) {
+        uriStr += '&sub_admin_id=$subAdminId';
+      }
+      if (page != null && page > 0) uriStr += '&page=$page';
+      if (limit != null && limit > 0) uriStr += '&limit=$limit';
+
       final res = await http
-          .get(Uri.parse('$baseUrl/food-items?search=${Uri.encodeComponent(cleanQuery)}'))
+          .get(Uri.parse(uriStr))
           .timeout(const Duration(seconds: 4));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
@@ -406,6 +412,8 @@ class ApiService {
     } catch (e) {
       debugPrint('[ApiService] Search backend error/fallback: $e');
     }
+
+    if (cleanQuery.isEmpty) return SampleData.allTrendingFoodItems;
 
     // Fallback: search synced/local items
     final List<FoodItem> localMatches = [];
@@ -423,6 +431,78 @@ class ApiService {
       }
     }
     return localMatches;
+  }
+
+  Future<List<DaigItem>> searchDaigItems(String query, {String? subAdminId, int? page, int? limit}) async {
+    final cleanQuery = query.trim().toLowerCase();
+    try {
+      var uriStr = '$baseUrl/daig-items?search=${Uri.encodeComponent(cleanQuery)}';
+      if (subAdminId != null && subAdminId != 'all' && subAdminId.isNotEmpty) {
+        uriStr += '&sub_admin_id=$subAdminId';
+      }
+      if (page != null && page > 0) uriStr += '&page=$page';
+      if (limit != null && limit > 0) uriStr += '&limit=$limit';
+
+      final res = await http.get(Uri.parse(uriStr)).timeout(const Duration(seconds: 4));
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body['data'] is List) {
+          final list = body['data'] as List;
+          return list.map((d) => _parseDaigItem(d)).toList();
+        }
+      }
+    } catch (e) {
+      debugPrint('[ApiService] Search daig backend error: $e');
+    }
+
+    return SampleData.daigDishes.where((d) {
+      if (cleanQuery.isEmpty) return true;
+      return d.name.toLowerCase().contains(cleanQuery) ||
+          d.urduName.contains(cleanQuery) ||
+          d.description.toLowerCase().contains(cleanQuery);
+    }).toList();
+  }
+
+  Map<String, dynamic>? getVendorActiveOffer(String vendorId) {
+    if (_promoBanners.isEmpty) return null;
+    if (vendorId.isEmpty || vendorId == 'all') {
+      return _promoBanners.first;
+    }
+    try {
+      return _promoBanners.firstWhere(
+        (b) => (b['sub_admin_id'] ?? '').toString() == vendorId || (b['id'] ?? '').toString().contains(vendorId),
+        orElse: () => _promoBanners.first,
+      );
+    } catch (_) {
+      return _promoBanners.isNotEmpty ? _promoBanners.first : null;
+    }
+  }
+
+  DaigItem _parseDaigItem(Map<String, dynamic> d) {
+    final discPct = (d['discountPercent'] as num?)?.toInt() ?? 0;
+    return DaigItem(
+      id: d['id'] ?? 'daig_1',
+      name: d['name'] ?? '',
+      urduName: d['urduName'] ?? '',
+      description: d['description'] ?? '',
+      category: d['category'] ?? 'Biryani & Pulao',
+      fullDaigPrice: (d['fullDaigPrice'] as num?)?.toDouble() ?? 12000.0,
+      halfDaigPrice: (d['halfDaigPrice'] as num?)?.toDouble() ?? 6500.0,
+      imageUrl: d['imageUrl'] ?? 'https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80',
+      rating: (d['rating'] as num?)?.toDouble() ?? 4.9,
+      badge: d['badge'] ?? 'Bestseller Daig',
+      deliveryNotice: d['deliveryNotice'] ?? 'Order 3-4 hours in advance for fresh coal-dum cooking',
+      discountPercent: discPct,
+      discountPrice: (d['discountPrice'] as num?)?.toDouble() ?? 0.0,
+      cutPrice: (d['cutPrice'] as num?)?.toDouble() ?? 0.0,
+      showCutPrice: d['showCutPrice'] == 1 || d['showCutPrice'] == true || d['showCutPrice'] == null,
+      isDiscounted: d['isDiscounted'] == 1 || d['isDiscounted'] == true || discPct > 0,
+      promoBadge: d['promoBadge'] ?? '',
+      location: d['location'] ?? 'Main Pakwan Kitchen, Lahore',
+      subAdminId: d['sub_admin_id'] ?? '',
+      centerId: d['sub_admin_id'] ?? 'pakwan_shahi',
+      centerName: d['centerName'] ?? 'Shahi Pakwan Center',
+    );
   }
 
   FoodItem _parseFoodItem(Map<String, dynamic> i) {
@@ -447,6 +527,7 @@ class ApiService {
       isDiscounted: i['isDiscounted'] == 1 || i['isDiscounted'] == true || discPct > 0,
       promoBadge: i['promoBadge'] ?? '',
       subAdminId: i['sub_admin_id'] ?? '',
+      locationAddress: i['locationAddress'] ?? i['location'] ?? 'FoodCourt Central Kitchen, 14-C Gulberg III, Lahore',
     );
   }
 }

@@ -721,6 +721,11 @@ $adminUser = $_SESSION['admin_user'];
                                                 <button type="button" @click="editRider(rdr)" class="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg" title="Edit Rider">
                                                     <i data-lucide="edit" class="w-3.5 h-3.5 text-sky-400"></i>
                                                 </button>
+                                                <button type="button" @click="toggleRiderBan(rdr)" class="p-1.5 rounded-lg transition-colors"
+                                                    :class="rdr.banned ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400' : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-400'"
+                                                    :title="rdr.banned ? 'Unblock Rider' : 'Block Rider'">
+                                                    <i :data-lucide="rdr.banned ? 'shield-check' : 'shield-alert'" class="w-3.5 h-3.5"></i>
+                                                </button>
                                                 <button type="button" @click="deleteRider(rdr)" class="p-1.5 bg-red-950/40 hover:bg-red-900/60 text-red-400 rounded-lg" title="Delete Rider">
                                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                                 </button>
@@ -871,11 +876,20 @@ $adminUser = $_SESSION['admin_user'];
                                         </td>
 
                                         <td class="py-2.5 px-3 text-right" @click.stop>
-                                            <button type="button" @click="openCustomerSheet(cust)"
-                                                class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-all ml-auto">
-                                                <i data-lucide="history" class="w-3 h-3 text-[#FF9500]"></i>
-                                                <span>History</span>
-                                            </button>
+                                            <div class="inline-flex items-center gap-1.5 justify-end">
+                                                <button type="button" @click="toggleCustomerBan(cust)"
+                                                    class="px-2 py-1 rounded-lg text-[10.5px] font-bold transition-all flex items-center gap-1"
+                                                    :class="cust.banned ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30' : 'bg-red-500/15 text-red-400 hover:bg-red-500/25'"
+                                                    :title="cust.banned ? 'Unblock Customer' : 'Block Customer'">
+                                                    <i :data-lucide="cust.banned ? 'unlock' : 'lock'" class="w-3 h-3"></i>
+                                                    <span x-text="cust.banned ? 'Unblock' : 'Block'"></span>
+                                                </button>
+                                                <button type="button" @click="openCustomerSheet(cust)"
+                                                    class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-[11px] font-semibold flex items-center gap-1 transition-all">
+                                                    <i data-lucide="history" class="w-3 h-3 text-[#FF9500]"></i>
+                                                    <span>History</span>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 </template>
@@ -3753,6 +3767,52 @@ $adminUser = $_SESSION['admin_user'];
                         }
                     } catch (e) {
                         this.showToast('Error updating status: ' + e.message, 'error');
+                    }
+                },
+
+                // Rider Block / Unblock Action
+                async toggleRiderBan(rdr) {
+                    const actionText = rdr.banned ? 'unblock' : 'block';
+                    if (!confirm(`Are you sure you want to ${actionText} rider ${rdr.name}?`)) return;
+                    try {
+                        const res = await fetch(`../api/users/${rdr.id}/ban`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ banned: !rdr.banned })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            rdr.banned = !rdr.banned;
+                            this.showToast(data.message || `Rider ${actionText}ed successfully!`);
+                            this.$nextTick(() => lucide.createIcons());
+                        } else {
+                            this.showToast(data.message || 'Action failed', 'error');
+                        }
+                    } catch(e) {
+                        this.showToast('Error: ' + e.message, 'error');
+                    }
+                },
+
+                // Customer Block / Unblock Action
+                async toggleCustomerBan(cust) {
+                    const actionText = cust.banned ? 'unblock' : 'block';
+                    if (!confirm(`Are you sure you want to ${actionText} customer ${cust.customerName || cust.customerPhone}?`)) return;
+                    try {
+                        const res = await fetch(`../api/vendor/customers/ban`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone: cust.customerPhone, banned: !cust.banned })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            cust.banned = !cust.banned;
+                            this.showToast(data.message || `Customer ${actionText}ed successfully!`);
+                            this.$nextTick(() => lucide.createIcons());
+                        } else {
+                            this.showToast(data.message || 'Action failed', 'error');
+                        }
+                    } catch(e) {
+                        this.showToast('Error: ' + e.message, 'error');
                     }
                 },
 

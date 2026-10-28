@@ -240,7 +240,27 @@ switch ($resource) {
                 $r['promoBadge']      = (string)($r['promoBadge'] ?? '');
                 $list[] = $r;
             }
-            jsonResponse(['success' => true, 'count' => count($list), 'data' => $list]);
+
+            $totalCount = count($list);
+            $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+            $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 0;
+            if ($limit > 0) {
+                $totalPages = max(1, ceil($totalCount / $limit));
+                $offset = ($page - 1) * $limit;
+                $pagedList = array_slice($list, $offset, $limit);
+            } else {
+                $totalPages = 1;
+                $pagedList = $list;
+            }
+
+            jsonResponse([
+                'success' => true,
+                'count' => count($pagedList),
+                'total' => $totalCount,
+                'page' => $page,
+                'totalPages' => $totalPages,
+                'data' => $pagedList
+            ]);
         } elseif ($method === 'POST') {
             $b = getJsonInput();
             $id = $b['id'] ?? ('item_' . time());
@@ -318,13 +338,26 @@ switch ($resource) {
     case 'daig-items':
         if ($method === 'GET') {
             $subAdminId = $_GET['sub_admin_id'] ?? '';
+            $cat        = $_GET['category'] ?? '';
+            $q          = trim($_GET['search'] ?? '');
+
             $sql = "SELECT * FROM daig_items WHERE 1=1";
             $params = [];
             if ($subAdminId !== '') {
                 $sql .= " AND sub_admin_id = ?";
                 $params[] = $subAdminId;
             }
-            $sql .= " ORDER BY fullDaigPrice DESC";
+            if ($cat !== '' && $cat !== 'All') {
+                $sql .= " AND category = ?";
+                $params[] = $cat;
+            }
+            if ($q !== '') {
+                $sql .= " AND (LOWER(name) LIKE ? OR LOWER(urduName) LIKE ? OR LOWER(description) LIKE ?)";
+                $params[] = '%' . strtolower($q) . '%';
+                $params[] = '%' . strtolower($q) . '%';
+                $params[] = '%' . strtolower($q) . '%';
+            }
+            $sql .= " ORDER BY rating DESC, fullDaigPrice DESC";
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
@@ -342,7 +375,27 @@ switch ($resource) {
                 $r['promoBadge']      = (string)($r['promoBadge'] ?? '');
                 $list[] = $r;
             }
-            jsonResponse(['success' => true, 'count' => count($list), 'data' => $list]);
+
+            $totalCount = count($list);
+            $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+            $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 0;
+            if ($limit > 0) {
+                $totalPages = max(1, ceil($totalCount / $limit));
+                $offset = ($page - 1) * $limit;
+                $pagedList = array_slice($list, $offset, $limit);
+            } else {
+                $totalPages = 1;
+                $pagedList = $list;
+            }
+
+            jsonResponse([
+                'success' => true,
+                'count' => count($pagedList),
+                'total' => $totalCount,
+                'page' => $page,
+                'totalPages' => $totalPages,
+                'data' => $pagedList
+            ]);
         } elseif ($method === 'POST') {
             $b = getJsonInput();
             $id = $b['id'] ?? ('daig_' . time());
@@ -1138,20 +1191,45 @@ switch ($resource) {
                 ]
             ]);
         } elseif ($subId === 'customers') {
+            if ($action === 'ban' && ($method === 'POST' || $method === 'PUT')) {
+                $b = getJsonInput();
+                $phone = trim($b['phone'] ?? '');
+                if (!$phone) jsonResponse(['success' => false, 'message' => 'Customer phone is required'], 400);
+                $newBanned = isset($b['banned']) ? ($b['banned'] ? 1 : 0) : 1;
+                $newStatus = $newBanned ? 'banned' : 'active';
+                // Check if user exists by phone
+                $uStmt = $pdo->prepare("SELECT id FROM users WHERE phone = ?");
+                $uStmt->execute([$phone]);
+                $exUser = $uStmt->fetch();
+                if ($exUser) {
+                    $pdo->prepare("UPDATE users SET banned = ?, status = ? WHERE id = ?")->execute([$newBanned, $newStatus, $exUser['id']]);
+                } else {
+                    $newId = 'cust_' . time() . '_' . substr(md5($phone), 0, 4);
+                    $pdo->prepare("INSERT INTO users (id, name, email, phone, role, status, banned, createdAt) VALUES (?, ?, ?, ?, 'client', ?, ?, datetime('now'))")
+                        ->execute([$newId, $b['name'] ?? 'Customer', $phone . '@foodcourt.pk', $phone, $newStatus, $newBanned]);
+                }
+                jsonResponse(['success' => true, 'message' => $newBanned ? 'Customer has been blocked by vendor.' : 'Customer unblocked successfully.', 'banned' => (bool)$newBanned]);
+            }
+
             if (!$subAdminId) jsonResponse(['success' => false, 'message' => 'sub_admin_id is required'], 400);
 
             $custStmt = $pdo->prepare("
-                SELECT customerPhone, customerName, deliveryAddress,
-                       COUNT(id) as totalOrders,
-                       SUM(totalAmount) as totalSpent,
-                       MAX(orderDate) as lastOrderDate
-                FROM orders
-                WHERE sub_admin_id = ? AND customerPhone IS NOT NULL AND customerPhone != ''
-                GROUP BY customerPhone
+                SELECT o.customerPhone, o.customerName, o.deliveryAddress,
+                       COUNT(o.id) as totalOrders,
+                       SUM(o.totalAmount) as totalSpent,
+                       MAX(o.orderDate) as lastOrderDate,
+                       COALESCE(u.banned, 0) as banned
+                FROM orders o
+                LEFT JOIN users u ON u.phone = o.customerPhone
+                WHERE o.sub_admin_id = ? AND o.customerPhone IS NOT NULL AND o.customerPhone != ''
+                GROUP BY o.customerPhone
                 ORDER BY totalSpent DESC
             ");
             $custStmt->execute([$subAdminId]);
             $customers = $custStmt->fetchAll();
+            foreach ($customers as &$c) {
+                $c['banned'] = (bool)$c['banned'];
+            }
             jsonResponse(['success' => true, 'count' => count($customers), 'data' => $customers]);
         } elseif ($subId === 'profile' && $method === 'POST') {
             $b = getJsonInput();
@@ -1362,15 +1440,32 @@ switch ($resource) {
                     'outlet_name' => $outletName
                 ]
             ], 201);
+        } elseif (($method === 'POST' || $method === 'PATCH' || $method === 'PUT') && $subId !== '' && $action === 'ban') {
+            $b = getJsonInput();
+            $stmt = $pdo->prepare("SELECT id, name, role, banned FROM users WHERE id = ?");
+            $stmt->execute([$subId]);
+            $u = $stmt->fetch();
+            if (!$u) jsonResponse(['success' => false, 'message' => 'User not found'], 404);
+            $newBanned = isset($b['banned']) ? ($b['banned'] ? 1 : 0) : ($u['banned'] ? 0 : 1);
+            $newStatus = $newBanned ? 'banned' : 'active';
+            $pdo->prepare("UPDATE users SET banned = ?, status = ? WHERE id = ?")->execute([$newBanned, $newStatus, $subId]);
+            jsonResponse([
+                'success' => true,
+                'message' => ($newBanned ? 'User has been blocked successfully.' : 'User has been unblocked successfully.'),
+                'banned' => (bool)$newBanned,
+                'status' => $newStatus
+            ]);
         } elseif ($method === 'PUT' && $subId !== '') {
             $b = getJsonInput();
-            $stmt = $pdo->prepare("UPDATE users SET name = COALESCE(?, name), phone = COALESCE(?, phone), city = COALESCE(?, city), address = COALESCE(?, address), status = COALESCE(?, status) WHERE id = ?");
+            $bannedVal = isset($b['banned']) ? ($b['banned'] ? 1 : 0) : null;
+            $stmt = $pdo->prepare("UPDATE users SET name = COALESCE(?, name), phone = COALESCE(?, phone), city = COALESCE(?, city), address = COALESCE(?, address), status = COALESCE(?, status), banned = COALESCE(?, banned) WHERE id = ?");
             $stmt->execute([
                 $b['name'] ?? null,
                 $b['phone'] ?? null,
                 $b['city'] ?? null,
                 $b['address'] ?? null,
                 $b['status'] ?? null,
+                $bannedVal,
                 $subId
             ]);
             jsonResponse(['success' => true, 'message' => 'User profile updated']);

@@ -50,7 +50,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _searchDebounce;
   bool _isSearching = false;
   List<FoodItem> _searchResults = [];
+  List<DaigItem> _searchDaigResults = [];
   bool _showAllDaigs = false;
+  bool _isSearchFieldOpen = false;
+  String _activeListingTab = 'restaurant'; // 'restaurant' or 'pakwan'
+  int _restaurantPage = 1;
+  int _pakwanPage = 1;
+  static const int _itemsPerPage = 4;
 
   void _openRestaurant(Restaurant restaurant) {
     Navigator.of(context).push(
@@ -109,6 +115,56 @@ class _HomeScreenState extends State<HomeScreen> {
     }).toList();
   }
 
+  List<FoodItem> get _currentRestaurantDishes {
+    List<FoodItem> list = List<FoodItem>.from(SampleData.allTrendingFoodItems);
+    if (_selectedVendorId != 'all') {
+      final vendorFiltered = list.where((d) =>
+          d.subAdminId == _selectedVendorId ||
+          d.restaurantId == _selectedVendorId ||
+          d.locationAddress.toLowerCase().contains(_selectedVendorLocation.toLowerCase()) ||
+          d.name.toLowerCase().contains(_selectedVendorName.toLowerCase())).toList();
+      if (vendorFiltered.isNotEmpty) {
+        list = vendorFiltered;
+      }
+    }
+    if (_selectedCategory != 'All') {
+      final cat = _selectedCategory.toLowerCase();
+      list = list.where((d) =>
+          d.category.toLowerCase().contains(cat) ||
+          cat.contains(d.category.toLowerCase())).toList();
+    }
+    if (_quickFilter == 'Top Rated') {
+      list = list.where((d) => d.rating >= 4.8).toList();
+    } else if (_quickFilter == 'Fast Delivery') {
+      list = list.where((d) => d.isPopular).toList();
+    }
+    return list;
+  }
+
+  List<DaigItem> get _currentPakwanDishes {
+    List<DaigItem> list = List<DaigItem>.from(SampleData.daigDishes);
+    if (_selectedVendorId != 'all') {
+      final vendorDaigs = list.where((d) =>
+          d.subAdminId == _selectedVendorId ||
+          d.centerId == _selectedVendorId ||
+          d.centerName.toLowerCase().contains(_selectedVendorName.toLowerCase()) ||
+          d.location.toLowerCase().contains(_selectedVendorLocation.toLowerCase())).toList();
+      if (vendorDaigs.isNotEmpty) {
+        list = vendorDaigs;
+      }
+    }
+    if (_selectedCategory != 'All') {
+      final cat = _selectedCategory.toLowerCase();
+      list = list.where((d) =>
+          d.category.toLowerCase().contains(cat) ||
+          cat.contains(d.category.toLowerCase())).toList();
+    }
+    if (_quickFilter == 'Top Rated') {
+      list = list.where((d) => d.rating >= 4.8).toList();
+    }
+    return list;
+  }
+
   void _onSearchChanged(String query) {
     setState(() {
       _homeSearchQuery = query;
@@ -120,6 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _isSearching = false;
         _searchResults = [];
+        _searchDaigResults = [];
       });
       return;
     }
@@ -134,17 +191,28 @@ class _HomeScreenState extends State<HomeScreen> {
         .toSet()
         .toList();
 
+    final localDaigs = SampleData.daigDishes
+        .where((d) =>
+            d.name.toLowerCase().contains(clean) ||
+            d.urduName.contains(clean) ||
+            d.description.toLowerCase().contains(clean))
+        .toList();
+
     setState(() {
       _isSearching = true;
       _searchResults = localInitial;
+      _searchDaigResults = localDaigs;
     });
 
     // Query backend dynamically with 300ms debounce
     _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
-      final backendResults = await ApiService.instance.searchFoodItems(query);
+      final vendorParam = _selectedVendorId == 'all' ? null : _selectedVendorId;
+      final backendResults = await ApiService.instance.searchFoodItems(query, subAdminId: vendorParam);
+      final backendDaigs = await ApiService.instance.searchDaigItems(query, subAdminId: vendorParam);
       if (mounted && _homeSearchQuery.trim() == query.trim()) {
         setState(() {
           _searchResults = backendResults;
+          _searchDaigResults = backendDaigs;
           _isSearching = false;
         });
       }
@@ -380,6 +448,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 _selectedVendorId = 'all';
                                 _selectedVendorName = 'All';
                                 _selectedVendorLocation = 'All Locations';
+                                _restaurantPage = 1;
+                                _pakwanPage = 1;
                               });
                               Navigator.pop(sheetContext);
                             },
@@ -476,6 +546,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     _selectedVendorId = v['id']!;
                                     _selectedVendorName = v['name']!;
                                     _selectedVendorLocation = v['address']!;
+                                    _restaurantPage = 1;
+                                    _pakwanPage = 1;
                                   });
                                   Navigator.pop(sheetContext);
                                 },
@@ -731,6 +803,38 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(width: 8),
+
+              // Search Toggle Icon Button in Top Header
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _isSearchFieldOpen = !_isSearchFieldOpen;
+                    if (!_isSearchFieldOpen) {
+                      _homeSearchController.clear();
+                      _onSearchChanged('');
+                    }
+                  });
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: _isSearchFieldOpen ? AppTheme.primary : AppTheme.surfaceMuted,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: _isSearchFieldOpen ? AppTheme.primary : AppTheme.border,
+                    ),
+                  ),
+                  child: Icon(
+                    _isSearchFieldOpen ? Icons.close_rounded : Icons.search_rounded,
+                    size: 19,
+                    color: _isSearchFieldOpen ? Colors.white : AppTheme.textPrimary,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
               if (isLoggedIn && user != null)
                 InkWell(
                   onTap: () => setState(() => _currentNavIndex = 3),
@@ -838,44 +942,48 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          const SizedBox(height: 12),
-
-          // 2. Search Bar
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.border),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
+          // 2. Expandable Real-Time Live Search Bar
+          if (_isSearchFieldOpen || _homeSearchQuery.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.primary, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primary.withAlpha(20),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _homeSearchController,
+                autofocus: _isSearchFieldOpen && _homeSearchQuery.isEmpty,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: 'Search Pulao, Biryani, Mutton, Beef, Karahi, Daig...',
+                  prefixIcon: const Icon(Icons.search, color: AppTheme.primary, size: 20),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20, color: AppTheme.textPrimary),
+                    tooltip: 'Close search',
+                    onPressed: () {
+                      setState(() {
+                        _homeSearchController.clear();
+                        _onSearchChanged('');
+                        _isSearchFieldOpen = false;
+                      });
+                    },
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                 ),
-              ],
-            ),
-            child: TextField(
-              controller: _homeSearchController,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: 'Search Pulao, Biryani, Mutton, Beef, Karahi, Daig...',
-                prefixIcon: const Icon(Icons.search, color: AppTheme.primary, size: 20),
-                suffixIcon: _homeSearchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _homeSearchController.clear();
-                          _onSearchChanged('');
-                        },
-                      )
-                    : null,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
               ),
             ),
-          ),
+          ],
 
           const SizedBox(height: 16),
 
@@ -996,13 +1104,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final query = _homeSearchQuery.trim();
     final clean = query.toLowerCase();
 
-    // Filter matching daig items as well
-    final matchingDaigs = SampleData.daigDishes
-        .where((d) =>
-            d.name.toLowerCase().contains(clean) ||
-            d.urduName.contains(clean) ||
-            d.category.toLowerCase().contains(clean))
-        .toList();
+    // Filter matching daig items from backend search results or fallback
+    final matchingDaigs = _searchDaigResults.isNotEmpty
+        ? _searchDaigResults
+        : SampleData.daigDishes
+            .where((d) =>
+                d.name.toLowerCase().contains(clean) ||
+                d.urduName.contains(clean) ||
+                d.category.toLowerCase().contains(clean))
+            .toList();
 
     List<FoodItem> filteredResults = List.from(_searchResults);
     if (_quickFilter == 'Top Rated') {
@@ -1075,6 +1185,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 _homeSearchController.clear();
                 _onSearchChanged('');
+                setState(() => _isSearchFieldOpen = false);
               },
               icon: const Icon(Icons.close, size: 16),
               label: const Text('Clear', style: TextStyle(fontSize: 12)),
@@ -1275,45 +1386,391 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildListingTabSwitcher() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceMuted,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Row(
+        children: [
+          // 1. Restaurant Tab
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _activeListingTab = 'restaurant';
+                  _restaurantPage = 1;
+                });
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                decoration: BoxDecoration(
+                  color: _activeListingTab == 'restaurant' ? AppTheme.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: _activeListingTab == 'restaurant'
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.primary.withAlpha(70),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.restaurant_rounded,
+                      size: 16,
+                      color: _activeListingTab == 'restaurant' ? Colors.white : AppTheme.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Restaurants (ریسٹورنٹ)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: _activeListingTab == 'restaurant' ? Colors.white : AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 4),
+
+          // 2. Pakwan & Deg Tab
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _activeListingTab = 'pakwan';
+                  _pakwanPage = 1;
+                });
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                decoration: BoxDecoration(
+                  color: _activeListingTab == 'pakwan' ? const Color(0xFFD97706) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: _activeListingTab == 'pakwan'
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFFD97706).withAlpha(70),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.soup_kitchen_rounded,
+                      size: 16,
+                      color: _activeListingTab == 'pakwan' ? Colors.white : AppTheme.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Shahi Pakwan (شاہی پکوان)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: _activeListingTab == 'pakwan' ? Colors.white : AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaginationBar({
+    required int currentPage,
+    required int totalPages,
+    required int totalItems,
+    required ValueChanged<int> onPageChanged,
+  }) {
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    final startItem = (currentPage - 1) * _itemsPerPage + 1;
+    final endItem = (currentPage * _itemsPerPage).clamp(1, totalItems);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(8),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Previous button
+          InkWell(
+            onTap: currentPage > 1 ? () => onPageChanged(currentPage - 1) : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: currentPage > 1 ? AppTheme.primaryLight : AppTheme.surfaceMuted,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: currentPage > 1 ? AppTheme.primary.withAlpha(100) : Colors.transparent,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.chevron_left_rounded,
+                    size: 18,
+                    color: currentPage > 1 ? AppTheme.primary : AppTheme.textLight,
+                  ),
+                  const SizedBox(width: 2),
+                  Text(
+                    'Previous',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: currentPage > 1 ? AppTheme.primary : AppTheme.textLight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Center Page Indicator
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Page $currentPage of $totalPages',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                'Showing $startItem-$endItem of $totalItems',
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: AppTheme.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+
+          // Next button
+          InkWell(
+            onTap: currentPage < totalPages ? () => onPageChanged(currentPage + 1) : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: currentPage < totalPages ? AppTheme.primary : AppTheme.surfaceMuted,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Next',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: currentPage < totalPages ? Colors.white : AppTheme.textLight,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: currentPage < totalPages ? Colors.white : AppTheme.textLight,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCategoryDishesSection() {
-    List<FoodItem> rawDishes;
-    final String title;
-    final String subtitle;
-    final content = ApiService.instance.appContent;
+    final isPakwan = _activeListingTab == 'pakwan';
 
-    if (_selectedCategory == 'All') {
-      title = _selectedVendorId != 'all'
-          ? '👑 $_selectedVendorName Specialties'
-          : (content['shahiMenuTitle'] ?? '👑 Shahi Menu Dishes (Signature Selection)');
-      subtitle = _selectedVendorId != 'all'
-          ? 'Fresh dishes prepared at $_selectedVendorLocation'
-          : (content['shahiMenuSubtitle'] ?? 'Popular dishes cooked in pure desi ghee & authentic secret spices');
-      rawDishes = List<FoodItem>.from(SampleData.allTrendingFoodItems);
-    } else {
-      title = '👑 $_selectedCategory Specials (${_selectedVendorId != 'all' ? _selectedVendorName : 'Signature Selection'})';
-      subtitle = 'Signature items prepared fresh at FoodCourt Central Kitchen';
-      rawDishes = List<FoodItem>.from(SampleData.getDishesForCategory(_selectedCategory));
+    // 1. Restaurant flow
+    if (!isPakwan) {
+      final allDishes = _currentRestaurantDishes;
+      final totalDishes = allDishes.length;
+      final totalPages = (totalDishes / _itemsPerPage).ceil().clamp(1, 999);
+      final currentPage = _restaurantPage.clamp(1, totalPages);
+      final displayedDishes = allDishes.skip((currentPage - 1) * _itemsPerPage).take(_itemsPerPage).toList();
+
+      final String title = _selectedVendorId != 'all'
+          ? '🍽️ $_selectedVendorName Restaurant Dishes'
+          : (_selectedCategory == 'All'
+              ? '🍽️ Restaurant Dishes (تمام ریسٹورنٹ پکوان)'
+              : '🍽️ $_selectedCategory Dishes');
+      final String subtitle = _selectedVendorId != 'all'
+          ? 'Fresh restaurant dishes from $_selectedVendorLocation'
+          : 'Live menu dishes from all partnered vendors & kitchens';
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildListingTabSwitcher(),
+
+          // Section Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$totalDishes Dishes',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // TOP PAGINATION BAR
+          _buildPaginationBar(
+            currentPage: currentPage,
+            totalPages: totalPages,
+            totalItems: totalDishes,
+            onPageChanged: (newPage) => setState(() => _restaurantPage = newPage),
+          ),
+
+          const SizedBox(height: 4),
+
+          if (displayedDishes.isEmpty) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: const Column(
+                children: [
+                  Icon(Icons.restaurant_outlined, size: 36, color: AppTheme.textLight),
+                  SizedBox(height: 8),
+                  Text(
+                    'No restaurant dishes found for this selection',
+                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            ...displayedDishes.map(
+              (dish) => ShahiDishCard(
+                item: dish,
+                cartState: widget.cartState,
+              ),
+            ),
+          ],
+
+          // BOTTOM PAGINATION BAR
+          _buildPaginationBar(
+            currentPage: currentPage,
+            totalPages: totalPages,
+            totalItems: totalDishes,
+            onPageChanged: (newPage) => setState(() => _restaurantPage = newPage),
+          ),
+        ],
+      );
     }
 
-    if (_selectedVendorId != 'all') {
-      final vendorFiltered = rawDishes.where((d) =>
-          d.subAdminId == _selectedVendorId ||
-          d.restaurantId == _selectedVendorId ||
-          d.locationAddress.toLowerCase().contains(_selectedVendorLocation.toLowerCase()) ||
-          d.name.toLowerCase().contains(_selectedVendorName.toLowerCase())).toList();
-      if (vendorFiltered.isNotEmpty) {
-        rawDishes = vendorFiltered;
-      }
-    }
+    // 2. Pakwan flow
+    final allDaigs = _currentPakwanDishes;
+    final totalDaigs = allDaigs.length;
+    final totalPages = (totalDaigs / _itemsPerPage).ceil().clamp(1, 999);
+    final currentPage = _pakwanPage.clamp(1, totalPages);
+    final displayedDaigs = allDaigs.skip((currentPage - 1) * _itemsPerPage).take(_itemsPerPage).toList();
 
-    final dishes = rawDishes.take(6).toList();
-
-    if (dishes.isEmpty) return const SizedBox.shrink();
-
+    final String title = _selectedVendorId != 'all'
+        ? '🍲 $_selectedVendorName Shahi Degs'
+        : (_selectedCategory == 'All'
+            ? '🍲 Shahi Pakwan & Degs (شاہی دیگیں)'
+            : '🍲 $_selectedCategory Pakwan Degs');
+    final String subtitle = _selectedVendorId != 'all'
+        ? 'Directly from $_selectedVendorLocation'
+        : 'Authentic cauldrons & catering prepared by expert ustaads';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildListingTabSwitcher(),
+
+        // Section Header
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1324,7 +1781,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     title,
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 16.5,
                       fontWeight: FontWeight.w800,
                       color: AppTheme.textPrimary,
                     ),
@@ -1334,7 +1791,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     subtitle,
                     style: const TextStyle(
-                      fontSize: 11.5,
+                      fontSize: 11,
                       color: AppTheme.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -1343,14 +1800,73 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '$totalDaigs Degs',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFB45309),
+                ),
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 12),
-        ...dishes.map(
-          (dish) => ShahiDishCard(
-            item: dish,
-            cartState: widget.cartState,
+
+        // TOP PAGINATION BAR
+        _buildPaginationBar(
+          currentPage: currentPage,
+          totalPages: totalPages,
+          totalItems: totalDaigs,
+          onPageChanged: (newPage) => setState(() => _pakwanPage = newPage),
+        ),
+
+        const SizedBox(height: 4),
+
+        if (displayedDaigs.isEmpty) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: const Column(
+              children: [
+                Icon(Icons.soup_kitchen_outlined, size: 36, color: AppTheme.textLight),
+                SizedBox(height: 8),
+                Text(
+                  'No pakwan degs found for this selection',
+                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                ),
+              ],
+            ),
           ),
+        ] else ...[
+          ...displayedDaigs.map(
+            (daig) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: DaigCard(
+                daig: daig,
+                cartState: widget.cartState,
+              ),
+            ),
+          ),
+        ],
+
+        // BOTTOM PAGINATION BAR
+        _buildPaginationBar(
+          currentPage: currentPage,
+          totalPages: totalPages,
+          totalItems: totalDaigs,
+          onPageChanged: (newPage) => setState(() => _pakwanPage = newPage),
         ),
       ],
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/food_item.dart';
+import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
 import 'custom_image.dart';
@@ -22,6 +23,7 @@ class ShahiDishCard extends StatelessWidget {
     int quantity = 1;
     String selectedBadge = item.badges.isNotEmpty ? item.badges.first : 'Standard Portion';
     final notesController = TextEditingController();
+    bool isOfferExpanded = false;
 
     showModalBottomSheet(
       context: context,
@@ -31,6 +33,7 @@ class ShahiDishCard extends StatelessWidget {
         return StatefulBuilder(
           builder: (modalContext, setModalState) {
             final totalPrice = item.effectivePrice * quantity;
+            final vendorOffer = ApiService.instance.getVendorActiveOffer(item.subAdminId);
 
             return Container(
               margin: EdgeInsets.only(
@@ -130,6 +133,123 @@ class ShahiDishCard extends StatelessWidget {
                           ],
                         ),
                       ),
+
+                      // Collapsible Vendor Promo Offer Strip
+                      if (vendorOffer != null) ...[
+                        const SizedBox(height: 10),
+                        InkWell(
+                          onTap: () {
+                            setModalState(() {
+                              isOfferExpanded = !isOfferExpanded;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: isOfferExpanded
+                                    ? [const Color(0xFFEA580C), const Color(0xFFC2410C)]
+                                    : [const Color(0xFFFFF7ED), const Color(0xFFFED7AA)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isOfferExpanded ? const Color(0xFFEA580C) : const Color(0xFFFDBA74),
+                              ),
+                              boxShadow: isOfferExpanded
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(0xFFEA580C).withAlpha(60),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isOfferExpanded ? Colors.white : const Color(0xFFEA580C),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        '${vendorOffer['discountPercent'] ?? 20}% OFF',
+                                        style: TextStyle(
+                                          color: isOfferExpanded ? const Color(0xFFEA580C) : Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        vendorOffer['title'] ?? 'Special Outlet Deal',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                          color: isOfferExpanded ? Colors.white : const Color(0xFF9A3412),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Icon(
+                                      isOfferExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                      color: isOfferExpanded ? Colors.white : const Color(0xFF9A3412),
+                                      size: 18,
+                                    ),
+                                  ],
+                                ),
+                                if (isOfferExpanded) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    vendorOffer['dishesText'] ?? 'Special discount available on this kitchen outlet.',
+                                    style: const TextStyle(
+                                      fontSize: 11.5,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withAlpha(40),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'TAG: ${vendorOffer['tagText'] ?? 'SPECIAL OFFER'}',
+                                          style: const TextStyle(
+                                            color: Colors.amberAccent,
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ),
+                                      const Text(
+                                        'Tap to collapse ▲',
+                                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
 
                       const SizedBox(height: 14),
 
