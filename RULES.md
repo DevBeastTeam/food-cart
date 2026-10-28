@@ -261,6 +261,21 @@ This document specifies the complete functional architecture, workflows, operati
 
 ---
 
+## 17. 👑 Admin Portal: Commission, Vendor Payout & Sales Reports (2026)
+- **Vendor Commission & Net Payout Management**:
+  - In the Super Admin Portal (`php-backend/admin/index.php`), opening any Vendor Detail page features a dedicated **💰 Commission & Payout** sub-tab and metric cards.
+  - Admins can set custom platform commission cuts (default 10%, fully configurable per vendor).
+  - Displays Total Delivered Sales, Platform Commission Cut (Rs.), Net Vendor Payable Share (Rs.), Paid Settlements, and Outstanding Balance Due.
+  - **Record Payout / Settlement**: Admin can mark vendor balance as paid with 1-click settlement recording.
+- **1-Click Daily / Monthly Sales Report Downloads**:
+  - Admin can export formatted reports instantly:
+    - **📅 Today's Report (CSV)**: Delivered orders, customer details, gross amount, commission cut, and net vendor share for today.
+    - **📆 This Month's Report (CSV)**: Complete monthly sales breakdown.
+    - **📊 All-Time Ledger (CSV)**: Entire historical statement.
+    - **🖨️ Printable PDF Statement**: Print-ready official accounting invoice with platform logo, date stamp, vendor details, and clean ledger table (`window.print()`).
+
+---
+
 ## 15. 🚀 Mandatory Deployment Rules
 - **Automatic Deployment Command**:
   Whenever code changes are made:

@@ -887,8 +887,15 @@ if ($liveSuper) {
                                                 <span class="font-bold text-red-400 tabular-nums text-xs" x-text="sa.cancelledOrders || 0"></span>
                                             </td>
 
-                                            <!-- Gross Sales -->
-                                            <td class="py-3 px-3 font-black text-[#FF9500] tabular-nums whitespace-nowrap" x-text="'Rs. ' + Number(sa.totalSales || 0).toLocaleString()"></td>
+                                            <!-- Gross Sales & Commission Split -->
+                                            <td class="py-3 px-3 tabular-nums whitespace-nowrap">
+                                                <div class="font-black text-[#FF9500] text-xs" x-text="'Rs. ' + Number(sa.totalSales || 0).toLocaleString()"></div>
+                                                <div class="text-[9.5px] text-zinc-400 font-mono mt-0.5 flex items-center gap-1">
+                                                    <span class="text-amber-400 font-bold" x-text="'Cut: Rs. ' + Math.round(Number(sa.totalSales || 0) * (getVendorCommissionRate(sa.id) / 100)).toLocaleString()"></span>
+                                                    <span class="text-zinc-600">•</span>
+                                                    <span class="text-emerald-400 font-bold" x-text="'Net: Rs. ' + Math.round(Number(sa.totalSales || 0) * (1 - (getVendorCommissionRate(sa.id) / 100))).toLocaleString()"></span>
+                                                </div>
+                                            </td>
 
                                             <!-- Status (Active / Suspended) -->
                                             <td class="py-3 px-3 whitespace-nowrap" @click.stop>
@@ -1063,10 +1070,61 @@ if ($liveSuper) {
                             </div>
                         </div>
 
+                        <!-- Financial Settlement & 1-Click Reports Strip -->
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 mt-2 pt-2 border-t border-white/5 text-center">
+                            <div class="p-2.5 bg-zinc-950/80 rounded-xl border border-white/5 flex flex-col justify-center">
+                                <span class="text-[9.5px] uppercase font-bold text-zinc-400">Commission Rate</span>
+                                <div class="flex items-center justify-center gap-1 mt-0.5">
+                                    <input type="number" min="0" max="50" step="1"
+                                        :value="getVendorCommissionRate(viewingCenter?.id)"
+                                        @change="setVendorCommissionRate(viewingCenter?.id, $event.target.value)"
+                                        class="w-12 text-center bg-zinc-900 border border-white/10 rounded px-1 py-0.5 text-xs font-bold text-amber-400">
+                                    <span class="text-xs font-bold text-zinc-400">%</span>
+                                </div>
+                            </div>
+                            <div class="p-2.5 bg-zinc-950/80 rounded-xl border border-amber-500/20 flex flex-col justify-center">
+                                <span class="text-[9.5px] uppercase font-bold text-amber-400">Platform Cut (Earned)</span>
+                                <p class="text-sm sm:text-base font-black text-amber-300 mt-0.5 tabular-nums"
+                                    x-text="'Rs. ' + Number(calcPlatformCommission(viewingCenter)).toLocaleString()"></p>
+                            </div>
+                            <div class="p-2.5 bg-zinc-950/80 rounded-xl border border-emerald-500/20 flex flex-col justify-center">
+                                <span class="text-[9.5px] uppercase font-bold text-emerald-400">Vendor Net Payable (Payout)</span>
+                                <p class="text-sm sm:text-base font-black text-emerald-300 mt-0.5 tabular-nums"
+                                    x-text="'Rs. ' + Number(calcVendorNetPayout(viewingCenter)).toLocaleString()"></p>
+                            </div>
+                            <div class="p-2.5 bg-zinc-950/80 rounded-xl border border-white/5 flex flex-col justify-center items-center">
+                                <span class="text-[9.5px] uppercase font-bold text-zinc-400 mb-1">Download Reports</span>
+                                <div class="flex items-center gap-1.5 flex-wrap justify-center">
+                                    <button type="button" @click="downloadVendorReport(viewingCenter, 'today')"
+                                        class="px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
+                                        title="Download Today's Report">
+                                        <span>📅 Today CSV</span>
+                                    </button>
+                                    <button type="button" @click="downloadVendorReport(viewingCenter, 'month')"
+                                        class="px-2 py-1 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
+                                        title="Download This Month's Report">
+                                        <span>🗓️ Month CSV</span>
+                                    </button>
+                                    <button type="button" @click="printVendorStatement(viewingCenter)"
+                                        class="px-2 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
+                                        title="Print / Save PDF Statement">
+                                        <span>🖨️ PDF Print</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                     <!-- DETAIL PAGE SUB-TABS NAVIGATION -->
                     <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-semibold border-b border-white/5">
+                        <button type="button" @click="detailSubTab = 'payout'"
+                            class="px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5"
+                            :class="detailSubTab === 'payout' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white'">
+                            <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+                            <span>💰 Commission & Payout</span>
+                        </button>
+
                         <button type="button" @click="detailSubTab = 'orders'"
                             class="px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1.5"
                             :class="detailSubTab === 'orders' ? 'bg-[#FF9500] text-black font-bold shadow-sm' : 'bg-zinc-900 text-zinc-400 hover:text-white'">
@@ -1101,6 +1159,199 @@ if ($liveSuper) {
                             <i data-lucide="utensils" class="w-3.5 h-3.5"></i>
                             <span>🍽️ Restaurant Dishes (<span x-text="(viewingCenter?.foods || []).length"></span>)</span>
                         </button>
+                    </div>
+
+                    <!-- ======================================================= -->
+                    <!-- SUB-TAB 0: 💰 COMMISSION & PAYOUTS HUB -->
+                    <!-- ======================================================= -->
+                    <div x-show="detailSubTab === 'payout'" class="space-y-4">
+                        <!-- Payout & Commission Header Card -->
+                        <div class="cupertino-card rounded-2xl p-4 sm:p-5 space-y-4 border border-amber-500/25 bg-gradient-to-br from-zinc-950 via-zinc-900 to-amber-950/20">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
+                                <div>
+                                    <h4 class="text-sm font-black text-white flex items-center gap-2">
+                                        <i data-lucide="calculator" class="w-4 h-4 text-[#FF9500]"></i>
+                                        <span>Vendor Commission & Payout Settlement (<span x-text="viewingCenter?.businessName || viewingCenter?.name"></span>)</span>
+                                    </h4>
+                                    <p class="text-xs text-zinc-400 mt-0.5">Platform commission calculation, net vendor earnings ledger, and automated payout settlements.</p>
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button type="button" @click="recordVendorPayout(viewingCenter)"
+                                        class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-extrabold rounded-xl text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-all">
+                                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                                        <span>Mark Payout Settled</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 4 Key Settlement Metric Cards -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <div class="p-3 bg-zinc-900/80 rounded-xl border border-white/5">
+                                    <span class="text-[10px] uppercase font-bold text-zinc-400">Total Delivered Sales</span>
+                                    <p class="text-base sm:text-lg font-black text-[#FF9500] mt-1 tabular-nums"
+                                        x-text="'Rs. ' + Number(viewingCenter?.totalSales || 0).toLocaleString()"></p>
+                                    <span class="text-[9.5px] text-zinc-500 mt-0.5 block" x-text="(viewingCenter?.deliveredOrders || 0) + ' Delivered Orders'"></span>
+                                </div>
+
+                                <div class="p-3 bg-zinc-900/80 rounded-xl border border-amber-500/20">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] uppercase font-bold text-amber-400">Platform Cut</span>
+                                        <span class="text-[10px] font-bold text-amber-300 font-mono" x-text="getVendorCommissionRate(viewingCenter?.id) + '% Rate'"></span>
+                                    </div>
+                                    <p class="text-base sm:text-lg font-black text-amber-300 mt-1 tabular-nums"
+                                        x-text="'Rs. ' + Number(calcPlatformCommission(viewingCenter)).toLocaleString()"></p>
+                                    <span class="text-[9.5px] text-amber-400/80 mt-0.5 block">FoodCourt Platform Revenue</span>
+                                </div>
+
+                                <div class="p-3 bg-zinc-900/80 rounded-xl border border-emerald-500/20">
+                                    <span class="text-[10px] uppercase font-bold text-emerald-400">Vendor Net Payout</span>
+                                    <p class="text-base sm:text-lg font-black text-emerald-300 mt-1 tabular-nums"
+                                        x-text="'Rs. ' + Number(calcVendorNetPayout(viewingCenter)).toLocaleString()"></p>
+                                    <span class="text-[9.5px] text-emerald-400/80 mt-0.5 block">Payable to Store Owner</span>
+                                </div>
+
+                                <div class="p-3 bg-zinc-900/80 rounded-xl border"
+                                    :class="(calcVendorNetPayout(viewingCenter) - getVendorPaidAmount(viewingCenter?.id)) > 0 ? 'border-red-500/30 bg-red-950/20' : 'border-green-500/30 bg-green-950/20'">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-[10px] uppercase font-bold"
+                                            :class="(calcVendorNetPayout(viewingCenter) - getVendorPaidAmount(viewingCenter?.id)) > 0 ? 'text-red-400' : 'text-emerald-400'">
+                                            Current Balance Due
+                                        </span>
+                                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded"
+                                            :class="(calcVendorNetPayout(viewingCenter) - getVendorPaidAmount(viewingCenter?.id)) > 0 ? 'bg-red-500/20 text-red-300' : 'bg-emerald-500/20 text-emerald-300'"
+                                            x-text="(calcVendorNetPayout(viewingCenter) - getVendorPaidAmount(viewingCenter?.id)) > 0 ? 'Pending' : 'Settled'">
+                                        </span>
+                                    </div>
+                                    <p class="text-base sm:text-lg font-black mt-1 tabular-nums"
+                                        :class="(calcVendorNetPayout(viewingCenter) - getVendorPaidAmount(viewingCenter?.id)) > 0 ? 'text-red-300' : 'text-emerald-300'"
+                                        x-text="'Rs. ' + Math.max(0, calcVendorNetPayout(viewingCenter) - getVendorPaidAmount(viewingCenter?.id)).toLocaleString()"></p>
+                                    <span class="text-[9.5px] text-zinc-400 mt-0.5 block"
+                                        x-text="'Already Paid: Rs. ' + getVendorPaidAmount(viewingCenter?.id).toLocaleString()"></span>
+                                </div>
+                            </div>
+
+                            <!-- 1-Click Reports Download Station -->
+                            <div class="pt-3 border-t border-white/5 flex flex-wrap items-center justify-between gap-3">
+                                <div class="flex items-center gap-1.5 text-xs text-zinc-300">
+                                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-[#FF9500]"></i>
+                                    <span class="font-bold">Instant Report Downloads:</span>
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <button type="button" @click="downloadVendorReport(viewingCenter, 'today')"
+                                        class="px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
+                                        <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                                        <span>Download Today's Report (CSV)</span>
+                                    </button>
+                                    <button type="button" @click="downloadVendorReport(viewingCenter, 'month')"
+                                        class="px-3 py-1.5 bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
+                                        <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i>
+                                        <span>Download This Month's Report (CSV)</span>
+                                    </button>
+                                    <button type="button" @click="downloadVendorReport(viewingCenter, 'all')"
+                                        class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
+                                        <i data-lucide="download" class="w-3.5 h-3.5 text-[#FF9500]"></i>
+                                        <span>All-Time Ledger (CSV)</span>
+                                    </button>
+                                    <button type="button" @click="printVendorStatement(viewingCenter)"
+                                        class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
+                                        <i data-lucide="printer" class="w-3.5 h-3.5 text-[#FF9500]"></i>
+                                        <span>Print PDF Invoice</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Orders & Commission Statement Table -->
+                        <div class="cupertino-card rounded-2xl overflow-hidden shadow-sm">
+                            <div class="px-3.5 py-2.5 border-b border-white/5 flex flex-wrap items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+                                        <i data-lucide="receipt" class="w-3.5 h-3.5 text-[#FF9500]"></i>
+                                        <span>Orders Financial Statement Ledger</span>
+                                    </h4>
+                                </div>
+
+                                <!-- Filter Buttons -->
+                                <div class="inline-flex p-0.5 bg-zinc-900 rounded-lg border border-white/5 text-[11px]">
+                                    <button type="button" @click="payoutPeriodFilter = 'all'"
+                                        class="px-2.5 py-1 rounded-md font-bold transition-all"
+                                        :class="payoutPeriodFilter === 'all' ? 'bg-[#FF9500] text-black shadow-sm' : 'text-zinc-400 hover:text-white'">
+                                        All Time
+                                    </button>
+                                    <button type="button" @click="payoutPeriodFilter = 'today'"
+                                        class="px-2.5 py-1 rounded-md font-bold transition-all"
+                                        :class="payoutPeriodFilter === 'today' ? 'bg-[#FF9500] text-black shadow-sm' : 'text-zinc-400 hover:text-white'">
+                                        Today (آج)
+                                    </button>
+                                    <button type="button" @click="payoutPeriodFilter = 'month'"
+                                        class="px-2.5 py-1 rounded-md font-bold transition-all"
+                                        :class="payoutPeriodFilter === 'month' ? 'bg-[#FF9500] text-black shadow-sm' : 'text-zinc-400 hover:text-white'">
+                                        This Month (ماہانہ)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-zinc-950/70 text-zinc-400 uppercase font-semibold text-[9.5px] border-b border-white/5">
+                                        <tr>
+                                            <th class="py-2.5 px-3">Order ID & Date</th>
+                                            <th class="py-2.5 px-3">Customer Info</th>
+                                            <th class="py-2.5 px-3">Type</th>
+                                            <th class="py-2.5 px-3">Status</th>
+                                            <th class="py-2.5 px-3 text-right">Gross COD (Rs.)</th>
+                                            <th class="py-2.5 px-3 text-right">Platform Cut (Rs.)</th>
+                                            <th class="py-2.5 px-3 text-right">Vendor Net (Rs.)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5 font-medium text-zinc-300">
+                                        <template x-for="ord in getFilteredVendorOrders(viewingCenter, payoutPeriodFilter)" :key="ord.id">
+                                            <tr class="hover:bg-zinc-800/40 transition-colors">
+                                                <td class="py-2.5 px-3 whitespace-nowrap">
+                                                    <span class="font-bold text-white font-mono text-xs" x-text="'#' + ord.id"></span>
+                                                    <div class="text-[10px] text-zinc-400 font-mono mt-0.5" x-text="formatDateShort(ord.orderDate)"></div>
+                                                </td>
+                                                <td class="py-2.5 px-3 whitespace-nowrap">
+                                                    <div class="font-semibold text-white" x-text="ord.customerName"></div>
+                                                    <div class="text-[10px] text-[#FF9500] font-mono" x-text="ord.customerPhone"></div>
+                                                </td>
+                                                <td class="py-2.5 px-3 whitespace-nowrap">
+                                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
+                                                        :class="ord.isDaigBooking ? 'bg-amber-500/15 text-amber-300 border border-amber-500/25' : 'bg-orange-500/15 text-[#FF9500] border border-orange-500/25'"
+                                                        x-text="ord.isDaigBooking ? '👑 DAIG' : '🍽️ FOOD'">
+                                                    </span>
+                                                </td>
+                                                <td class="py-2.5 px-3 whitespace-nowrap">
+                                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border"
+                                                        :class="{
+                                                            'bg-emerald-500/15 text-emerald-400 border-emerald-500/25': ord.status === 'Delivered',
+                                                            'bg-amber-500/15 text-amber-400 border-amber-500/25': ord.status === 'Accepted' || ord.status === 'Preparing',
+                                                            'bg-sky-500/15 text-sky-400 border-sky-500/25': ord.status === 'On the Way',
+                                                            'bg-red-500/15 text-red-400 border-red-500/25': ord.status === 'Cancelled'
+                                                        }"
+                                                        x-text="ord.status">
+                                                    </span>
+                                                </td>
+                                                <td class="py-2.5 px-3 text-right font-black text-[#FF9500] tabular-nums whitespace-nowrap"
+                                                    x-text="'Rs. ' + Number(ord.totalAmount || 0).toLocaleString()">
+                                                </td>
+                                                <td class="py-2.5 px-3 text-right font-bold text-amber-300 tabular-nums whitespace-nowrap"
+                                                    x-text="'Rs. ' + (ord.status === 'Delivered' ? Math.round(Number(ord.totalAmount || 0) * (getVendorCommissionRate(viewingCenter?.id) / 100)).toLocaleString() : '0')">
+                                                </td>
+                                                <td class="py-2.5 px-3 text-right font-black text-emerald-400 tabular-nums whitespace-nowrap"
+                                                    x-text="'Rs. ' + (ord.status === 'Delivered' ? Math.round(Number(ord.totalAmount || 0) * (1 - (getVendorCommissionRate(viewingCenter?.id) / 100))).toLocaleString() : '0')">
+                                                </td>
+                                            </tr>
+                                        </template>
+                                        <template x-if="getFilteredVendorOrders(viewingCenter, payoutPeriodFilter).length === 0">
+                                            <tr>
+                                                <td colspan="7" class="text-center py-8 text-zinc-500 italic">No orders found for the selected reporting period.</td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- ======================================================= -->
@@ -2574,6 +2825,9 @@ if ($liveSuper) {
             return {
                 activeTab: 'analytics',
                 detailSubTab: 'orders',
+                payoutPeriodFilter: 'all',
+                vendorCommissionRates: JSON.parse(localStorage.getItem('fc_vendor_commission_rates') || '{}'),
+                vendorPayouts: JSON.parse(localStorage.getItem('fc_vendor_payouts') || '{}'),
                 viewingCenter: null,
                 loading: false,
 
@@ -2805,6 +3059,245 @@ if ($liveSuper) {
                         this.loading = false;
                         this.$nextTick(() => lucide.createIcons());
                     }
+                },
+
+                getVendorCommissionRate(vendorId) {
+                    if (!vendorId) return 10;
+                    return this.vendorCommissionRates[vendorId] ?? 10;
+                },
+
+                setVendorCommissionRate(vendorId, rate) {
+                    if (!vendorId) return;
+                    const r = Math.max(0, Math.min(50, Number(rate) || 10));
+                    this.vendorCommissionRates[vendorId] = r;
+                    localStorage.setItem('fc_vendor_commission_rates', JSON.stringify(this.vendorCommissionRates));
+                    this.showToast(`✅ Commission rate set to ${r}% for vendor!`);
+                },
+
+                calcPlatformCommission(center, rateOverride = null) {
+                    if (!center) return 0;
+                    const rate = (rateOverride !== null ? rateOverride : this.getVendorCommissionRate(center.id)) / 100;
+                    const sales = Number(center.totalSales || 0);
+                    return Math.round(sales * rate);
+                },
+
+                calcVendorNetPayout(center, rateOverride = null) {
+                    if (!center) return 0;
+                    const sales = Number(center.totalSales || 0);
+                    const comm = this.calcPlatformCommission(center, rateOverride);
+                    return Math.max(0, sales - comm);
+                },
+
+                getVendorPaidAmount(vendorId) {
+                    if (!vendorId) return 0;
+                    return Number(this.vendorPayouts[vendorId]?.paidAmount || 0);
+                },
+
+                recordVendorPayout(center) {
+                    if (!center) return;
+                    const netPayout = this.calcVendorNetPayout(center);
+                    const currentPaid = this.getVendorPaidAmount(center.id);
+                    const remaining = Math.max(0, netPayout - currentPaid);
+                    if (remaining <= 0) {
+                        this.showToast(`Vendor ${center.businessName || center.name} ka payout pehle se mukammal settled hai.`);
+                        return;
+                    }
+                    if (!confirm(`Kya aap ${center.businessName || center.name} ko Rs. ${remaining.toLocaleString()} ki payment mark karna chahte hain?\n\nIs se inka balance zero/settled ho jayega.`)) return;
+
+                    this.vendorPayouts[center.id] = {
+                        paidAmount: netPayout,
+                        lastPaidAt: new Date().toISOString(),
+                        status: 'paid'
+                    };
+                    localStorage.setItem('fc_vendor_payouts', JSON.stringify(this.vendorPayouts));
+                    this.showToast(`✅ Rs. ${remaining.toLocaleString()} ka payout mark ho gaya!`);
+                },
+
+                getFilteredVendorOrders(center, period = 'all') {
+                    if (!center || !center.orders) return [];
+                    const orders = center.orders;
+                    if (period === 'all') return orders;
+                    const now = new Date();
+                    const todayStr = now.toISOString().split('T')[0];
+                    const currentMonth = now.getMonth();
+                    const currentYear = now.getFullYear();
+
+                    return orders.filter(o => {
+                        if (!o.orderDate) return false;
+                        const d = new Date(o.orderDate);
+                        if (period === 'today') {
+                            return o.orderDate.startsWith(todayStr);
+                        }
+                        if (period === 'month') {
+                            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                        }
+                        return true;
+                    });
+                },
+
+                downloadVendorReport(center, period = 'month') {
+                    if (!center) return;
+                    const filtered = this.getFilteredVendorOrders(center, period);
+                    const now = new Date();
+                    const todayStr = now.toISOString().split('T')[0];
+                    const commRate = this.getVendorCommissionRate(center.id) / 100;
+
+                    let csv = `Vendor Sales & Payout Report - ${center.businessName || center.name}\n`;
+                    csv += `Period: ${period.toUpperCase()} | Generated At: ${new Date().toLocaleString()}\n`;
+                    csv += `Vendor Phone: ${center.phone || ''} | Address: ${center.address || ''} • ${center.city || ''}\n\n`;
+                    csv += `Order ID,Date Time,Customer Name,Customer Phone,Status,Order Type,Gross COD Amount (PKR),Platform Commission (${commRate * 100}%),Vendor Net Payable (PKR),Delivery Address,Items Summary\n`;
+
+                    let totalGross = 0;
+                    let totalComm = 0;
+                    let totalNet = 0;
+
+                    filtered.forEach(o => {
+                        const amt = Number(o.totalAmount || 0);
+                        const isDelivered = o.status === 'Delivered';
+                        const comm = isDelivered ? Math.round(amt * commRate) : 0;
+                        const net = isDelivered ? (amt - comm) : 0;
+                        if (isDelivered) {
+                            totalGross += amt;
+                            totalComm += comm;
+                            totalNet += net;
+                        }
+                        const itemsStr = Array.isArray(o.items) ? o.items.join('; ') : (o.items || '');
+                        const cleanAddr = (o.deliveryAddress || '').replace(/"/g, '""');
+                        const cleanCust = (o.customerName || '').replace(/"/g, '""');
+                        const cleanItems = itemsStr.replace(/"/g, '""');
+                        const typeLabel = o.isDaigBooking ? 'Shahi Daig' : 'Restaurant Food';
+                        csv += `"${o.id}","${o.orderDate}","${cleanCust}","${o.customerPhone || ''}","${o.status}","${typeLabel}",${amt},${comm},${net},"${cleanAddr}","${cleanItems}"\n`;
+                    });
+
+                    csv += `\nTOTAL DELIVERED SALES,,,,,"",${totalGross},${totalComm},${totalNet},,\n`;
+
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `${center.id}_${period}_report_${todayStr}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    this.showToast(`📊 ${period.toUpperCase()} Sales Report downloaded (${filtered.length} orders)!`);
+                },
+
+                printVendorStatement(center) {
+                    if (!center) return;
+                    const orders = center.orders || [];
+                    const commRate = this.getVendorCommissionRate(center.id) / 100;
+                    const gross = Number(center.totalSales || 0);
+                    const comm = Math.round(gross * commRate);
+                    const net = gross - comm;
+                    const paid = this.getVendorPaidAmount(center.id);
+                    const balance = Math.max(0, net - paid);
+
+                    const win = window.open('', '_blank');
+                    if (!win) {
+                        alert('Pop-up was blocked. Please allow popups for printable reports.');
+                        return;
+                    }
+                    win.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Vendor Statement - ${center.businessName || center.name}</title>
+                            <style>
+                                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 25px; color: #111; max-width: 900px; margin: auto; }
+                                .header { border-bottom: 2px solid #ea580c; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+                                .brand { font-size: 22px; font-weight: 900; color: #ea580c; }
+                                .meta { font-size: 13px; color: #555; }
+                                .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px; }
+                                .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; background: #fafafa; }
+                                .card-title { font-size: 11px; text-transform: uppercase; color: #666; font-weight: 700; }
+                                .card-val { font-size: 18px; font-weight: 800; margin-top: 4px; }
+                                .text-orange { color: #ea580c; }
+                                .text-green { color: #16a34a; }
+                                table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 15px; }
+                                th { background: #f3f4f6; text-align: left; padding: 8px 10px; border-bottom: 2px solid #ccc; }
+                                td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+                                .footer { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px; font-size: 11px; color: #888; text-align: center; }
+                                @media print { .no-print { display: none; } }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="no-print" style="margin-bottom: 15px;">
+                                <button onclick="window.print()" style="background:#ea580c; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:bold; cursor:pointer;">🖨️ Print / Save PDF</button>
+                            </div>
+                            <div class="header">
+                                <div>
+                                    <div class="brand">👑 Cravee FoodCourt & Shahi Pakwan</div>
+                                    <div class="meta" style="margin-top:4px;">Vendor Settlement Statement</div>
+                                </div>
+                                <div style="text-align: right;" class="meta">
+                                    <div><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
+                                    <div><strong>Vendor ID:</strong> ${center.id}</div>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 20px; font-size: 13px;">
+                                <p style="margin: 2px 0;"><strong>Store:</strong> ${center.businessName || center.name}</p>
+                                <p style="margin: 2px 0;"><strong>Manager:</strong> ${center.name} • <strong>Phone:</strong> ${center.phone || '—'}</p>
+                                <p style="margin: 2px 0;"><strong>Address:</strong> ${center.address || 'Lahore'} • ${center.city || 'Lahore'}</p>
+                            </div>
+
+                            <div class="summary-grid">
+                                <div class="card">
+                                    <div class="card-title">Gross Sales</div>
+                                    <div class="card-val text-orange">Rs. ${gross.toLocaleString()}</div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-title">Platform Cut (${commRate * 100}%)</div>
+                                    <div class="card-val">Rs. ${comm.toLocaleString()}</div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-title">Vendor Net Payable</div>
+                                    <div class="card-val text-green">Rs. ${net.toLocaleString()}</div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-title">Balance Due</div>
+                                    <div class="card-val" style="color: ${balance > 0 ? '#b91c1c' : '#15803d'}">Rs. ${balance.toLocaleString()}</div>
+                                </div>
+                            </div>
+
+                            <h3 style="font-size: 14px; margin-bottom: 8px;">Orders Breakdown (${orders.length} total orders)</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th style="text-align:right;">Gross COD</th>
+                                        <th style="text-align:right;">Platform Cut</th>
+                                        <th style="text-align:right;">Net Vendor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${orders.map(o => {
+                                        const a = Number(o.totalAmount || 0);
+                                        const c = Math.round(a * commRate);
+                                        const n = a - c;
+                                        return `<tr>
+                                            <td><strong>#${o.id}</strong></td>
+                                            <td>${(o.orderDate || '').replace('T', ' ').substring(0, 16)}</td>
+                                            <td>${o.customerName || 'Guest'}</td>
+                                            <td>${o.status}</td>
+                                            <td style="text-align:right;">Rs. ${a.toLocaleString()}</td>
+                                            <td style="text-align:right;">Rs. ${c.toLocaleString()}</td>
+                                            <td style="text-align:right;"><strong>Rs. ${n.toLocaleString()}</strong></td>
+                                        </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+
+                            <div class="footer">
+                                Official financial statement generated by Cravee FoodCourt Admin Portal.
+                            </div>
+                        </body>
+                        </html>
+                    `);
+                    win.document.close();
                 },
 
                 openNotificationSheet(sa) {
