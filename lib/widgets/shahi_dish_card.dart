@@ -586,7 +586,7 @@ class ShahiDishCard extends StatelessWidget {
                                     letterSpacing: -0.5,
                                   ),
                                 ),
-                                if (item.isDiscounted && item.savingsAmount > 0) ...[
+                                if (item.hasDiscount && item.savingsAmount > 0) ...[
                                   const SizedBox(width: 6),
                                   Text(
                                     item.formattedOriginalPrice,

@@ -21,6 +21,9 @@ class DaigItem {
   final String centerName;
   final int discountPercent;
   final double discountPrice;
+  final double cutPrice;
+  final bool showCutPrice;
+  final String location;
   final bool isDiscounted;
   final String promoBadge;
   final String subAdminId;
@@ -53,6 +56,9 @@ class DaigItem {
     this.centerName = 'Shahi Pakwan Center',
     this.discountPercent = 0,
     this.discountPrice = 0.0,
+    this.cutPrice = 0.0,
+    this.showCutPrice = true,
+    this.location = 'Main Pakwan Kitchen, Islamabad (G-9 Markaz)',
     this.isDiscounted = false,
     this.promoBadge = '',
     this.subAdminId = 'sub_admin_2',
@@ -116,8 +122,11 @@ class DaigItem {
       calories: sizeName == 'small' ? 6000 : (sizeName == 'medium' ? 9500 : 13000),
       isPopular: true,
       isVegetarian: category == 'Sweet & Desserts',
+      locationAddress: location,
       discountPercent: discountPercent,
       discountPrice: calculatedDiscountPrice,
+      cutPrice: cutPrice > 0 ? (sizeName.toLowerCase().contains('half') || sizeName.toLowerCase().contains('small') ? (cutPrice * 0.55).roundToDouble() : cutPrice) : 0.0,
+      showCutPrice: showCutPrice,
       isDiscounted: isDiscounted || discountPercent > 0,
       promoBadge: promoBadge,
       subAdminId: subAdminId.isNotEmpty ? subAdminId : 'sub_admin_2',

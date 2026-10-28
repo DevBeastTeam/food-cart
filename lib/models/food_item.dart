@@ -15,6 +15,8 @@ class FoodItem {
   final String badge;
   final int discountPercent;
   final double discountPrice;
+  final double cutPrice;
+  final bool showCutPrice;
   final bool isDiscounted;
   final String promoBadge;
   final String subAdminId;
@@ -36,18 +38,35 @@ class FoodItem {
     this.badge = 'Most Ordered',
     this.discountPercent = 0,
     this.discountPrice = 0.0,
+    this.cutPrice = 0.0,
+    this.showCutPrice = true,
     this.isDiscounted = false,
     this.promoBadge = '',
     this.subAdminId = '',
   });
 
-  double get effectivePrice =>
-      (isDiscounted && discountPrice > 0) ? discountPrice : price;
+  double get effectivePrice {
+    if (cutPrice > 0 && price > 0) return price;
+    if (isDiscounted && discountPrice > 0) return discountPrice;
+    return price;
+  }
 
   String get formattedPrice => 'Rs. ${effectivePrice.toInt()}';
 
-  String get formattedOriginalPrice => 'Rs. ${price.toInt()}';
+  String get formattedOriginalPrice {
+    if (cutPrice > 0) return 'Rs. ${cutPrice.toInt()}';
+    return 'Rs. ${price.toInt()}';
+  }
 
-  double get savingsAmount =>
-      (isDiscounted && discountPrice > 0) ? (price - discountPrice) : 0.0;
+  bool get hasDiscount {
+    if (showCutPrice && cutPrice > effectivePrice) return true;
+    if (isDiscounted && discountPrice > 0 && price > discountPrice) return true;
+    return discountPercent > 0;
+  }
+
+  double get savingsAmount {
+    if (cutPrice > effectivePrice) return cutPrice - effectivePrice;
+    if (isDiscounted && discountPrice > 0) return price - discountPrice;
+    return 0.0;
+  }
 }

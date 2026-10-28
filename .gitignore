@@ -48,6 +48,7 @@ app.*.map.json
 **/node_modules/
 **/dist/
 .env
+*.apk
 .env.*
 
 php-backend-deploy.zip

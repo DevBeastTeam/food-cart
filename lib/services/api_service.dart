@@ -25,15 +25,7 @@ class ApiService {
     if (customBaseUrl != null && customBaseUrl!.trim().isNotEmpty) {
       return customBaseUrl!.trim().replaceAll(RegExp(r'/+$'), '');
     }
-    if (kIsWeb) {
-      return 'http://localhost:5000/api';
-    }
-    try {
-      if (Platform.isAndroid) {
-        return 'http://10.0.2.2:5000/api';
-      }
-    } catch (_) {}
-    return 'http://localhost:5000/api';
+    return liveProductionUrl;
   }
 
   bool _isBackendConnected = false;
@@ -148,6 +140,9 @@ class ApiService {
               includes: List<String>.from(d['includes'] ?? []),
               discountPercent: discPct,
               discountPrice: (d['discountPrice'] as num?)?.toDouble() ?? 0.0,
+              cutPrice: (d['cutPrice'] as num?)?.toDouble() ?? 0.0,
+              showCutPrice: d['showCutPrice'] == 1 || d['showCutPrice'] == true || d['showCutPrice'] == null,
+              location: d['location'] ?? 'Main Pakwan Kitchen, Islamabad (G-9 Markaz)',
               isDiscounted: d['isDiscounted'] == 1 || d['isDiscounted'] == true || discPct > 0,
               promoBadge: d['promoBadge'] ?? '',
               subAdminId: d['sub_admin_id'] ?? 'sub_admin_2',
@@ -447,6 +442,8 @@ class ApiService {
       badges: List<String>.from(i['badges'] ?? ['Special']),
       discountPercent: discPct,
       discountPrice: (i['discountPrice'] as num?)?.toDouble() ?? 0.0,
+      cutPrice: (i['cutPrice'] as num?)?.toDouble() ?? 0.0,
+      showCutPrice: i['showCutPrice'] == 1 || i['showCutPrice'] == true || i['showCutPrice'] == null,
       isDiscounted: i['isDiscounted'] == 1 || i['isDiscounted'] == true || discPct > 0,
       promoBadge: i['promoBadge'] ?? '',
       subAdminId: i['sub_admin_id'] ?? '',

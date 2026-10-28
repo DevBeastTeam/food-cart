@@ -71,7 +71,7 @@ fi
 echo -e "\n${BOLD}${YELLOW}[2/5] Updating Standalone Hosting Deployment Package...${RESET}"
 
 if command -v zip &>/dev/null; then
-    (cd php-backend && zip -q -r -FS ../php-backend-deploy.zip . -x "*.DS_Store")
+    (cd php-backend && zip -q -r -FS ../php-backend-deploy.zip . -x "*.DS_Store" -x "uploads/*.apk")
     ZIP_SIZE=$(du -h php-backend-deploy.zip | awk '{print $1}')
     echo -e "  ${GREEN}✓ Updated php-backend-deploy.zip ($ZIP_SIZE) for 1-click manual upload${RESET}"
 else

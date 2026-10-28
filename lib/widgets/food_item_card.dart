@@ -200,7 +200,7 @@ class FoodItemCard extends StatelessWidget {
                         color: AppTheme.primary,
                       ),
                     ),
-                    if (item.isDiscounted && item.savingsAmount > 0)
+                    if (item.hasDiscount && item.savingsAmount > 0)
                       Text(
                         item.formattedOriginalPrice,
                         style: const TextStyle(

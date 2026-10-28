@@ -669,6 +669,23 @@ class _DaigCardState extends State<DaigCard> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (widget.daig.location.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_rounded, size: 12, color: Color(0xFFD97706)),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          widget.daig.location,
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF92400E), fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 10),
 
                 // Serving Badges
@@ -742,10 +759,12 @@ class _DaigCardState extends State<DaigCard> {
                                     color: AppTheme.primary,
                                   ),
                                 ),
-                                if (widget.daig.discountPrice > 0 || widget.daig.discountPercent > 0) ...[
+                                if ((widget.daig.showCutPrice && widget.daig.cutPrice > widget.daig.fullDaigPrice) || widget.daig.discountPrice > 0 || widget.daig.discountPercent > 0) ...[
                                   const SizedBox(width: 6),
                                   Text(
-                                    'Rs. ${widget.daig.fullDaigPrice.toInt()}',
+                                    widget.daig.cutPrice > widget.daig.fullDaigPrice
+                                        ? 'Rs. ${widget.daig.cutPrice.toInt()}'
+                                        : 'Rs. ${widget.daig.fullDaigPrice.toInt()}',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       decoration: TextDecoration.lineThrough,
