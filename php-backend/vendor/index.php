@@ -3,13 +3,25 @@
 // Vendor & Pakwan Center Manager Portal — Cupertino iOS Style (Minimal Gaps, High Density, Orange Theme)
 session_start();
 
+require_once __DIR__ . '/../config/database.php';
+$pdo = getDb();
+
+// Super Admin Direct Login / Impersonation Support
+if (!empty($_GET['impersonate']) && isset($_SESSION['super_admin'])) {
+    $targetId = trim($_GET['impersonate']);
+    $stmtTarget = $pdo->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
+    $stmtTarget->execute([$targetId]);
+    $vendorTarget = $stmtTarget->fetch();
+    if ($vendorTarget) {
+        $_SESSION['admin_user'] = $vendorTarget;
+        $_SESSION['impersonated_by_admin'] = true;
+    }
+}
+
 if (!isset($_SESSION['admin_user'])) {
     header('Location: /vendor/login.php');
     exit;
 }
-
-require_once __DIR__ . '/../config/database.php';
-$pdo = getDb();
 
 // Live ban check from database on every visit
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
@@ -130,7 +142,21 @@ $adminUser = $_SESSION['admin_user'];
         }
     </style>
 </head>
-<body class="h-full flex overflow-hidden font-sans antialiased bg-[#09090b] text-zinc-100" x-data="vendorApp()" x-init="initApp()" x-cloak>
+<body class="h-full flex flex-col overflow-hidden font-sans antialiased bg-[#09090b] text-zinc-100" x-data="vendorApp()" x-init="initApp()" x-cloak>
+
+    <?php if (!empty($_SESSION['impersonated_by_admin'])): ?>
+    <div class="bg-gradient-to-r from-purple-950 via-indigo-950 to-purple-950 border-b border-purple-500/40 text-white px-4 py-1.5 text-xs flex items-center justify-between shrink-0 shadow-md">
+        <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-full bg-purple-500 text-white font-extrabold text-[10px]">👑 SUPER ADMIN ACCESS</span>
+            <span class="text-zinc-200">Logged in as outlet: <strong class="text-white"><?= htmlspecialchars($adminUser['businessName'] ?: $adminUser['name']) ?></strong></span>
+        </div>
+        <a href="../admin/" class="px-2.5 py-0.5 rounded-lg bg-purple-500/30 hover:bg-purple-500/50 text-purple-200 hover:text-white font-bold text-[11px] border border-purple-400/30 transition-colors flex items-center gap-1">
+            <span>← Return to Super Admin</span>
+        </a>
+    </div>
+    <?php endif; ?>
+
+    <div class="flex-1 flex overflow-hidden">
 
     <!-- Toast Notification (Cupertino Capsule) -->
     <aside x-show="toast.visible" x-transition.opacity.duration.250ms

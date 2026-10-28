@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/api_service.dart';
 import 'services/notification_service.dart';
 import 'state/cart_state.dart';
@@ -51,7 +51,7 @@ class _CraveeFoodAppState extends State<CraveeFoodApp> {
       title: 'Food Court — Food & Grocery Delivery',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: HomeScreen(cartState: _cartState, userState: _userState),
+      home: SplashScreen(cartState: _cartState, userState: _userState),
     );
   }
 }

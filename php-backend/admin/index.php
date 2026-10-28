@@ -904,6 +904,14 @@ if ($liveSuper) {
                                             <!-- Actions Row Buttons -->
                                             <td class="py-3 px-3 text-right whitespace-nowrap" @click.stop>
                                                 <div class="inline-flex items-center gap-1">
+                                                    <!-- Open Vendor Dashboard Button (Direct Login as Vendor) -->
+                                                    <a :href="'../vendor/index.php?impersonate=' + sa.id" target="_blank"
+                                                        class="px-2.5 py-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-[#FF9500] hover:text-white rounded-lg text-[10.5px] font-extrabold border border-amber-500/35 flex items-center gap-1 transition-all mr-1 shadow-sm"
+                                                        title="Directly login & manage this vendor outlet">
+                                                        <i data-lucide="external-link" class="w-3 h-3"></i>
+                                                        <span>Open Dashboard</span>
+                                                    </a>
+
                                                     <!-- View Button -->
                                                     <button type="button" @click="viewCenterDetails(sa)" class="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg transition-all" title="View Detailed Analytics & History">
                                                         <i data-lucide="eye" class="w-3.5 h-3.5 text-[#FF9500]"></i>

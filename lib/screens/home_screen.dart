@@ -769,7 +769,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
 
-          // 1. Top Bar: Brand & Profile Pill
+          // 1. Top Bar: Brand, Guest Indicator, Search Toggle & Login Button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -777,34 +777,76 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      appContent['heroTitle'] ?? 'Food Court',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: AppTheme.primary,
-                        letterSpacing: -0.5,
+                    if (!isLoggedIn) ...[
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            appContent['heroTitle'] ?? 'Food Court',
+                            style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.primary,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFF59E0B)),
+                            ),
+                            child: const Text(
+                              'Guest (گیسٹ)',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFFB45309),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      isLoggedIn
-                          ? 'Welcome back, ${user?.name.split(' ').first ?? 'Foodie'}! 👋'
-                          : (appContent['heroSubtitle'] ?? 'Order food, groceries & Deg catering'),
-                      style: const TextStyle(
-                        fontSize: 11.5,
-                        color: AppTheme.textSecondary,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 1),
+                      const Text(
+                        'Browse food dishes, restaurants & Shahi Daigs',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ] else ...[
+                      Text(
+                        appContent['heroTitle'] ?? 'Food Court',
+                        style: const TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.primary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        'Welcome back, ${user?.name.split(' ').first ?? 'Foodie'}! 👋',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
                 ),
               ),
 
               const SizedBox(width: 8),
 
-              // Search Toggle Icon Button in Top Header
+              // Search Icon Button (Turns into Cross 'X' Button when Search is Open)
               InkWell(
                 onTap: () {
                   setState(() {
@@ -817,12 +859,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(7.5),
                   decoration: BoxDecoration(
-                    color: _isSearchFieldOpen ? AppTheme.primary : AppTheme.surfaceMuted,
+                    color: _isSearchFieldOpen ? const Color(0xFFDC2626) : AppTheme.surfaceMuted,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: _isSearchFieldOpen ? AppTheme.primary : AppTheme.border,
+                      color: _isSearchFieldOpen ? const Color(0xFFDC2626) : AppTheme.border,
                     ),
                   ),
                   child: Icon(
@@ -886,14 +928,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.login, size: 14),
-                  label: const Text('Login / Sign Up'),
+                  icon: const Icon(Icons.login_rounded, size: 15),
+                  label: const Text('Login'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     minimumSize: Size.zero,
-                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
