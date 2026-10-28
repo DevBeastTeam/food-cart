@@ -1,102 +1,147 @@
-# 📜 FoodCourt & Pakwan Multi-Vendor Architecture & Rules
+# 📜 FoodCourt & Pakwan Multi-Vendor Architecture & Client Rules
 
-This document specifies the complete functional architecture, workflows, operational rules, and development guidelines for the FoodCourt & Pakwan project. Any AI assistant or developer working on this codebase must strictly adhere to these rules.
+This document specifies the complete functional architecture, workflows, operational rules, and client requirements for the FoodCourt & Pakwan platform. Any AI assistant or developer working on this codebase must strictly adhere to these rules.
 
 ---
 
 ## 1. 🌐 Core Tech Stack & Zero-Firebase Architecture
 - **Mobile Application**: Flutter (Android/iOS).
-- **Backend API & Portals**: Pure PHP (`php-backend/`) with SQLite database (`php-backend/data/foodcourt.sqlite`).
+- **Backend API & Portals**: Pure PHP (`php-backend/`) with SQLite 3 database (`php-backend/data/foodcourt.sqlite`).
 - **Web Portals**:
-  - Admin Portal: `https://food.aztemp.com/admin/` (`admin/index.php`, `admin/login.php`)
+  - Super Admin Portal: `https://food.aztemp.com/admin/` (`admin/index.php`, `admin/login.php`)
   - Vendor Portal: `https://food.aztemp.com/vendor/` (`vendor/index.php`, `vendor/login.php`)
+  - Database Seeding Hub: `https://food.aztemp.com/seeding` (`seeding/index.php`, `seeding.php`)
   - REST API: `https://food.aztemp.com/api/` (`api/index.php`)
 - **Strict Rule on Firebase**: **NO FIREBASE** is allowed in this project. All authentications, real-time syncs, notifications, and storage are served directly through the PHP REST backend (`ApiService`).
 
 ---
 
-## 2. 🏪 Multi-Branch Vendor Architecture & Entity Scoping
-- **Multiple Physical Branches & Chauks**:
-  - Vendors represent distinct physical outlets, restaurants, or Pakwan catering centers located at different chauks, neighborhoods, or cities.
-- **Vendor Autonomy & Privacy**:
-  - Each vendor strictly manages **their own assigned riders** and **their own customers**.
-  - Vendors cannot access or modify riders or customer histories of other vendors.
-- **Block & Unblock Authority**:
-  - **Vendor Authority**:
-    - A vendor can view, add, manage, and **block/unblock** their assigned delivery riders (`POST /api/users/{id}/ban`).
-    - A vendor can view, manage, and **block/unblock** customers ordering from their outlet (`POST /api/vendor/customers/ban`).
-  - **Super Admin Authority**:
-    - Super Administrator has master control over the platform and can view, edit, approve, and **block/unblock vendors** (`POST /api/sub-admins/{id}/ban`).
+## 2. 👑 Super Admin Platform Control
+- **Super Administrator**:
+  - Master authority over the entire platform.
+  - Can view all registered vendors, restaurant managers, and Pakwan centers.
+  - Inspects full financial revenue, active orders, and vendor performance.
+  - Can **approve, edit, or block/unblock (ban)** any vendor outlet (`POST /api/sub-admins/{id}/ban`). If banned, the vendor's portal login access is immediately revoked.
 
 ---
 
-## 3. 🍱 Food Listings & Categorization (Restaurant vs Pakwan)
-- **Partitioned Listing Tabs**:
-  - In the customer mobile application, listings are split into two primary category modes:
-    1. **🍽️ Restaurant Dishes Tab**: Displays restaurant items, fast food, biryanis, karahis, BBQ, platters, and desserts.
-    2. **🍲 Shahi Pakwan Tab**: Displays ceremonial Shahi Daigs (Full/Half/Medium sizes, wood-fire dum, kg weights, catering packages).
-- **Location Filtering Matrix**:
-  - When **"Location: All"** is selected at the top:
-    - Displays food items / daigs from **all registered vendors across all cities & chauks**.
-    - Top promo banner acts as an auto-scrolling carousel (5-8s interval) cycling through offers from all vendors.
-  - When a **Specific Vendor / Location** is selected:
-    - Filters both restaurant dishes and Shahi daigs strictly to **that specific vendor**.
-    - Displays only that specific vendor's active promotional offer card.
+## 3. 🏪 Multi-Vendor Architecture & Business Types
+- **Vendor Categories**:
+  Vendors represent independent physical shops, kitchens, or outlets across different chauks, neighborhoods, and cities:
+  1. **🍽️ Restaurant Only**: Fast food, biryanis, karahis, BBQ, platters, pizzas, burgers, desserts.
+  2. **🍲 Shahi Pakwan Only**: Ceremonial catering daigs (12 KG / 6 KG wood-fire cauldrons, wedding & event catering).
+  3. **👑 Both (Restaurant + Shahi Pakwan)**: An outlet operating both a dine-in/takeaway restaurant and a catering Pakwan center.
+- **Vendor Onboarding & Account Registration**:
+  When a vendor account is created (or registered), the system **mandatorily collects**:
+  - **Vendor Manager Name** (e.g. *Haji Rashid Ahmad*)
+  - **Shop / Business Name** (e.g. *Al-Madina Shahi Pakwan Center*)
+  - **Business Type** (*Restaurant*, *Pakwan*, or *Both*)
+  - **Physical Kitchen / Shop Location Address** (e.g. *Commercial Plaza 8, Johar Town, Lahore*)
+  - **GPS Coordinates** (Latitude & Longitude for radius & distance calculation)
+  - **Contact Phone & WhatsApp**
+  - **Email & Password**
 
 ---
 
-## 4. 📄 Dual Top & Bottom Pagination
-- **Mandatory Dual Pagination**:
-  - Food item listings and Daig listings must provide page navigation controls at **both the TOP and the BOTTOM** of the list.
-  - Controls include:
-    - `< Previous Page` button
-    - Current page badge: `Page X of Y` (with total item count)
-    - `Next Page >` button
-  - Top pagination allows fast switching without having to scroll to the bottom, while bottom pagination enables seamless continuation after browsing the page.
+## 4. 🍱 Food Listings & Categorization (Restaurant vs Pakwan)
+- **Partitioned Listings**:
+  When a vendor uploads or manages items, they select whether the item is for:
+  - **Restaurant Dishes** (Standard menu items, pricing per plate/serving, calories, spicy/prep tags)
+  - **Shahi Pakwan (Degs)** (Full 12 KG / Half 6 KG pricing, servings weight, wood-fire notice, includes list)
+- **Full CRUD & Live Preview**:
+  Vendors can Create, Read, Update, and Delete both Restaurant dishes and Shahi daigs, toggle live in-stock availability, and view instant live previews.
+- **Automatic Location & Shop Name Binding**:
+  The vendor's registered shop name and physical kitchen location address are **automatically attached** to every food item and daig uploaded. Customers can always see exactly which physical kitchen prepares their food.
+- **Customer Mobile App Presentation**:
+  - Customer app features dedicated tabs: **🍽️ Restaurants (ریسٹورنٹ)** and **🍲 Shahi Pakwan (شاہی پکوان)**.
+  - Items uploaded under Pakwan automatically appear under the Pakwan tab; restaurant items appear under the Restaurant tab.
+  - When **"Location: All"** is selected: Items from all vendors across all locations are displayed with pagination.
+  - When a **Specific Location / Vendor** is selected: Listings filter strictly to that specific vendor's dishes, daigs, and active promotions.
 
 ---
 
-## 5. 🔍 Real-Time Live API Search with AppBar Toggle
-- **AppBar Search Icon & Field**:
-  - AppBar / Top Bar contains a dedicated search action button.
-  - Tapping the search icon smoothly reveals an inline search input field.
-  - Inside the search field, an active **Cross (X) button** clears the search query and closes/hides the search bar.
-- **100% Live API Driven (Zero Hardcoded Data)**:
-  - As the user types, real-time live search queries are sent to the PHP backend (`/api/food-items?search=...` and `/api/daig-items?search=...`).
-  - No static or mock fallback overrides live API data. Everything syncs live with production database.
+## 5. 🛵 Rider Account Creation & Assignment Flow (Client Golden Rule)
+- **⚠️ STRICT RULE: Riders CANNOT register via the Mobile App**:
+  - Riders do **NOT** have a Sign-Up option in the mobile application.
+  - A Rider account is created **EXCLUSIVELY by the Vendor** inside the Vendor Portal (`/vendor`).
+- **Vendor Creates & Issues Rider Accounts**:
+  - The Vendor opens the "Riders Fleet" tab in their dashboard.
+  - Vendor clicks "Add Dedicated Rider" and sets:
+    - Rider Full Name (e.g. *Captain Bilal Khan*)
+    - Phone Number
+    - Login Email
+    - Password
+    - City & Service Area
+  - The Vendor physically or digitally shares these login credentials with their hired rider.
+- **Rider Login in App**:
+  - The rider opens the FoodCourt mobile app, switches to the **Rider (رائیڈر)** tab, and **logs in directly** using the credentials given by their vendor.
+- **Vendor Scoping & Privacy**:
+  - Each vendor strictly manages **their own dedicated riders**.
+  - A vendor can view, edit, and **block/unblock** their own riders.
+  - Riders belong exclusively to the vendor who created them.
 
 ---
 
-## 6. ℹ️ Item Detail Screen & Collapsible Vendor Offer Strip
-- **Shop / Kitchen Location**:
-  - Tapping any food dish or Shahi daig opens the comprehensive item detail view.
-  - Displays the exact physical shop / kitchen location address with a map pin icon (e.g. *Main Boulevard, Gulberg III, Lahore*).
-- **Collapsible Promo Offer Strip**:
-  - If the item's vendor has an active promotional offer or banner:
-    - A **collapsible offer strip** is rendered inside the item detail screen.
-    - **Collapsed State**: A sleek, compact colored banner showing discount percentage tag (e.g. `🏷️ 40% OFF`) and offer title with an expand chevron (`Tap to view offer ▼`).
-    - **Expanded State**: Clicking un-collapses the strip into full offer details with promo banner image, discount badge, eligible items/freebies, and terms.
-- **Design Preservation**:
-  - Retains all existing rich Cupertino and Material design styling, portion selectors, spice adjustments, and add-to-cart buttons.
+## 6. 📦 Orders Management & Dispatch Lifecycle
+- **Incoming Orders Hub**:
+  - A vendor receives orders placed by customers for their kitchen/outlet.
+  - The order display shows:
+    - Customer Name & ID
+    - Contact Phone
+    - Exact Delivery Address & GPS Coordinates
+    - Items Ordered (with quantities, portion size, and special notes)
+    - Total Order Amount & Payment Method
+- **Vendor Assigns Dedicated Rider**:
+  - The vendor inspects the order and opens the "Assign Rider" selector.
+  - The selector lists only the vendor's own active dedicated riders.
+  - The vendor selects the chosen rider and confirms assignment.
+- **Order Lifecycle Stages**:
+  Vendors update order progress through official stages:
+  1. **Pending / New Order**: Incoming, awaiting kitchen acceptance.
+  2. **Accepted / Processing**: Order acknowledged by vendor.
+  3. **Preparing**: Chef/Ustaad cooking in kitchen or dum cauldrons.
+  4. **On the Way**: Dispatched with assigned rider (rider name & phone attached).
+  5. **Delivered / Completed**: Handed over to customer.
+  6. **Cancelled / Rejected**: Vendor can reject with mandatory reason (e.g. *Out of delivery radius*, *Kitchen rush*, *Ingredients out of stock*).
+- **Real-Time Customer Sync**:
+  - Every status change updates live on the customer's mobile app (`OrdersScreen`).
+  - Customer can see which stage their food is in, rider contact info, and kitchen dispatch address.
 
 ---
 
-## 7. 🔐 Guest Mode & Authentication Flow
-- **Guest Browsing**:
-  - Users can browse restaurants, food dishes, and shahi daigs without logging in.
-  - Users can add items to cart and view/edit their cart (`CartScreen`).
-- **Checkout Interception**:
-  - Clicking "Submit Order" intercepts unauthenticated users with a dialog:
-    `"Please login first to submit order"` (`پلیز لاگ ان فرسٹ ٹو سبمٹ ارڈر`).
-- **Auth Screen**:
-  - Two role tabs: **Customer (Left, Default)** and **Rider (Right)**.
-  - Bottom toggle to switch between Login and Sign Up.
+## 7. 🎁 Vendor Offers & Promotional Banners
+- Vendors can create, edit, enable, or disable promotional offers from their portal.
+- Active offers appear as an animated, collapsible promo strip on dish cards in the mobile app.
+- Collapsed: Shows discount badge, promo title, and chevron.
+- Expanded: Reveals full offer breakdown, percentage off, promo details, and voucher code.
 
 ---
 
-## 8. 🚀 Mandatory Deployment Rules
+## 8. 📄 Dual Top & Bottom Pagination
+- Food item listings and Daig listings in the mobile app must provide page navigation controls at **both the TOP and the BOTTOM** of the list (`< Previous`, `Page X of Y`, `Next >`).
+
+---
+
+## 9. 🔍 Real-Time Live API Search with AppBar Toggle
+- Top header provides a search icon button.
+- Tap expands search input with real-time live API query (`/api/food-items?search=...` and `/api/daig-items?search=...`).
+- Clear / Close (`X`) button resets query and collapses the search bar.
+
+---
+
+## 10. 🌱 Database Seeding & External Dataset (`/seeding`)
+- **Dedicated Seeding Route**:
+  - Accessible directly at `/seeding` (`https://food.aztemp.com/seeding`).
+- **External Dataset Rule**:
+  - The complete dummy seeding dataset is **ALWAYS kept externally outside the codebase** in the root directory (`seed_data.sql` and `seed_data.json`).
+  - Stored outside so developers, QA testers, and administrators can customize, add, or alter dummy records from the outside without modifying PHP source code.
+  - The `/seeding` route reads this external file and imports the entire dataset directly into SQLite3 (`data/foodcourt.sqlite`) in a safe transaction.
+
+---
+
+## 11. 🚀 Mandatory Deployment Rules
 - **Automatic Deployment Command**:
-  Whenever code changes are made to the PHP backend, admin, or vendor portal:
+  Whenever code changes are made:
   ```bash
   bash deploy/deploy.sh "Brief description of changes made"
   ```
@@ -108,14 +153,3 @@ This document specifies the complete functional architecture, workflows, operati
   - APK URL: `https://food.aztemp.com/uploads/foodcourt-app.apk`
 - **Communication Rule**:
   - **ALWAYS RESPOND IN ROMAN URDU** when communicating with the user.
-
----
-
-## 9. 🌱 Database Seeding & External Dataset (`/seeding`)
-- **Dedicated Seeding Route**:
-  - Accessible directly at `/seeding` (`https://food.aztemp.com/seeding` or `http://localhost:5000/seeding`).
-- **External Dataset Rule**:
-  - The complete dummy seeding dataset is **ALWAYS kept externally outside the codebase** in the root directory (`seed_data.sql` and `seed_data.json`).
-  - Stored outside so developers, QA testers, and administrators can customize, add, or alter dummy records (dishes, daigs, categories, outlets, riders, customers) from the outside without modifying PHP source code.
-  - The `/seeding` route reads this external file and imports the entire dataset directly into SQLite3 (`data/foodcourt.sqlite`) in a safe transaction.
-

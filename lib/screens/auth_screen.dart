@@ -77,8 +77,17 @@ class _AuthScreenState extends State<AuthScreen> {
     final phone = _phoneController.text.trim();
 
     if (_isSignUp) {
+      if (_selectedRole == UserRole.rider) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Riders cannot register via mobile app. Please contact your store vendor for an account.'),
+            backgroundColor: Color(0xFFDC2626),
+          ),
+        );
+        return;
+      }
       await widget.userState.signup(
-        name: name.isNotEmpty ? name : (_selectedRole == UserRole.rider ? 'Rider Partner' : 'Food Lover'),
+        name: name.isNotEmpty ? name : 'Food Lover',
         email: email,
         phone: phone.isNotEmpty ? phone : '+92 300 0000000',
         password: password,
@@ -338,8 +347,8 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   const SizedBox(height: 14),
 
-                  // Mode Switcher (Log in / Sign up) - Only for Customer and Rider!
-                  if (_selectedRole != UserRole.admin) ...[
+                  // Mode Switcher (Log in / Sign up) - Only for Customer!
+                  if (_selectedRole == UserRole.client) ...[
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -393,6 +402,50 @@ class _AuthScreenState extends State<AuthScreen> {
                                   ),
                                 ),
                               ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ] else if (_selectedRole == UserRole.rider) ...[
+                    // Rider Official Notice: Accounts created ONLY by Vendors
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF93C5FD)),
+                      ),
+                      child: const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.shield_outlined, color: Color(0xFF1D4ED8), size: 20),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Rider Accounts Issued by Store Vendor',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF1E40AF),
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Riders cannot create accounts from the mobile app. Your store manager/vendor creates your account in their portal. Please log in with the credentials provided to you.',
+                                  style: TextStyle(fontSize: 11, color: Color(0xFF1E3A8A), height: 1.3),
+                                ),
+                                SizedBox(height: 3),
+                                Text(
+                                  'رائیڈر اکاؤنٹ وینڈر اپنے پورٹل سے بنا کر دیتا ہے۔ وینڈر کی دی گئی تفصیلات سے لاگ ان کریں۔',
+                                  style: TextStyle(fontSize: 10.5, color: Color(0xFF1E3A8A), fontWeight: FontWeight.w600),
+                                  textDirection: TextDirection.rtl,
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -605,7 +658,7 @@ class _AuthScreenState extends State<AuthScreen> {
         onTap: () {
           setState(() {
             _selectedRole = role;
-            if (role == UserRole.admin) {
+            if (role == UserRole.admin || role == UserRole.rider) {
               _isSignUp = false;
             }
             _applyRoleDefaults(role);

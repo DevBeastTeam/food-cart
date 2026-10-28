@@ -1543,6 +1543,9 @@ switch ($resource) {
             $phone = trim($body['phone'] ?? '+92 300 0000000');
             $pass  = trim($body['password'] ?? '123456');
             $role  = $body['role'] ?? 'client';
+            if ($role === 'rider') {
+                jsonResponse(['success' => false, 'message' => 'Rider accounts cannot be registered from the mobile app. Rider accounts are issued exclusively by your store vendor.'], 403);
+            }
 
             $id = 'usr_' . time();
             $hash = password_hash($pass, PASSWORD_DEFAULT);

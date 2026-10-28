@@ -4219,7 +4219,10 @@ $adminUser = $_SESSION['admin_user'];
                             body: JSON.stringify({
                                 ...this.foodForm,
                                 restaurantId: this.subAdmin.id,
-                                sub_admin_id: this.subAdmin.id
+                                sub_admin_id: this.subAdmin.id,
+                                locationAddress: this.subAdmin.address || 'Central Kitchen, Lahore',
+                                restaurantName: this.subAdmin.businessName || this.subAdmin.name,
+                                vendorName: this.subAdmin.name
                             })
                         });
                         const data = await res.json();
@@ -4280,7 +4283,11 @@ $adminUser = $_SESSION['admin_user'];
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 ...this.daigForm,
-                                sub_admin_id: this.subAdmin.id
+                                sub_admin_id: this.subAdmin.id,
+                                centerId: this.subAdmin.id,
+                                centerName: this.subAdmin.businessName || this.subAdmin.name,
+                                location: this.subAdmin.address || 'Central Pakwan Kitchen, Lahore',
+                                vendorName: this.subAdmin.name
                             })
                         });
                         const data = await res.json();
