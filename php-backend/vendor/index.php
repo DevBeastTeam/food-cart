@@ -318,14 +318,40 @@ $adminUser = $_SESSION['admin_user'];
                     </div>
                 </div>
 
-                <!-- Desktop Alert Test Audio Chime -->
-                <button type="button" @click="playOrderChime(); showToast('🔔 Kitchen audio chime test fired!')"
-                    class="p-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-[#FF9500] rounded-xl border border-orange-500/30 transition-all text-xs font-bold"
-                    title="Test Kitchen Audio Bell">
-                    <i data-lucide="bell" class="w-3.5 h-3.5"></i>
+                <!-- Order Alert Ringtone Bell Button -->
+                <button type="button" @click="testOrderRingtone()"
+                    class="px-2.5 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-[#FF9500] rounded-xl border border-orange-500/30 transition-all text-xs font-bold inline-flex items-center gap-1.5"
+                    :class="ringtoneActive ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' : ''"
+                    title="Order Alert Ringtone (Test Bell)">
+                    <i data-lucide="bell" class="w-3.5 h-3.5" :class="ringtoneActive ? 'animate-bounce text-red-400' : ''"></i>
+                    <span class="text-[11px] font-bold hidden sm:inline" x-text="ringtoneActive ? 'Ringing 🔔' : 'Alert Bell'"></span>
                 </button>
             </div>
         </header>
+
+        <!-- Pulsing Sticky Order Ringtone Alert Bar -->
+        <div x-show="ringtoneActive" x-cloak
+            class="bg-gradient-to-r from-red-600 via-rose-600 to-orange-600 text-white px-4 py-2.5 flex items-center justify-between shadow-xl sticky top-0 z-50 border-b border-red-400/30 animate-pulse">
+            <div class="flex items-center gap-2.5">
+                <span class="p-1.5 bg-white/20 rounded-lg animate-bounce">
+                    <i data-lucide="bell-ring" class="w-4 h-4 text-yellow-300"></i>
+                </span>
+                <div>
+                    <p class="font-extrabold text-xs sm:text-sm tracking-wide">🔔 NAYA CUSTOMER ORDER AAYA HAI! (ORDER RINGING)</p>
+                    <p class="text-[10px] text-red-100 hidden sm:block" x-text="alertOrder ? ('Order #' + alertOrder.id + ' • ' + (alertOrder.customerName || 'Customer') + ' • Rs. ' + Math.round(alertOrder.totalAmount)) : 'Kitchen incoming order awaiting response'"></p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" @click="stopOrderAlertRingtone()"
+                    class="px-2.5 py-1 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-lg transition-all border border-white/30">
+                    Mute Bell 🔕
+                </button>
+                <button type="button" @click="stopOrderAlertRingtone(); if(alertOrder) openOrderDetailModal(alertOrder); else activeTab = 'analytics';"
+                    class="px-3 py-1 bg-white text-red-700 hover:bg-red-50 text-xs font-black rounded-lg shadow-md transition-all">
+                    Acknowledge &amp; View 👀
+                </button>
+            </div>
+        </div>
 
         <!-- Main Viewport Scrollable -->
         <main class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3.5">
@@ -614,6 +640,14 @@ $adminUser = $_SESSION['admin_user'];
                                                     <button type="button" @click="updateOrderStatus(ord.id, 'Delivered')"
                                                         class="px-2 py-1 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg text-[10px] transition-all">
                                                         Delivered ✅
+                                                    </button>
+                                                </template>
+                                                <template x-if="ord.riderName && ord.customerPhone">
+                                                    <button type="button" @click="sendWhatsAppDispatchAlert(ord)"
+                                                        class="px-2 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 rounded-lg text-[10px] font-bold inline-flex items-center gap-1 transition-all"
+                                                        title="Send WhatsApp Dispatch Alert to Customer">
+                                                        <i data-lucide="message-circle" class="w-3 h-3 text-emerald-400"></i>
+                                                        <span class="hidden sm:inline">WhatsApp</span>
                                                     </button>
                                                 </template>
                                                 <button type="button" @click="openOrderDetailModal(ord)" class="p-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-all" title="View Full Order Info">
@@ -1115,6 +1149,16 @@ $adminUser = $_SESSION['admin_user'];
                                                 <template x-if="ord.status !== 'Delivered' && ord.status !== 'Cancelled'">
                                                     <button type="button" @click="openRejectModal(ord)" class="p-1 bg-red-950/40 hover:bg-red-900/60 text-red-400 rounded-lg" title="Reject Order">
                                                         <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                                                    </button>
+                                                </template>
+
+                                                <!-- WhatsApp Dispatch Button -->
+                                                <template x-if="ord.riderName && ord.customerPhone">
+                                                    <button type="button" @click="sendWhatsAppDispatchAlert(ord)"
+                                                        class="px-2 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 rounded-lg text-[10px] font-bold inline-flex items-center gap-1 transition-all"
+                                                        title="Send WhatsApp Dispatch Alert to Customer">
+                                                        <i data-lucide="message-circle" class="w-3 h-3 text-emerald-400"></i>
+                                                        <span class="hidden sm:inline">WhatsApp</span>
                                                     </button>
                                                 </template>
 
@@ -2868,7 +2912,14 @@ $adminUser = $_SESSION['admin_user'];
                 </div>
             </div>
 
-            <div class="pt-3 mt-3 border-t border-white/5 flex justify-end">
+            <div class="pt-3 mt-3 border-t border-white/5 flex items-center justify-between">
+                <template x-if="activeOrder?.customerPhone">
+                    <button type="button" @click="sendWhatsAppDispatchAlert(activeOrder)"
+                        class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow">
+                        <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                        <span>WhatsApp Dispatch Alert</span>
+                    </button>
+                </template>
                 <button type="button" @click="modal.orderDetail = false" class="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-xl text-xs font-semibold">Close</button>
             </div>
         </div>
@@ -3071,6 +3122,11 @@ $adminUser = $_SESSION['admin_user'];
                 storeAvailability: 'open',
                 detectingGps: false,
                 loading: false,
+
+                // Order Alert Ringtone State
+                ringtoneActive: false,
+                ringtoneInterval: null,
+                alertOrder: null,
 
                 // Top 6 Strict Tabs in User Requested Order
                 // [1. Analytics, 2. Food Listing, 3. Customers, 4. Riders, 5. Orders, 6. Profile & Settings]
@@ -3472,15 +3528,77 @@ $adminUser = $_SESSION['admin_user'];
                         const gain = audioCtx.createGain();
                         osc.connect(gain);
                         gain.connect(audioCtx.destination);
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-                        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.12);
-                        osc.frequency.setValueAtTime(1174.66, audioCtx.currentTime + 0.24);
-                        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                        osc.type = 'sine';
+                        // High-frequency 2-tone doorbell chime (Ding-Dong)
+                        osc.frequency.setValueAtTime(784.00, audioCtx.currentTime); // G5 (Ding)
+                        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.22); // E5 (Dong)
+                        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.7);
                         osc.start();
-                        osc.stop(audioCtx.currentTime + 0.6);
+                        osc.stop(audioCtx.currentTime + 0.7);
                     } catch(e) {}
+                },
+
+                startOrderAlertRingtone(order = null) {
+                    this.alertOrder = order;
+                    this.ringtoneActive = true;
+                    this.playOrderChime();
+                    if (this.ringtoneInterval) clearInterval(this.ringtoneInterval);
+                    this.ringtoneInterval = setInterval(() => {
+                        if (this.ringtoneActive) {
+                            this.playOrderChime();
+                        } else {
+                            clearInterval(this.ringtoneInterval);
+                        }
+                    }, 2800);
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                stopOrderAlertRingtone() {
+                    this.ringtoneActive = false;
+                    if (this.ringtoneInterval) {
+                        clearInterval(this.ringtoneInterval);
+                        this.ringtoneInterval = null;
+                    }
+                },
+
+                testOrderRingtone() {
+                    if (this.ringtoneActive) {
+                        this.stopOrderAlertRingtone();
+                        this.showToast('🔕 Alert bell silenced');
+                    } else {
+                        const sampleOrder = this.orders.length > 0 ? this.orders[0] : { id: 'FC-TEST', totalAmount: 2450, customerName: 'Live Test Customer' };
+                        this.startOrderAlertRingtone(sampleOrder);
+                        this.showToast('🔔 Order Alert Ringtone started! (Ding-Dong sound looping)');
+                    }
+                },
+
+                sendWhatsAppDispatchAlert(ord) {
+                    if (!ord) return;
+                    const rawPhone = (ord.customerPhone || '').replace(/[^0-9]/g, '');
+                    let cleanPhone = rawPhone;
+                    if (cleanPhone.startsWith('0')) {
+                        cleanPhone = '92' + cleanPhone.substring(1);
+                    } else if (!cleanPhone.startsWith('92')) {
+                        cleanPhone = '92' + cleanPhone;
+                    }
+                    const riderName = ord.riderName || 'Dedicated Rider';
+                    const riderPhone = ord.riderPhone || 'Contact store';
+                    const restaurant = ord.restaurantName || this.subAdmin.businessName || 'Cravee FoodCourt & Shahi Pakwan';
+                    const amount = Math.round(ord.totalAmount || 0);
+
+                    const text = `Assalam-o-Alaikum ${ord.customerName}! 🍽️\n` +
+                        `Aapka order #${ord.id} (${restaurant}) tayar ho kar Rider ke hawale kar diya gaya hai aur raste mein hai.\n\n` +
+                        `🛵 Rider Name: ${riderName}\n` +
+                        `📞 Rider Contact: ${riderPhone}\n` +
+                        `💵 Cash to Pay (COD): Rs. ${amount}\n` +
+                        `📍 Delivery Address: ${ord.deliveryAddress}\n\n` +
+                        `Kisi bhi maslay ki surat mein rider se direct rabta karein.\n` +
+                        `Shukriya! ${restaurant}`;
+
+                    const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+                    window.open(waUrl, '_blank');
+                    this.showToast(`💬 WhatsApp Dispatch alert opened for ${ord.customerName}!`);
                 },
 
                 calcShare(val, total) {
@@ -3848,7 +3966,8 @@ $adminUser = $_SESSION['admin_user'];
                         const data = await res.json();
                         if (data?.data) {
                             if (data.data.length > this.orders.length) {
-                                this.playOrderChime();
+                                const latestOrder = data.data[0];
+                                this.startOrderAlertRingtone(latestOrder);
                                 this.showToast('🔔 New Customer Order Placed in Kitchen!');
                             }
                             this.orders = data.data;
@@ -3912,6 +4031,7 @@ $adminUser = $_SESSION['admin_user'];
 
                 async assignRiderToOrder(rdr) {
                     if (!this.assignTarget) return;
+                    const assignedOrd = { ...this.assignTarget, riderName: rdr.name, riderPhone: rdr.phone };
                     try {
                         const res = await fetch(`../api/orders/${this.assignTarget.id}/status`, {
                             method: 'PATCH',
@@ -3926,6 +4046,7 @@ $adminUser = $_SESSION['admin_user'];
                         if (data.success) {
                             this.showToast(`🛵 Order #${this.assignTarget.id} assigned to ${rdr.name}!`);
                             this.modal.assignRider = false;
+                            this.sendWhatsAppDispatchAlert(assignedOrd);
                             await this.refreshAll();
                         }
                     } catch(e) {

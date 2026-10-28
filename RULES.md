@@ -106,6 +106,17 @@ This document specifies the complete functional architecture, workflows, operati
 - **Real-Time Customer Sync**:
   - Every status change updates live on the customer's mobile app (`OrdersScreen`).
   - Customer can see which stage their food is in, rider contact info, and kitchen dispatch address.
+- **Order Alert Ringtone (Vendor Portal Audio Bell)**:
+  - Whenever a new customer order is placed, the vendor dashboard starts a repetitive synthesized doorbell chime ("Ding-Dong!") and displays a pulsing top alert banner with order details.
+  - Keeps ringing until the vendor mutes or acknowledges the order.
+  - A test alert bell button is available in the top header.
+- **WhatsApp Dispatch Alert (Direct Rider Details to Customer)**:
+  - When the vendor assigns a dedicated rider to an order, a 1-click WhatsApp shortcut triggers with an auto-formatted message containing:
+    - Customer Name & Order ID
+    - Assigned Dedicated Rider Name & Contact Phone
+    - Cash on Delivery (COD) Amount to pay
+    - Delivery Address
+  - Accessible directly upon rider assignment, in the orders tables, and inside the order details modal.
 
 ---
 
