@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
 import '../services/map_launcher_service.dart';
 import '../services/notification_service.dart';
@@ -305,7 +306,7 @@ class _OrdersScreenState extends State<OrdersScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Restaurant Name, Order ID, Date
+          // Header: Restaurant Name, Order ID, Date & Category
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
             child: Row(
@@ -314,12 +315,12 @@ class _OrdersScreenState extends State<OrdersScreen>
                 Container(
                   padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryLight,
+                    color: order.isPakwan ? Colors.amber.shade100 : AppTheme.primaryLight,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
-                    Icons.restaurant_rounded,
-                    color: AppTheme.primary,
+                  child: Icon(
+                    order.isPakwan ? Icons.outdoor_grill_rounded : Icons.restaurant_rounded,
+                    color: order.isPakwan ? Colors.amber.shade900 : AppTheme.primary,
                     size: 16,
                   ),
                 ),
@@ -328,15 +329,40 @@ class _OrdersScreenState extends State<OrdersScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        order.restaurantName,
-                        style: const TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              order.restaurantName,
+                              style: const TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: order.isPakwan ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: order.isPakwan ? const Color(0xFFFDE68A) : const Color(0xFFBFDBFE),
+                              ),
+                            ),
+                            child: Text(
+                              order.isPakwan ? '🍲 شاہی پکوان' : '🍽️ ریسٹورنٹ',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                color: order.isPakwan ? const Color(0xFF92400E) : const Color(0xFF1E40AF),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -350,6 +376,7 @@ class _OrdersScreenState extends State<OrdersScreen>
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -997,159 +1024,464 @@ class _OrdersScreenState extends State<OrdersScreen>
   }
 
   void _showItemDetailsSheet(UserOrder order) {
+    final hasRider = order.riderName != null && order.riderName!.trim().isNotEmpty;
+    final riderPhone = order.riderPhone ?? '+92 300 0000000';
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(20),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.88,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: CustomImage(
-                    imageUrl: order.restaurantImage,
-                    width: 70,
-                    height: 70,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        order.restaurantName,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'Order ID: #${order.id}',
-                        style: const TextStyle(fontSize: 12, color: AppTheme.primary, fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
+            // Drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              width: 44,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                children: [
+                  // HERO SECTION: Vendor cover, category badge & physical location
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(20),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Stack(
                         children: [
-                          Text(
-                            'Paid: Rs. ${order.totalAmount.toInt()}',
-                            style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w900, color: AppTheme.primary),
+                          CustomImage(
+                            imageUrl: order.restaurantImage,
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
                           ),
-                          if (order.originalAmount != null && order.originalAmount! > order.totalAmount) ...[
-                            const SizedBox(width: 8),
-                            Text(
-                              'Rs. ${order.originalAmount!.toInt()}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppTheme.textSecondary,
-                                decoration: TextDecoration.lineThrough,
-                                fontWeight: FontWeight.w600,
+                          // Dark gradient overlay
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black.withAlpha(40),
+                                    Colors.black.withAlpha(220),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Top Category Badge
+                          Positioned(
+                            top: 12,
+                            left: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: order.isPakwan ? Colors.amber.shade700 : AppTheme.primary,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    order.isPakwan ? Icons.outdoor_grill_rounded : Icons.restaurant_rounded,
+                                    color: Colors.white,
+                                    size: 13,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    order.isPakwan ? 'شاہی پکوان سینٹر' : 'فوڈ ریسٹورنٹ',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // Top Order ID
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withAlpha(160),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: Text(
+                                '#${order.id}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 11.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Bottom Info
+                          Positioned(
+                            bottom: 12,
+                            left: 14,
+                            right: 14,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  order.restaurantName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 3),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.location_on_rounded, size: 14, color: Colors.amberAccent),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        'Kitchen / Shop: Gulberg III / Central Plaza, Lahore',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // RIDER ASSIGNMENT & STATUS SECTION
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: hasRider ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: hasRider ? const Color(0xFF86EFAC) : const Color(0xFFFDE68A),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: hasRider ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            hasRider ? Icons.two_wheeler_rounded : Icons.hourglass_top_rounded,
+                            color: hasRider ? const Color(0xFF16A34A) : Colors.amber.shade800,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                hasRider ? 'ڈیڈیکیٹڈ رائیڈر تفویض شدہ' : 'رائیڈر تفویض کے انتظار میں',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: hasRider ? const Color(0xFF15803D) : Colors.amber.shade900,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                hasRider ? order.riderName! : 'Kitchen is preparing your food freshly',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              if (hasRider)
+                                Text(
+                                  '📞 $riderPhone • Status: ${order.status}',
+                                  style: const TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        if (hasRider)
+                          IconButton(
+                            onPressed: () async {
+                              final Uri uri = Uri.parse('tel:$riderPhone');
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              }
+                            },
+                            icon: const Icon(Icons.phone_in_talk_rounded),
+                            color: const Color(0xFF16A34A),
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xFFDCFCE7),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ORDER TRACKING TIMELINE
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Order Status Progression (آرڈر ٹریکنگ)',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTimelineStepper(order),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // FOOD ITEMS LIST WITH THUMBNAIL, PRICE & CUT PRICE
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Ordered Food Items',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryLight,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '${order.items.length} Items',
+                                style: const TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.primary,
+                                ),
                               ),
                             ),
                           ],
-                        ],
-                      ),
-                      if (order.discountInfo != null) ...[
-                        const SizedBox(height: 3),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.green.shade300),
+                        ),
+                        const Divider(height: 20, color: AppTheme.border),
+                        ...order.items.map((itemText) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: CustomImage(
+                                  imageUrl: order.restaurantImage,
+                                  width: 44,
+                                  height: 44,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      itemText,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                    ),
+                                    Text(
+                                      order.isPakwan ? '🍲 Authentic Dum Deg' : '🍽️ Fresh Kitchen Dish',
+                                      style: const TextStyle(
+                                        fontSize: 10.5,
+                                        color: AppTheme.textSecondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 18),
+                            ],
                           ),
-                          child: Text(
-                            order.discountInfo!,
-                            style: TextStyle(
-                              color: Colors.green.shade800,
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w800,
+                        )),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // PAYMENT & COD INFO
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Payment Mode:',
+                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFDCFCE7),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                '💵 کیش آن ڈیلیوری (COD)',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF15803D),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Total Amount Payable:',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                            ),
+                            Row(
+                              children: [
+                                if (order.originalAmount != null && order.originalAmount! > order.totalAmount) ...[
+                                  Text(
+                                    'Rs. ${order.originalAmount!.toInt()}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      decoration: TextDecoration.lineThrough,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                                Text(
+                                  'Rs. ${order.totalAmount.toInt()}',
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppTheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        if (order.discountInfo != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            '🎉 ${order.discountInfo}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF15803D),
                             ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(color: AppTheme.border),
-            const SizedBox(height: 8),
-            const Text(
-              'Ordered Items & Recipes:',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 8),
-            ...order.items.map(
-              (item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle, size: 16, color: Color(0xFF28A745)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        item,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.background,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppTheme.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 15, color: AppTheme.primary),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'Delivery Address:',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-                      ),
-                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    order.deliveryAddress,
-                    style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.timer_outlined, size: 15, color: AppTheme.primary),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Estimated Preparation: ${order.prepTime}',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                    ],
+                      child: const Text('بند کریں (Close)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                    ),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Close'),
               ),
             ),
           ],

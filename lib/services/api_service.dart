@@ -255,11 +255,17 @@ class ApiService {
     String status, {
     String? prepTime,
     String? notes,
+    String? rejectionReason,
+    String? riderName,
+    String? riderPhone,
   }) async {
     try {
       final body = <String, dynamic>{'status': status};
       if (prepTime != null) body['prepTime'] = prepTime;
       if (notes != null) body['notes'] = notes;
+      if (rejectionReason != null) body['rejectionReason'] = rejectionReason;
+      if (riderName != null) body['riderName'] = riderName;
+      if (riderPhone != null) body['riderPhone'] = riderPhone;
 
       final res = await http.patch(
         Uri.parse('$baseUrl/orders/$orderId/status'),

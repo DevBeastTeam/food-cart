@@ -64,6 +64,18 @@ class UserOrder {
 
   String get address => deliveryAddress;
 
+  bool get isPakwan =>
+      isDaigBooking ||
+      restaurantName.toLowerCase().contains('pakwan') ||
+      items.any((i) =>
+          i.toLowerCase().contains('daig') ||
+          i.toLowerCase().contains('deg') ||
+          i.toLowerCase().contains('qorma') ||
+          i.toLowerCase().contains('pulao'));
+
+  String get categoryLabel =>
+      isPakwan ? 'شاہی پکوان (Shahi Pakwan)' : 'فوڈ ریسٹورنٹ (Restaurant)';
+
   UserOrder({
     required this.id,
     required this.restaurantName,
@@ -615,6 +627,33 @@ class UserState extends ChangeNotifier {
     if (idx >= 0) {
       _orders[idx].notes = notes;
       notifyListeners();
+    }
+  }
+
+  void rejectOrder(String orderId, {String? reason}) {
+    final idx = _orders.indexWhere((o) => o.id == orderId);
+    if (idx >= 0) {
+      final rejectReason = reason ?? 'Rider unavailable or cancelled delivery';
+      _orders[idx].status = 'Cancelled';
+      _orders[idx] = _orders[idx].copyWith(
+        status: 'Cancelled',
+        rejectionReason: rejectReason,
+      );
+      _lastKnownOrderStatuses[orderId] = 'Cancelled';
+      NotificationService.instance.showStatusUpdateNotification(
+        orderId: orderId,
+        newStatus: 'Cancelled',
+        restaurantName: _orders[idx].restaurantName,
+        riderName: _orders[idx].riderName,
+        address: _orders[idx].deliveryAddress,
+      );
+      notifyListeners();
+      ApiService.instance.updateOrderStatusOnBackend(
+        orderId,
+        'Cancelled',
+        notes: rejectReason,
+        rejectionReason: rejectReason,
+      );
     }
   }
 

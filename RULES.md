@@ -139,7 +139,100 @@ This document specifies the complete functional architecture, workflows, operati
 
 ---
 
-## 11. 🚀 Mandatory Deployment Rules
+## 12. 🛒 Customer Cart & Guest Checkout Flow
+- **Floating Action Button (FAB) on Home**:
+  - Whenever the customer adds an item to cart, a prominent Floating Action Button appears at the bottom-right showing the item count badge and subtotal (`View Cart • Rs. X`).
+  - Clicking the FAB directly takes the customer into the Cart screen.
+- **Cart Categorization & Vendor Transparency**:
+  - In the Cart page, every item displays its origin vendor name (e.g. *FoodCourt Central* or *Al-Madina Shahi Pakwan*) and its category badge (*🍽️ فوڈ ریسٹورنٹ* or *🍲 شاہی پکوان*).
+  - Shows clear Cash on Delivery (COD) payment badge.
+- **Guest Checkout Interception (Toast with Direct Login Button)**:
+  - Guest users can freely browse categories, restaurants, and food items, and add items to cart without logging in.
+  - When a Guest user clicks **"Send Order" / "Submit Order"**:
+    - The action is intercepted with an immediate floating **Toast / SnackBar**.
+    - Inside this Toast, a direct **"لاگ ان کریں (Login)"** text/action button is displayed with the message: *"پلیز لاگ ان فرسٹ ٹو سبمٹ ارڈر (Please login first to submit your order)"*.
+    - Clicking the button directly opens the `AuthScreen`.
+- **Auth Screen Tab Structure**:
+  - Top tab switcher with two roles: **Customer (کسٹمر)** [left, default] and **Rider (رائیڈر)** [right].
+  - **Customer**: Can freely log in or toggle to sign up to register a new account.
+  - **Rider**: Strictly **Login only** (no sign up). Shows an informative notice that rider accounts are exclusively issued by their vendor.
+- **Return to Cart & Cash on Delivery (COD)**:
+  - Once logged in, the customer returns smoothly to the Cart with all items preserved and can complete checkout.
+  - All orders are processed under **Cash on Delivery (COD)** payment mode.
+
+---
+
+## 13. 📋 Customer Orders Screen & Order Detail Hero Architecture
+- **Orders Listing (`OrdersScreen`)**:
+  - Displays all orders placed by the customer.
+  - Each order card prominently labels whether it belongs to **"🍲 شاہی پکوان (Shahi Pakwan)"** or **"🍽️ فوڈ ریسٹورنٹ (Restaurant)"**.
+  - Shows dish title, restaurant name, actual price, cut-off / original price (with discount badge), and live status badge.
+- **Order Detail Page / Sheet**:
+  - Tapping any order item opens a comprehensive **Order Details View**:
+    1. **Hero Section**:
+       - Prominent top Hero banner with vendor image.
+       - Vendor / Outlet Name (e.g. *Al-Madina Shahi Pakwan* or *FoodCourt Central*).
+       - Business Category badge (*شاہی پکوان* or *فوڈ ریسٹورنٹ*).
+       - Physical Kitchen / Shop Location Address.
+       - Active discounts / offers applied.
+    2. **Rider Status Section**:
+       - Assigned Rider Name and Contact Phone (with a one-tap phone call button).
+       - Dedicated vehicle details (e.g. *Honda CG 125*).
+       - Live delivery status badge (*Accepted*, *Preparing*, *Rider on the Way*, *Rider Arrived 📍*, *Delivered ✅*).
+    3. **Food Items Section**:
+       - Item thumbnail image, dish title, quantity, actual price, and cut-off price (original price with line-through).
+       - Special cooking notes or occasion (for Daig catering).
+    4. **Visual Timeline Stepper**:
+       - 4-step progressive timeline:
+         1. *Order Placed (آرڈر درج کر دیا گیا)*
+         2. *Vendor Confirmed & Kitchen Preparing (وینڈر نے تصدیق کی اور تیاری شروع)*
+         3. *Rider Dispatched & On the Way (رائیڈر آرڈر لے کر روانہ ہے)*
+         4. *Delivered to Customer (کامیابی سے ڈیلیور ہو گیا)*
+    5. **Bill & COD Information**:
+       - Explicitly specifies **"Cash on Delivery (کیش آن ڈیلیوری - COD)"**.
+       - Detailed breakdown of subtotal, delivery fee, and net payable amount.
+
+---
+
+## 14. 🛵 Dedicated Rider Flow & 4-Tab Dashboard Architecture
+- **Rider Access**:
+  - Rider accounts are created by vendors and distributed to riders.
+  - Riders log into the mobile app via the Rider tab.
+- **4 Mandatory Bottom Navigation Tabs**:
+  1. **Tab 1: Analytics (`اینالیٹکس` / `Analytics`)**:
+     - Key Metrics Grid: Total Assigned Orders, Completed Orders, In-Process Orders, Pending Orders, and Rejected/Cancelled Orders.
+     - Total Cash Collected Card: Total COD amount collected by the rider.
+     - Visual Chart: Interactive or visual bar chart showing weekly/daily order progression and delivery distribution.
+     - Recent Assigned Order preview card with one-click jump to active deliveries.
+  2. **Tab 2: Recent / Active Orders (`ریسنت آرڈرز` / `Recent Orders`)**:
+     - List tiles of active orders assigned to the rider (Accepted, Preparing, On the Way, Arrived).
+     - Each card displays Customer Name, Phone, Delivery Address, Vendor/Restaurant Name, **Cash on Delivery (COD)** badge, and Total Payable.
+     - Tapping opens the Order Dispatch & Navigation Sheet:
+       - Customer Info & One-Tap Direct Call Button (`tel:...`).
+       - Restaurant / Vendor Info & Kitchen Location.
+       - Ordered items list.
+       - **"Ride by Google Map" (`Ride by Google Map` / `گوگل میپ پر لوکیشن کھولیں`)** Button: Launches native Google Maps turn-by-turn navigation directly to the customer's delivery destination without API costs.
+       - Visual Timeline Stepper.
+       - Rider Status Switcher Action Buttons:
+         - *Mark In-Process / Picked Up*
+         - *Mark Arrived (📍 At Doorstep)*
+         - *Mark Delivered (✅ Handed over & COD cash received)*
+         - *Reject / Cancel Order* (prompts for cancellation reason and notifies vendor/customer).
+  3. **Tab 3: Completed Orders (`مکمل شدہ آرڈرز` / `Completed Orders`)**:
+     - Top Summary Cards:
+       - Total Completed Count & Total COD Delivered Cash (Rs.).
+       - Total Rejected / Cancelled Count & Lost Amount (Rs.).
+     - Complete list of Delivered and Rejected orders showing customer name, vendor name, time of delivery/rejection, and COD amount.
+     - Tapping any tile opens full delivery receipt details.
+  4. **Tab 4: Profile (`پروفائل` / `Profile`)**:
+     - Rider identity card: Name, Phone, Email, Vehicle Type & Plate Number, Assigned Vendor/Kitchen Outlet.
+     - Shift Toggle: Online / Offline status switch.
+     - "Edit Profile" button to update Name, Phone, and Vehicle details.
+     - Switch to Customer App / Logout buttons.
+
+---
+
+## 15. 🚀 Mandatory Deployment Rules
 - **Automatic Deployment Command**:
   Whenever code changes are made:
   ```bash

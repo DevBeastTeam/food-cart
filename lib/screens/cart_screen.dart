@@ -44,82 +44,62 @@ class _CartScreenState extends State<CartScreen> {
   void _handleCheckout(BuildContext context) {
     if (widget.cartState.items.isEmpty) return;
 
-    // Guest Mode Check: If user is not logged in, intercept with popup dialog
+    // Guest Mode Check: If user is not logged in, intercept with Toast containing direct Login button
     final isLoggedIn = widget.userState?.isLoggedIn ?? false;
     if (!isLoggedIn && widget.userState != null) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          backgroundColor: Colors.white,
-          title: Row(
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
+                  color: Colors.amber.shade700,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.lock_person_rounded, color: AppTheme.primary, size: 24),
+                child: const Icon(Icons.lock_rounded, color: Colors.white, size: 18),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               const Expanded(
-                child: Text(
-                  'لاگ ان درکار ہے',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'پلیز لاگ ان فرسٹ ٹو سبمٹ ارڈر',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'Please login first to submit order',
+                      style: TextStyle(fontSize: 11, color: Colors.white70),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                'پلیز لاگ ان فرسٹ ٹو سبمٹ ارڈر',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                  height: 1.4,
+          backgroundColor: const Color(0xFF1B2A4A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
+          duration: const Duration(seconds: 7),
+          action: SnackBarAction(
+            label: 'لاگ ان کریں (Login)',
+            textColor: Colors.amberAccent,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AuthScreen(userState: widget.userState!),
                 ),
-              ),
-              SizedBox(height: 6),
-              Text(
-                'Please login first to submit your order.',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-            ],
+              );
+            },
           ),
-          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('کینسل (Cancel)', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AuthScreen(userState: widget.userState!),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              ),
-              child: const Text('لاگ ان / سائن اپ (Login)', style: TextStyle(fontWeight: FontWeight.w800)),
-            ),
-          ],
         ),
       );
       return;
@@ -525,7 +505,52 @@ class _CartScreenState extends State<CartScreen> {
 
         ...widget.cartState.items.map(_buildCartItemTile),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
+
+        // Cash on Delivery Indicator
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0FDF4),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF86EFAC)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.payments_rounded, color: Color(0xFF16A34A), size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'کیش آن ڈیلیوری (Cash on Delivery - COD)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        color: Color(0xFF15803D),
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Pay cash to the rider when food arrives at your address',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF166534)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 18),
 
         SizedBox(
           width: double.infinity,
@@ -540,7 +565,7 @@ class _CartScreenState extends State<CartScreen> {
               ),
             ),
             child: const Text(
-              'Send Order',
+              'Send Order (کیش آن ڈیلیوری)',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w900,
@@ -554,87 +579,140 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCartItemTile(CartItem cartItem) {
+    final isPakwan = cartItem.foodItem.category.toLowerCase().contains('daig') ||
+        cartItem.foodItem.category.toLowerCase().contains('pakwan') ||
+        cartItem.foodItem.name.toLowerCase().contains('daig') ||
+        cartItem.foodItem.name.toLowerCase().contains('deg');
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
       child: ListTile(
         onTap: () => _showFoodDetailSheet(cartItem),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-        leading: CustomImage(
-          imageUrl: cartItem.foodItem.imageUrl,
-          width: 64,
-          height: 64,
-          borderRadius: 10,
-          fit: BoxFit.cover,
-        ),
-        title: Text(
-          cartItem.foodItem.name,
-          style: const TextStyle(
-            fontSize: 14.5,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Row(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        leading: Stack(
           children: [
-            Text(
-              cartItem.formattedTotalPrice,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.primary,
-              ),
+            CustomImage(
+              imageUrl: cartItem.foodItem.imageUrl,
+              width: 64,
+              height: 64,
+              borderRadius: 10,
+              fit: BoxFit.cover,
             ),
-            if (cartItem.hasDiscount) ...[
-              const SizedBox(width: 6),
-              Text(
-                cartItem.formattedOriginalTotalPrice,
-                style: const TextStyle(
-                  fontSize: 11,
-                  decoration: TextDecoration.lineThrough,
-                  color: AppTheme.textSecondary,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Container(
+            Positioned(
+              top: 2,
+              left: 2,
+              child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                  color: isPakwan ? Colors.amber.shade800 : AppTheme.primary,
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.red.shade200),
                 ),
                 child: Text(
-                  '${cartItem.foodItem.discountPercent}% OFF',
-                  style: TextStyle(
-                    fontSize: 9.5,
+                  isPakwan ? 'پکوان' : 'ریسٹورنٹ',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 8.5,
                     fontWeight: FontWeight.w800,
-                    color: Colors.red.shade700,
                   ),
                 ),
               ),
-            ],
+            ),
           ],
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              cartItem.foodItem.name,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (cartItem.foodItem.locationAddress.isNotEmpty)
+              Text(
+                '📍 ${cartItem.foodItem.locationAddress}',
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: AppTheme.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Row(
+            children: [
+              Text(
+                cartItem.formattedTotalPrice,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primary,
+                ),
+              ),
+              if (cartItem.hasDiscount) ...[
+                const SizedBox(width: 6),
+                Text(
+                  cartItem.formattedOriginalTotalPrice,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    decoration: TextDecoration.lineThrough,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Text(
+                    '${cartItem.foodItem.discountPercent}% OFF',
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.red.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               onPressed: () => widget.cartState.decrement(cartItem.foodItem.id),
-              icon: const Icon(Icons.remove_circle_outline, size: 22),
+              icon: const Icon(Icons.remove_circle_outline, size: 20),
               visualDensity: VisualDensity.compact,
             ),
             Text(
               '${cartItem.quantity}',
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5),
             ),
             IconButton(
               onPressed: () => widget.cartState.increment(cartItem.foodItem.id),
-              icon: const Icon(Icons.add_circle_outline, size: 22),
+              icon: const Icon(Icons.add_circle_outline, size: 20),
               visualDensity: VisualDensity.compact,
             ),
             IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 19),
               onPressed: () => widget.cartState.removeItem(cartItem.foodItem.id),
               visualDensity: VisualDensity.compact,
             ),

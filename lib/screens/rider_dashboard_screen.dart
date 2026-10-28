@@ -18,23 +18,10 @@ class RiderDashboardScreen extends StatefulWidget {
   State<RiderDashboardScreen> createState() => _RiderDashboardScreenState();
 }
 
-class _RiderDashboardScreenState extends State<RiderDashboardScreen>
-    with SingleTickerProviderStateMixin {
-  int _currentBottomNavIndex = 0; // 0: Home/Dashboard, 1: Rides, 2: Profile
-  late TabController _ridesTabController;
+class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
+  int _currentBottomNavIndex = 0; // 0: Analytics, 1: Recent Orders, 2: Completed Orders, 3: Profile
   String? _expandedMapOrderId;
-
-  @override
-  void initState() {
-    super.initState();
-    _ridesTabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _ridesTabController.dispose();
-    super.dispose();
-  }
+  String _completedFilter = 'All'; // 'All', 'Delivered', 'Cancelled'
 
   @override
   Widget build(BuildContext context) {
@@ -44,12 +31,24 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
         final allOrders = widget.userState.orders;
         final pendingOrders = allOrders.where((o) =>
             o.status == 'Accepted' ||
-            o.status == 'Preparing' ||
-            o.status == 'On the Way').toList();
+            o.status == 'Preparing').toList();
+        final inProcessOrders = allOrders.where((o) =>
+            o.status == 'On the Way' ||
+            o.status == 'Arrived').toList();
+        final activeOrders = allOrders.where((o) =>
+            o.status != 'Delivered' &&
+            o.status != 'Cancelled').toList();
         final completedOrders = allOrders.where((o) => o.status == 'Delivered').toList();
+        final rejectedOrders = allOrders.where((o) => o.status == 'Cancelled').toList();
 
         final totalCompletedCount = completedOrders.length;
         final totalPendingCount = pendingOrders.length;
+        final totalInProcessCount = inProcessOrders.length;
+        final totalRejectedCount = rejectedOrders.length;
+        final totalActiveCount = activeOrders.length;
+
+        final double totalCODCollected = completedOrders.fold(0.0, (sum, o) => sum + o.totalAmount);
+        final double totalRejectedAmount = rejectedOrders.fold(0.0, (sum, o) => sum + o.totalAmount);
         final totalEarnings = (totalCompletedCount * 180) + 450;
 
         return Scaffold(
@@ -58,21 +57,32 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
           body: IndexedStack(
             index: _currentBottomNavIndex,
             children: [
-              // Tab 0: Home / Analytics Dashboard
+              // Tab 0: Analytics Dashboard
               _buildHomeDashboardTab(
+                totalOrdersCount: allOrders.length,
                 pendingCount: totalPendingCount,
+                inProcessCount: totalInProcessCount,
                 completedCount: totalCompletedCount,
+                rejectedCount: totalRejectedCount,
+                totalCODCollected: totalCODCollected,
                 earnings: totalEarnings,
-                pendingOrders: pendingOrders,
+                pendingOrders: activeOrders,
               ),
 
-              // Tab 1: Rides (Top TabBar with 2 tabs: Pending & Completed)
-              _buildRidesTab(
-                pendingOrders: pendingOrders,
+              // Tab 1: Recent / Active Orders
+              _buildRecentOrdersTab(
+                activeOrders: activeOrders,
+              ),
+
+              // Tab 2: Completed & Rejected Orders Hub
+              _buildCompletedOrdersTab(
                 completedOrders: completedOrders,
+                rejectedOrders: rejectedOrders,
+                totalCODCollected: totalCODCollected,
+                totalRejectedAmount: totalRejectedAmount,
               ),
 
-              // Tab 2: Profile & Edit Profile
+              // Tab 3: Profile & Edit Profile
               _buildProfileTab(
                 completedCount: totalCompletedCount,
                 earnings: totalEarnings,
@@ -80,7 +90,7 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
             ],
           ),
           bottomNavigationBar: _buildBottomNavigationBar(
-            pendingBadge: totalPendingCount,
+            pendingBadge: totalActiveCount,
           ),
         );
       },
@@ -246,8 +256,12 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
   // TAB 0: HOME / DASHBOARD & ANALYTICS
   // ----------------------------------------------------
   Widget _buildHomeDashboardTab({
+    required int totalOrdersCount,
     required int pendingCount,
+    required int inProcessCount,
     required int completedCount,
+    required int rejectedCount,
+    required double totalCODCollected,
     required int earnings,
     required List<UserOrder> pendingOrders,
   }) {
@@ -408,9 +422,9 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Performance Analytics',
+                'Performance Analytics (اینالیٹکس)',
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 16.5,
                   fontWeight: FontWeight.w800,
                   color: AppTheme.textPrimary,
                 ),
@@ -437,29 +451,29 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
           // 3. Grid of Main Analytics Cards
           Row(
             children: [
-              // Completed Orders Card (Requested prominently)
+              // Completed Orders Card
               Expanded(
                 child: _buildAnalyticsCard(
-                  title: 'Orders Completed',
+                  title: 'مکمل شدہ (Completed)',
                   value: '$completedCount',
-                  subtitle: 'Total Successful Drops',
+                  subtitle: 'Delivered Drops',
                   icon: Icons.check_circle_rounded,
                   color: Colors.green.shade700,
                   bgColor: Colors.green.shade50,
-                  badgeText: '+100% on-time',
+                  badgeText: '100% on-time',
                 ),
               ),
               const SizedBox(width: 12),
-              // Pending/Active Runs Card
+              // In-Process Runs Card
               Expanded(
                 child: _buildAnalyticsCard(
-                  title: 'Pending Rides',
-                  value: '$pendingCount',
-                  subtitle: 'In Kitchen & Transit',
-                  icon: Icons.sports_motorsports_rounded,
-                  color: Colors.orange.shade800,
-                  bgColor: Colors.orange.shade50,
-                  badgeText: 'Action required',
+                  title: 'پروسیس میں (In-Process)',
+                  value: '$inProcessCount',
+                  subtitle: 'On the Way / Arrived',
+                  icon: Icons.two_wheeler_rounded,
+                  color: Colors.blue.shade700,
+                  bgColor: Colors.blue.shade50,
+                  badgeText: 'En Route',
                 ),
               ),
             ],
@@ -469,32 +483,95 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
 
           Row(
             children: [
-              // Total Earnings Card
+              // Pending Orders Card
               Expanded(
                 child: _buildAnalyticsCard(
-                  title: 'Rider Earnings',
-                  value: 'Rs. $earnings',
-                  subtitle: 'Base Pay + Drop Bonus',
-                  icon: Icons.account_balance_wallet_rounded,
-                  color: const Color(0xFF1B2A4A),
-                  bgColor: const Color(0xFFE8EEF8),
-                  badgeText: 'Weekly payout',
+                  title: 'پینڈنگ (Pending)',
+                  value: '$pendingCount',
+                  subtitle: 'Awaiting Pickup',
+                  icon: Icons.hourglass_top_rounded,
+                  color: Colors.orange.shade800,
+                  bgColor: Colors.orange.shade50,
+                  badgeText: 'Kitchen Prep',
                 ),
               ),
               const SizedBox(width: 12),
-              // Customer Satisfaction Card
+              // Rejected Orders Card
               Expanded(
                 child: _buildAnalyticsCard(
-                  title: 'Customer Reviews',
-                  value: '4.9 ⭐',
-                  subtitle: 'Based on 184 drops',
-                  icon: Icons.thumb_up_alt_rounded,
-                  color: Colors.purple.shade700,
-                  bgColor: Colors.purple.shade50,
-                  badgeText: 'Top Performer',
+                  title: 'ریجیکٹ شدہ (Rejected)',
+                  value: '$rejectedCount',
+                  subtitle: 'Cancelled Runs',
+                  icon: Icons.cancel_rounded,
+                  color: Colors.red.shade700,
+                  bgColor: Colors.red.shade50,
+                  badgeText: 'Cancelled',
                 ),
               ),
             ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Cash on Delivery Card (COD Collected)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.amber.shade900, Colors.amber.shade800],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.amber.shade900.withAlpha(40),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(35),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.payments_rounded, color: Colors.white, size: 26),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'کیش آن ڈیلیوری وصول شدہ رقم (COD Collected)',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Rs. ${totalCODCollected.toInt()}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const Text(
+                        'Total Cash In Hand to settle with vendor',
+                        style: TextStyle(color: Colors.white60, fontSize: 10.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: 22),
@@ -767,136 +844,239 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
   }
 
   // ----------------------------------------------------
-  // TAB 1: RIDES (TOP TABBAR: PENDING RIDES & COMPLETED RIDES)
+  // TAB 1: RECENT / ACTIVE ORDERS
   // ----------------------------------------------------
-  Widget _buildRidesTab({
-    required List<UserOrder> pendingOrders,
-    required List<UserOrder> completedOrders,
-  }) {
-    return Column(
-      children: [
-        // Top 2 Tabs Header (Requested: "rider pages me oper 2 tab or 1 for pending rides second for completed")
-        Container(
-          color: Colors.white,
-          child: TabBar(
-            controller: _ridesTabController,
-            labelColor: const Color(0xFF1B2A4A),
-            unselectedLabelColor: Colors.grey.shade600,
-            indicatorColor: const Color(0xFF1B2A4A),
-            indicatorWeight: 3,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-            tabs: [
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.pending_actions_rounded, size: 16),
-                    const SizedBox(width: 6),
-                    Text('Pending Rides (${pendingOrders.length})'),
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.task_alt_rounded, size: 16),
-                    const SizedBox(width: 6),
-                    Text('Completed (${completedOrders.length})'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Tab Views
-        Expanded(
-          child: TabBarView(
-            controller: _ridesTabController,
+  Widget _buildRecentOrdersTab({required List<UserOrder> activeOrders}) {
+    if (activeOrders.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Sub Tab 1: Pending Rides
-              _buildPendingRidesList(pendingOrders),
-
-              // Sub Tab 2: Completed Rides
-              _buildCompletedRidesList(completedOrders),
+              Icon(Icons.delivery_dining_outlined, size: 64, color: Colors.grey.shade400),
+              const SizedBox(height: 14),
+              const Text(
+                'کوئی ایکٹو آرڈر موجود نہیں',
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'جب وینڈر آپ کے ذمے کوئی نیا آرڈر لگائے گا، وہ فوری طور پر یہاں نظر آئے گا۔',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+              ),
             ],
           ),
         ),
+      );
+    }
+
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+      itemCount: activeOrders.length,
+      itemBuilder: (context, index) {
+        return _buildPendingOrderCard(activeOrders[index]);
+      },
+    );
+  }
+
+  // ----------------------------------------------------
+  // TAB 2: COMPLETED & REJECTED ORDERS HUB
+  // ----------------------------------------------------
+  Widget _buildCompletedOrdersTab({
+    required List<UserOrder> completedOrders,
+    required List<UserOrder> rejectedOrders,
+    required double totalCODCollected,
+    required double totalRejectedAmount,
+  }) {
+    List<UserOrder> displayList;
+    if (_completedFilter == 'Delivered') {
+      displayList = completedOrders;
+    } else if (_completedFilter == 'Cancelled') {
+      displayList = rejectedOrders;
+    } else {
+      displayList = [...completedOrders, ...rejectedOrders]..sort((a, b) => b.orderDate.compareTo(a.orderDate));
+    }
+
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+      children: [
+        // Top 2 Summary Cards (Requested: Total completed & prices, Total rejected & prices)
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.green.shade200),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 6, offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.check_circle_rounded, color: Colors.green.shade700, size: 16),
+                        const SizedBox(width: 6),
+                        const Text('مکمل شدہ (Completed)', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Colors.green)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text('${completedOrders.length} آرڈرز', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                    Text('COD: Rs. ${totalCODCollected.toInt()}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.green.shade800)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.red.shade200),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 6, offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.cancel_rounded, color: Colors.red.shade700, size: 16),
+                        const SizedBox(width: 6),
+                        const Text('ریجیکٹ شدہ (Rejected)', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Colors.red)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text('${rejectedOrders.length} آرڈرز', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                    Text('Rs. ${totalRejectedAmount.toInt()} ضائع', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.red.shade700)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 14),
+
+        // Filter chips: All, Delivered, Cancelled
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildFilterChoice('All', 'سب (${completedOrders.length + rejectedOrders.length})'),
+              const SizedBox(width: 8),
+              _buildFilterChoice('Delivered', 'مکمل شدہ (${completedOrders.length})'),
+              const SizedBox(width: 8),
+              _buildFilterChoice('Cancelled', 'ریجیکٹ شدہ (${rejectedOrders.length})'),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        if (displayList.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                children: [
+                  Icon(Icons.inbox_outlined, size: 50, color: Colors.grey.shade400),
+                  const SizedBox(height: 10),
+                  const Text('کوئی ہسٹری موجود نہیں (No History)', style: TextStyle(fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+          )
+        else
+          ...displayList.map(_buildCompletedOrderCard),
       ],
     );
   }
 
-  Widget _buildPendingRidesList(List<UserOrder> pendingOrders) {
-    if (pendingOrders.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.done_all_rounded, size: 60, color: Colors.grey.shade400),
-              const SizedBox(height: 14),
-              const Text(
-                'No Pending Deliveries',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'You have completed all active deliveries! New incoming requests will notify you here.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-      itemCount: pendingOrders.length,
-      itemBuilder: (context, index) {
-        return _buildPendingOrderCard(pendingOrders[index]);
-      },
+  Widget _buildFilterChoice(String value, String label) {
+    final isSelected = _completedFilter == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => setState(() => _completedFilter = value),
+      selectedColor: const Color(0xFF1B2A4A),
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : AppTheme.textPrimary,
+        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+        fontSize: 12,
+      ),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: isSelected ? const Color(0xFF1B2A4A) : AppTheme.border),
+      ),
     );
   }
 
-  Widget _buildCompletedRidesList(List<UserOrder> completedOrders) {
-    if (completedOrders.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.inventory_2_outlined, size: 60, color: Colors.grey.shade400),
-              const SizedBox(height: 14),
-              const Text(
-                'No Completed Orders Yet',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Once you deliver pending orders, your history and earned delivery fees will appear here.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12.5),
-              ),
-            ],
-          ),
+  void _showRejectOrderDialog(UserOrder order) {
+    final reasonController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.cancel_outlined, color: Colors.red, size: 22),
+            const SizedBox(width: 8),
+            const Text('ریجیکٹ آرڈر (Reject Order)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+          ],
         ),
-      );
-    }
-
-    return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-      itemCount: completedOrders.length,
-      itemBuilder: (context, index) {
-        return _buildCompletedOrderCard(completedOrders[index]);
-      },
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('کیا آپ آرڈر #${order.id} کو ریجیکٹ کرنا چاہتے ہیں؟', style: const TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            const Text('ریجیکٹ کرنے کی وجہ درج کریں (Reason):', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: reasonController,
+              decoration: InputDecoration(
+                hintText: 'مثلاً بائیک پنکچر، ایریا کوریج سے باہر',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('کینسل'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final reason = reasonController.text.trim();
+              Navigator.pop(ctx);
+              widget.userState.rejectOrder(order.id, reason: reason.isNotEmpty ? reason : 'Rider cancelled');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Order #${order.id} ریجیکٹ کر دیا گیا ہے'),
+                  backgroundColor: Colors.red.shade700,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            child: const Text('ریجیکٹ کریں (Confirm)'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -971,9 +1151,44 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                     color: AppTheme.textPrimary,
                   ),
                 ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: order.isPakwan ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                      color: order.isPakwan ? const Color(0xFFFDE68A) : const Color(0xFFBFDBFE),
+                    ),
+                  ),
+                  child: Text(
+                    order.isPakwan ? '🍲 شاہی پکوان' : '🍽️ ریسٹورنٹ',
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: order.isPakwan ? const Color(0xFF92400E) : const Color(0xFF1E40AF),
+                    ),
+                  ),
+                ),
                 const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    '💵 COD',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF15803D),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
                 Text(
-                  'Collect: Rs. ${order.totalAmount.toInt()}',
+                  'Rs. ${order.totalAmount.toInt()}',
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w900,
@@ -1204,6 +1419,40 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
 
                 const SizedBox(height: 12),
 
+                // Dedicated "Ride by Google Map" Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Launching Google Maps Navigation for Order #${order.id}... 🛵'),
+                          backgroundColor: const Color(0xFF1A73E8),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                      await MapLauncherService.launchRiderNavigation(
+                        lat: order.latitude,
+                        lng: order.longitude,
+                        fallbackAddress: order.deliveryAddress,
+                      );
+                    },
+                    icon: const Icon(Icons.navigation_rounded, size: 18),
+                    label: const Text(
+                      'Ride by Google Map (گوگل میپ پر لوکیشن) 🛵',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1A73E8),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
                 // Rider Actions Bar
                 Row(
                   children: [
@@ -1263,32 +1512,15 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                           );
                         },
                         icon: const Icon(Icons.two_wheeler, size: 16),
-                        label: const Text('Start Run & GPS'),
+                        label: const Text('Start Run'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1A73E8),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                       )
                     else if (isOnTheWay) ...[
-                      OutlinedButton.icon(
-                        onPressed: () async {
-                          await MapLauncherService.launchRiderNavigation(
-                            lat: order.latitude,
-                            lng: order.longitude,
-                            fallbackAddress: order.deliveryAddress,
-                          );
-                        },
-                        icon: const Icon(Icons.navigation_rounded, size: 14, color: Color(0xFF1A73E8)),
-                        label: const Text('GPS', style: TextStyle(fontSize: 11, color: Color(0xFF1A73E8))),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFF1A73E8)),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
                       ElevatedButton.icon(
                         onPressed: () {
                           widget.userState.updateOrderStatus(order.id, 'Arrived');
@@ -1331,23 +1563,6 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                       ),
                     ] else ...[
                       // isArrived
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.deepPurple.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.deepPurple.shade200),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.location_on, size: 14, color: Colors.deepPurple.shade700),
-                            const SizedBox(width: 4),
-                            Text('At Doorstep', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.deepPurple.shade700)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 6),
                       ElevatedButton.icon(
                         onPressed: () {
                           widget.userState.updateOrderStatus(order.id, 'Delivered');
@@ -1368,6 +1583,14 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
                         ),
                       ),
                     ],
+
+                    const SizedBox(width: 6),
+                    // Reject Button
+                    IconButton(
+                      icon: const Icon(Icons.cancel_outlined, color: Colors.redAccent, size: 20),
+                      tooltip: 'Reject Order',
+                      onPressed: () => _showRejectOrderDialog(order),
+                    ),
                   ],
                 ),
               ],
@@ -2118,37 +2341,44 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen>
         backgroundColor: Colors.white,
         indicatorColor: const Color(0xFF1B2A4A).withAlpha(30),
         destinations: [
-          // Tab 1: Home / Dashboard
+          // Tab 0: Analytics
           const NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard_rounded, color: Color(0xFF1B2A4A)),
-            label: 'Home',
+            icon: Icon(Icons.analytics_outlined),
+            selectedIcon: Icon(Icons.analytics_rounded, color: Color(0xFF1B2A4A)),
+            label: 'اینالیٹکس',
           ),
 
-          // Tab 2: Rides (with badge for pending orders)
+          // Tab 1: Recent Orders
           NavigationDestination(
             icon: Badge(
               label: Text('$pendingBadge'),
               isLabelVisible: pendingBadge > 0,
               backgroundColor: Colors.orange.shade800,
               textColor: Colors.white,
-              child: const Icon(Icons.two_wheeler_outlined),
+              child: const Icon(Icons.delivery_dining_outlined),
             ),
             selectedIcon: Badge(
               label: Text('$pendingBadge'),
               isLabelVisible: pendingBadge > 0,
               backgroundColor: Colors.orange.shade800,
               textColor: Colors.white,
-              child: const Icon(Icons.two_wheeler_rounded, color: Color(0xFF1B2A4A)),
+              child: const Icon(Icons.delivery_dining_rounded, color: Color(0xFF1B2A4A)),
             ),
-            label: 'Rides',
+            label: 'ریسنت آرڈرز',
+          ),
+
+          // Tab 2: Completed Orders
+          const NavigationDestination(
+            icon: Icon(Icons.task_alt_outlined),
+            selectedIcon: Icon(Icons.task_alt_rounded, color: Color(0xFF1B2A4A)),
+            label: 'مکمل شدہ',
           ),
 
           // Tab 3: Profile
           const NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person_rounded, color: Color(0xFF1B2A4A)),
-            label: 'Profile',
+            label: 'پروفائل',
           ),
         ],
       ),
