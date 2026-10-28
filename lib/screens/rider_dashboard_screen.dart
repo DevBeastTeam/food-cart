@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../services/map_launcher_service.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
@@ -22,6 +24,24 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
   int _currentBottomNavIndex = 0; // 0: Analytics, 1: Recent Orders, 2: Completed Orders, 3: Profile
   String? _expandedMapOrderId;
   String _completedFilter = 'All'; // 'All', 'Delivered', 'Cancelled'
+  Timer? _riderRefreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    ApiService.instance.syncOrdersOnly(userState: widget.userState);
+    _riderRefreshTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      if (mounted) {
+        ApiService.instance.syncOrdersOnly(userState: widget.userState);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _riderRefreshTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1303,6 +1323,72 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
                             order.address,
                             style: const TextStyle(fontSize: 11.5, color: AppTheme.textPrimary),
                           ),
+                          const SizedBox(height: 6),
+                          InkWell(
+                            onTap: () async {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Starting GPS route to ${order.customerName}... 🛵'),
+                                  backgroundColor: const Color(0xFF1A73E8),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                              await MapLauncherService.launchRiderNavigation(
+                                lat: order.latitude,
+                                lng: order.longitude,
+                                fallbackAddress: order.address,
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F0FE),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFF8AB4F8)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.directions_rounded, size: 14, color: Color(0xFF1A73E8)),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Open in Google Maps 🗺️',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF1A73E8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (order.eventDate != null && order.eventDate!.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFFFDE68A)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.event_available_rounded, size: 14, color: Color(0xFFD97706)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'ڈیلیوری وقت: ${order.eventDate}${order.eventTime != null && order.eventTime!.isNotEmpty ? " @ ${order.eventTime}" : ""}${order.occasion != null && order.occasion!.isNotEmpty ? " (${order.occasion})" : ""}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF92400E),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           if (order.notes != null && order.notes!.isNotEmpty)
                             Text(
                               'Instruction: "${order.notes}"',

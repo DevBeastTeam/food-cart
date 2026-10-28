@@ -584,6 +584,12 @@ $adminUser = $_SESSION['admin_user'];
                                         <!-- Items Summary -->
                                         <td class="py-2.5 px-3">
                                             <div class="text-[11px] text-zinc-200 line-clamp-1 max-w-[190px]" x-text="formatOrderItemsSummary(ord.items)"></div>
+                                            <template x-if="ord.event_date || ord.eventDate">
+                                                <div class="text-[9.5px] text-amber-400 font-bold mt-0.5 flex items-center gap-1">
+                                                    <span>📅</span>
+                                                    <span x-text="(ord.event_date || ord.eventDate) + ' ' + (ord.event_time || ord.eventTime || '')"></span>
+                                                </div>
+                                            </template>
                                         </td>
 
                                         <!-- Total Amount -->
@@ -1082,6 +1088,12 @@ $adminUser = $_SESSION['admin_user'];
 
                                         <td class="py-2.5 px-3">
                                             <div class="text-[11px] text-zinc-200 line-clamp-2 max-w-[180px]" x-text="formatOrderItemsSummary(ord.items)"></div>
+                                            <template x-if="ord.event_date || ord.eventDate">
+                                                <div class="text-[9.5px] text-amber-400 font-bold mt-0.5 flex items-center gap-1">
+                                                    <span>📅</span>
+                                                    <span x-text="(ord.event_date || ord.eventDate) + ' ' + (ord.event_time || ord.eventTime || '')"></span>
+                                                </div>
+                                            </template>
                                         </td>
 
                                         <td class="py-2.5 px-3">
@@ -3587,8 +3599,16 @@ $adminUser = $_SESSION['admin_user'];
                     const restaurant = ord.restaurantName || this.subAdmin.businessName || 'Cravee FoodCourt & Shahi Pakwan';
                     const amount = Math.round(ord.totalAmount || 0);
 
+                    let eventText = '';
+                    if (ord.event_date || ord.eventDate) {
+                        const ed = ord.event_date || ord.eventDate;
+                        const et = ord.event_time || ord.eventTime || '';
+                        eventText = `📅 Delivery Schedule: ${ed} ${et}\n`;
+                    }
+
                     const text = `Assalam-o-Alaikum ${ord.customerName}! 🍽️\n` +
                         `Aapka order #${ord.id} (${restaurant}) tayar ho kar Rider ke hawale kar diya gaya hai aur raste mein hai.\n\n` +
+                        (eventText ? `${eventText}\n` : '') +
                         `🛵 Rider Name: ${riderName}\n` +
                         `📞 Rider Contact: ${riderPhone}\n` +
                         `💵 Cash to Pay (COD): Rs. ${amount}\n` +

@@ -243,6 +243,20 @@ This document specifies the complete functional architecture, workflows, operati
 
 ---
 
+## 16. 🌟 Real-time Tracking & Event Scheduling Upgrades (2026)
+- **Pakwan Event Date & Time Scheduling**:
+  - When customer adds Shahi Pakwan (Daig) dishes or orders from Pakwan centers, Cart screen displays a dedicated **Delivery Schedule Card** (`تقریب کی تاریخ اور وقت`).
+  - Allows selecting Date (`Today`, `Tomorrow (کل)`, or Custom Date via Calendar Picker), Time Slot (`Lunch 1:30 PM`, `2:00 PM (دوپہر ۲ بجے)`, `Dinner 8:30 PM`, or Custom Clock Picker), and Occasion (`Dawat`, `Niaz / Khatam`, `Walima`, `Party`).
+  - Saved to SQLite DB (`orders.event_date` & `orders.event_time`), forwarded to Vendor & Rider portals, and included in WhatsApp dispatch alert.
+- **Rider Direct Google Maps Button**:
+  - In `rider_dashboard_screen.dart`, every order destination card features a prominent **"Open in Google Maps 🗺️"** button beside the customer's drop-off address.
+  - Handled by `MapLauncherService.launchRiderNavigation`: automatically switches between precise GPS coordinates and street address strings so navigation never fails.
+- **Auto-Refresh Order Status**:
+  - `OrdersScreen` and `RiderDashboardScreen` automatically refresh order statuses in the background every 12-15 seconds via lightweight `ApiService.syncOrdersOnly()`.
+  - When vendor or rider updates an order status, customer screen animates to the new status immediately without needing manual pull-to-refresh, triggering in-app notifications.
+
+---
+
 ## 15. 🚀 Mandatory Deployment Rules
 - **Automatic Deployment Command**:
   Whenever code changes are made:

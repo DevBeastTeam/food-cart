@@ -231,6 +231,8 @@ function migrateSchemaUpdates(PDO $pdo): void {
     $helper('orders', 'rejectionReason', "TEXT DEFAULT ''");
     $helper('orders', 'latitude', "REAL DEFAULT 31.5204");
     $helper('orders', 'longitude', "REAL DEFAULT 74.3587");
+    $helper('orders', 'event_date', "TEXT DEFAULT ''");
+    $helper('orders', 'event_time', "TEXT DEFAULT ''");
     $helper('users', 'latitude', "REAL DEFAULT 31.5204");
     $helper('users', 'longitude', "REAL DEFAULT 74.3587");
     $helper('users', 'assigned_sub_admin_id', "TEXT DEFAULT 'sub_admin_2'");

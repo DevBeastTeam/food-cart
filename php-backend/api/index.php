@@ -748,9 +748,17 @@ switch ($resource) {
                 }
             }
 
+            $eventDate = $b['event_date'] ?? $b['eventDate'] ?? '';
+            $eventTime = $b['event_time'] ?? $b['eventTime'] ?? '';
+            $notes = $b['notes'] ?? null;
+            if (!empty($eventDate) && ($notes === null || strpos($notes, 'Event Delivery:') === false)) {
+                $schedBadge = "Event Delivery: $eventDate" . (!empty($eventTime) ? " ($eventTime)" : "");
+                $notes = $notes ? trim("$notes | $schedBadge") : $schedBadge;
+            }
+
             $stmt = $pdo->prepare("
-                INSERT INTO orders (id, restaurantName, restaurantImage, items, totalAmount, originalAmount, discountInfo, orderDate, status, prepTime, customerName, customerPhone, deliveryAddress, isDaigBooking, occasion, notes, riderName, riderPhone, sub_admin_id, rejectionReason, latitude, longitude)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO orders (id, restaurantName, restaurantImage, items, totalAmount, originalAmount, discountInfo, orderDate, status, prepTime, customerName, customerPhone, deliveryAddress, isDaigBooking, occasion, notes, riderName, riderPhone, sub_admin_id, rejectionReason, latitude, longitude, event_date, event_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $id,
@@ -768,13 +776,15 @@ switch ($resource) {
                 $b['deliveryAddress'] ?? 'Lahore',
                 !empty($b['isDaigBooking']) ? 1 : 0,
                 $b['occasion'] ?? null,
-                $b['notes'] ?? null,
+                $notes,
                 $b['riderName'] ?? null,
                 $b['riderPhone'] ?? null,
                 $subAdminId,
                 $b['rejectionReason'] ?? '',
                 $lat,
-                $lng
+                $lng,
+                $eventDate,
+                $eventTime
             ]);
 
             jsonResponse(['success' => true, 'message' => 'Order placed successfully', 'data' => ['id' => $id, 'sub_admin_id' => $subAdminId]], 201);

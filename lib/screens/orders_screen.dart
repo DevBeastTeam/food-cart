@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
@@ -33,6 +34,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   bool _isHeadOfficeCollapsed = false;
   late final AnimationController _textShimmerController;
   late final Animation<double> _textShimmer;
+  Timer? _autoRefreshTimer;
 
   @override
   void initState() {
@@ -44,10 +46,21 @@ class _OrdersScreenState extends State<OrdersScreen>
     _textShimmer = Tween<double>(begin: -1, end: 2).animate(
       CurvedAnimation(parent: _textShimmerController, curve: Curves.easeInOut),
     );
+
+    // Initial sync
+    ApiService.instance.syncOrdersOnly(userState: widget.userState);
+
+    // Auto-refresh order statuses every 12 seconds
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 12), (timer) {
+      if (mounted) {
+        ApiService.instance.syncOrdersOnly(userState: widget.userState);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _autoRefreshTimer?.cancel();
     _textShimmerController.dispose();
     super.dispose();
   }
@@ -85,14 +98,42 @@ class _OrdersScreenState extends State<OrdersScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'My Orders',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: AppTheme.textPrimary,
-                        letterSpacing: -0.5,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'My Orders',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.textPrimary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFF86EFAC)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.sync_rounded, size: 12, color: Color(0xFF16A34A)),
+                              SizedBox(width: 4),
+                              Text(
+                                'Live Auto-Sync 🟢',
+                                style: TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF16A34A),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     SingleChildScrollView(
@@ -437,6 +478,32 @@ class _OrdersScreenState extends State<OrdersScreen>
                             ),
                           ),
                         ),
+                        if (order.eventDate != null && order.eventDate!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFFDE68A)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.event_available_rounded, size: 14, color: Color(0xFFD97706)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'شیڈول: ${order.eventDate}${order.eventTime != null && order.eventTime!.isNotEmpty ? " @ ${order.eventTime}" : ""}${order.occasion != null && order.occasion!.isNotEmpty ? " • ${order.occasion}" : ""}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF92400E),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         if (order.notes != null && order.notes!.isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Text(

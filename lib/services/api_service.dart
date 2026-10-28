@@ -207,6 +207,8 @@ class ApiService {
                 status: o['status'] ?? 'Accepted',
                 isDaigBooking: o['isDaigBooking'] ?? false,
                 occasion: o['occasion'],
+                eventDate: o['event_date'] ?? o['eventDate'],
+                eventTime: o['event_time'] ?? o['eventTime'],
                 deliveryAddress: o['deliveryAddress'] ?? 'Lahore',
                 prepTime: o['prepTime'] ?? '25 mins',
                 riderName: o['riderName'],
@@ -227,6 +229,52 @@ class ApiService {
       } catch (e) {
         debugPrint('[ApiService] Orders sync offline/fallback: $e');
       }
+    }
+  }
+
+  // Fast periodic orders-only sync for real-time live customer tracking
+  Future<void> syncOrdersOnly({required UserState userState}) async {
+    try {
+      final orderRes = await http.get(Uri.parse('$baseUrl/orders')).timeout(const Duration(seconds: 4));
+      if (orderRes.statusCode == 200) {
+        final decoded = _safeJsonDecode(orderRes.body);
+        final list = decoded != null && decoded['data'] is List ? (decoded['data'] as List) : null;
+        if (list != null) {
+          final List<UserOrder> syncedOrders = [];
+          for (final o in list) {
+            syncedOrders.add(UserOrder(
+              id: o['id'],
+              restaurantName: o['restaurantName'] ?? 'FoodCourt Central Kitchen',
+              restaurantImage: o['restaurantImage'] ?? '',
+              items: List<String>.from(o['items'] ?? []),
+              totalAmount: (o['totalAmount'] as num).toDouble(),
+              originalAmount: (o['originalAmount'] as num?)?.toDouble(),
+              discountInfo: o['discountInfo'],
+              orderDate: DateTime.tryParse(o['orderDate'] ?? '') ?? DateTime.now(),
+              status: o['status'] ?? 'Accepted',
+              isDaigBooking: o['isDaigBooking'] == true || o['isDaigBooking'] == 1,
+              occasion: o['occasion'],
+              eventDate: o['event_date'] ?? o['eventDate'],
+              eventTime: o['event_time'] ?? o['eventTime'],
+              deliveryAddress: o['deliveryAddress'] ?? 'Lahore',
+              prepTime: o['prepTime'] ?? '25 mins',
+              riderName: o['riderName'],
+              riderPhone: o['riderPhone'],
+              customerName: o['customerName'] ?? 'Hassan Raza',
+              customerPhone: o['customerPhone'] ?? '+92 300 8472910',
+              notes: o['notes'],
+              rejectionReason: o['rejectionReason'],
+              latitude: (o['latitude'] as num?)?.toDouble() ?? 31.5204,
+              longitude: (o['longitude'] as num?)?.toDouble() ?? 74.3587,
+            ));
+          }
+          if (syncedOrders.isNotEmpty) {
+            userState.syncOrdersFromBackend(syncedOrders);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[ApiService] Orders auto-sync error: $e');
     }
   }
 

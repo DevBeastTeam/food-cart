@@ -59,6 +59,8 @@ class UserOrder {
   final String customerName;
   final String customerPhone;
   final String? rejectionReason;
+  final String? eventDate;
+  final String? eventTime;
   final double latitude;
   final double longitude;
 
@@ -97,6 +99,8 @@ class UserOrder {
     this.riderPhone,
     this.customerName = 'Hassan Raza',
     this.customerPhone = '+92 300 8472910',
+    this.eventDate,
+    this.eventTime,
     this.rejectionReason,
     this.latitude = 31.5204,
     this.longitude = 74.3587,
@@ -113,6 +117,8 @@ class UserOrder {
     String? customerName,
     String? customerPhone,
     String? rejectionReason,
+    String? eventDate,
+    String? eventTime,
     double? latitude,
     double? longitude,
   }) {
@@ -128,6 +134,8 @@ class UserOrder {
       status: status ?? this.status,
       isDaigBooking: isDaigBooking,
       occasion: occasion,
+      eventDate: eventDate ?? this.eventDate,
+      eventTime: eventTime ?? this.eventTime,
       rating: rating ?? this.rating,
       deliveryAddress: deliveryAddress,
       prepTime: prepTime ?? this.prepTime,
@@ -483,6 +491,8 @@ class UserState extends ChangeNotifier {
     required String prepTime,
     bool isDaigBooking = false,
     String? occasion,
+    String? eventDate,
+    String? eventTime,
     String? foodItemId,
     String? notes,
     String? restaurantId,
@@ -505,6 +515,8 @@ class UserState extends ChangeNotifier {
       status: 'Accepted',
       isDaigBooking: isDaigBooking,
       occasion: occasion,
+      eventDate: eventDate,
+      eventTime: eventTime,
       deliveryAddress: deliveryAddress,
       prepTime: prepTime,
       foodItemId: foodItemId,
@@ -549,6 +561,8 @@ class UserState extends ChangeNotifier {
       'customerPhone': _user?.phone ?? '+92 300 0000000',
       'isDaigBooking': isDaigBooking,
       'occasion': occasion,
+      'event_date': eventDate ?? '',
+      'event_time': eventTime ?? '',
       'notes': notes ?? '',
       'sub_admin_id': subAdminId ?? '',
       'latitude': orderLat,

@@ -28,6 +28,9 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final TextEditingController _notesController = TextEditingController();
+  DateTime _selectedEventDate = DateTime.now().add(const Duration(days: 1));
+  TimeOfDay _selectedEventTime = const TimeOfDay(hour: 14, minute: 0);
+  String _selectedOccasion = 'دعوت / مہمانی (Dawat)';
 
   @override
   void initState() {
@@ -39,6 +42,15 @@ class _CartScreenState extends State<CartScreen> {
   void dispose() {
     _notesController.dispose();
     super.dispose();
+  }
+
+  bool _isPakwanCart() {
+    return widget.cartState.items.any((i) =>
+        i.foodItem.category.toLowerCase().contains('daig') ||
+        i.foodItem.name.toLowerCase().contains('daig') ||
+        i.foodItem.category.toLowerCase().contains('deg') ||
+        i.foodItem.category.toLowerCase().contains('pakwan') ||
+        (widget.cartState.restaurantName?.toLowerCase().contains('pakwan') ?? false));
   }
 
   void _handleCheckout(BuildContext context) {
@@ -114,11 +126,17 @@ class _CartScreenState extends State<CartScreen> {
     final originalAmount = totalSavings > 0 ? (totalAmount + totalSavings) : totalAmount;
     final discountInfo = totalSavings > 0 ? 'Special Promo: Saved Rs. ${totalSavings.toInt()}' : null;
     final deliveryAddress = widget.cartState.deliveryAddress;
-    final isDaig = widget.cartState.items.any((i) =>
-        i.foodItem.category == 'Daig' || i.foodItem.name.contains('Daig') || i.foodItem.category == 'Deg');
+    final isDaig = _isPakwanCart();
     final prepTime = isDaig ? '2-3 hours (Daig preparation)' : '25-35 mins';
     final image = widget.cartState.items.first.foodItem.imageUrl;
     final notes = widget.cartState.specialInstructions;
+
+    final formattedDate = '${_selectedEventDate.day.toString().padLeft(2, '0')}-${_selectedEventDate.month.toString().padLeft(2, '0')}-${_selectedEventDate.year}';
+    final formattedTime = _selectedEventTime.format(context);
+    final eventNote = isDaig ? 'تقریب: $formattedDate @ $formattedTime ($_selectedOccasion)' : null;
+    final finalNotes = notes.isNotEmpty
+        ? (eventNote != null ? '$notes | $eventNote' : notes)
+        : eventNote;
 
     widget.userState?.placeOrder(
       restaurantName: restName,
@@ -132,7 +150,10 @@ class _CartScreenState extends State<CartScreen> {
       deliveryAddress: deliveryAddress,
       prepTime: prepTime,
       isDaigBooking: isDaig,
-      notes: notes.isNotEmpty ? notes : null,
+      occasion: isDaig ? _selectedOccasion : null,
+      eventDate: isDaig ? formattedDate : null,
+      eventTime: isDaig ? formattedTime : null,
+      notes: finalNotes,
     );
 
     widget.cartState.clearCart();
@@ -164,6 +185,258 @@ class _CartScreenState extends State<CartScreen> {
     } else if (!widget.isEmbedded && Navigator.canPop(context)) {
       Navigator.pop(context);
     }
+  }
+
+  Widget _buildPakwanScheduleCard(BuildContext context) {
+    final now = DateTime.now();
+    final isToday = _selectedEventDate.day == now.day &&
+        _selectedEventDate.month == now.month &&
+        _selectedEventDate.year == now.year;
+
+    final tomorrow = now.add(const Duration(days: 1));
+    final isTomorrow = _selectedEventDate.day == tomorrow.day &&
+        _selectedEventDate.month == tomorrow.month &&
+        _selectedEventDate.year == tomorrow.year;
+
+    final formattedDateText = isToday
+        ? 'Today (آج)'
+        : (isTomorrow ? 'Tomorrow (کل)' : '${_selectedEventDate.day}/${_selectedEventDate.month}/${_selectedEventDate.year}');
+
+    final occasions = [
+      'دعوت / مہمانی (Dawat)',
+      'نیاز / ختم (Niaz)',
+      'ولیمہ / شادی (Walima)',
+      'سالگرہ / پارٹی (Party)',
+    ];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.event_note_rounded, color: Color(0xFFD97706), size: 22),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'تقریب کی تاریخ اور وقت (Delivery Schedule)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13.5,
+                        color: Color(0xFF92400E),
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'پکوان / دیگ کی ڈیلیوری کے لیے مطلوبہ وقت منتخب کریں',
+                      style: TextStyle(fontSize: 11, color: Color(0xFFB45309)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: Color(0xFFFDE68A)),
+          const SizedBox(height: 12),
+
+          // 1. DATE SELECTOR
+          const Text(
+            '1. تقریب کی تاریخ (Event Date):',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: Color(0xFF78350F)),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ChoiceChip(
+                label: const Text('آج (Today)'),
+                selected: isToday,
+                onSelected: (val) {
+                  if (val) setState(() => _selectedEventDate = DateTime.now());
+                },
+                selectedColor: const Color(0xFFD97706),
+                labelStyle: TextStyle(
+                  color: isToday ? Colors.white : const Color(0xFF78350F),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                ),
+              ),
+              ChoiceChip(
+                label: const Text('کل (Tomorrow) 🌟'),
+                selected: isTomorrow,
+                onSelected: (val) {
+                  if (val) setState(() => _selectedEventDate = DateTime.now().add(const Duration(days: 1)));
+                },
+                selectedColor: const Color(0xFFD97706),
+                labelStyle: TextStyle(
+                  color: isTomorrow ? Colors.white : const Color(0xFF78350F),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                ),
+              ),
+              ActionChip(
+                avatar: const Icon(Icons.calendar_month_rounded, size: 16, color: Color(0xFFD97706)),
+                label: Text(
+                  !isToday && !isTomorrow ? '${_selectedEventDate.day}/${_selectedEventDate.month}/${_selectedEventDate.year}' : 'دیگر تاریخ 📅',
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11.5, color: Color(0xFF78350F)),
+                ),
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedEventDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 60)),
+                  );
+                  if (picked != null) {
+                    setState(() => _selectedEventDate = picked);
+                  }
+                },
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // 2. TIME SELECTOR
+          const Text(
+            '2. مطلوبہ وقت (Delivery Time):',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: Color(0xFF78350F)),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ChoiceChip(
+                label: const Text('دوپہر ۲ بجے (2:00 PM) ⭐'),
+                selected: _selectedEventTime.hour == 14 && _selectedEventTime.minute == 0,
+                onSelected: (val) {
+                  if (val) setState(() => _selectedEventTime = const TimeOfDay(hour: 14, minute: 0));
+                },
+                selectedColor: const Color(0xFFD97706),
+                labelStyle: TextStyle(
+                  color: (_selectedEventTime.hour == 14 && _selectedEventTime.minute == 0) ? Colors.white : const Color(0xFF78350F),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                ),
+              ),
+              ChoiceChip(
+                label: const Text('دوپہر ۱:۳۰ (Lunch 1:30 PM)'),
+                selected: _selectedEventTime.hour == 13 && _selectedEventTime.minute == 30,
+                onSelected: (val) {
+                  if (val) setState(() => _selectedEventTime = const TimeOfDay(hour: 13, minute: 30));
+                },
+                selectedColor: const Color(0xFFD97706),
+                labelStyle: TextStyle(
+                  color: (_selectedEventTime.hour == 13 && _selectedEventTime.minute == 30) ? Colors.white : const Color(0xFF78350F),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                ),
+              ),
+              ChoiceChip(
+                label: const Text('رات ۸:۳۰ (Dinner 8:30 PM)'),
+                selected: _selectedEventTime.hour == 20 && _selectedEventTime.minute == 30,
+                onSelected: (val) {
+                  if (val) setState(() => _selectedEventTime = const TimeOfDay(hour: 20, minute: 30));
+                },
+                selectedColor: const Color(0xFFD97706),
+                labelStyle: TextStyle(
+                  color: (_selectedEventTime.hour == 20 && _selectedEventTime.minute == 30) ? Colors.white : const Color(0xFF78350F),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                ),
+              ),
+              ActionChip(
+                avatar: const Icon(Icons.access_time_rounded, size: 16, color: Color(0xFFD97706)),
+                label: Text(
+                  _selectedEventTime.format(context),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11.5, color: Color(0xFF78350F)),
+                ),
+                onPressed: () async {
+                  final picked = await showTimePicker(
+                    context: context,
+                    initialTime: _selectedEventTime,
+                  );
+                  if (picked != null) {
+                    setState(() => _selectedEventTime = picked);
+                  }
+                },
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // 3. OCCASION SELECTOR
+          const Text(
+            '3. تقریب کی نوعیت (Occasion):',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: Color(0xFF78350F)),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: occasions.map((occ) {
+              final isSel = _selectedOccasion == occ;
+              return ChoiceChip(
+                label: Text(occ),
+                selected: isSel,
+                onSelected: (val) {
+                  if (val) setState(() => _selectedOccasion = occ);
+                },
+                selectedColor: const Color(0xFFD97706),
+                labelStyle: TextStyle(
+                  color: isSel ? Colors.white : const Color(0xFF78350F),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.5,
+                ),
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFDE68A)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF16A34A), size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'شیڈول: $formattedDateText کو ${_selectedEventTime.format(context)} بجے ($_selectedOccasion)',
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: Color(0xFF92400E)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showFoodDetailSheet(CartItem cartItem) {
@@ -506,6 +779,10 @@ class _CartScreenState extends State<CartScreen> {
         ...widget.cartState.items.map(_buildCartItemTile),
 
         const SizedBox(height: 16),
+
+        if (_isPakwanCart()) ...[
+          _buildPakwanScheduleCard(context),
+        ],
 
         // Cash on Delivery Indicator
         Container(
