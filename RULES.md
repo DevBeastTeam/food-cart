@@ -255,6 +255,10 @@ This document specifies the complete functional architecture, workflows, operati
   - `OrdersScreen` and `RiderDashboardScreen` automatically refresh order statuses in the background every 12-15 seconds via lightweight `ApiService.syncOrdersOnly()`.
   - When vendor or rider updates an order status, customer screen animates to the new status immediately without needing manual pull-to-refresh, triggering in-app notifications.
 
+- **Item "Out of Stock" Switch**:
+  - In Vendor Portal Dishes and Shahi Daigs tables, every food item has a 1-click **"In Stock / Out of Stock"** toggle switch with green/red status indicator.
+  - When marked Out of Stock, the Flutter customer app displays a prominent `🔴 Out of Stock (ختم ہے)` badge over the image, disables the Add button (showing "SOLD OUT" / "Out of Stock"), blocks adding to cart with a warning snackbar, and blocks checkout if already in cart until removed.
+
 ---
 
 ## 15. 🚀 Mandatory Deployment Rules

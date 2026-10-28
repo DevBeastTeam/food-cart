@@ -23,6 +23,28 @@ class FoodItemCard extends StatelessWidget {
   });
 
   void _handleAdd(BuildContext context) {
+    if (!item.isAvailable) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.do_not_disturb_on_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text('Maafi chahte hain! "${item.name}" filhal Out of Stock hai 🔴'),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red.shade800,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
     final success = cartState.addItem(item, item.restaurantId, restaurantName);
     if (!success) {
       _showConflictDialog(context);
@@ -246,6 +268,28 @@ class FoodItemCard extends StatelessWidget {
                     borderRadius: 14,
                     fit: BoxFit.cover,
                   ),
+                  if (!item.isAvailable)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade700,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Out of Stock',
+                              style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w900),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     bottom: -10,
                     child: quantity > 0
@@ -301,12 +345,12 @@ class FoodItemCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
                               height: 30,
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: item.isAvailable ? Colors.white : const Color(0xFFFEE2E2),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                    color: AppTheme.primary, width: 1.4),
+                                    color: item.isAvailable ? AppTheme.primary : const Color(0xFFEF4444), width: 1.4),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withAlpha(15),
@@ -315,17 +359,18 @@ class FoodItemCard extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.add, size: 14, color: AppTheme.primary),
-                                  SizedBox(width: 2),
+                                  Icon(item.isAvailable ? Icons.add : Icons.block_rounded,
+                                      size: 14, color: item.isAvailable ? AppTheme.primary : const Color(0xFFDC2626)),
+                                  const SizedBox(width: 4),
                                   Text(
-                                    'ADD',
+                                    item.isAvailable ? 'ADD' : 'SOLD OUT',
                                     style: TextStyle(
-                                      color: AppTheme.primary,
+                                      color: item.isAvailable ? AppTheme.primary : const Color(0xFFDC2626),
                                       fontWeight: FontWeight.w800,
-                                      fontSize: 12,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ],
@@ -362,12 +407,38 @@ class FoodItemCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomImage(
-            imageUrl: item.imageUrl,
-            height: 90,
-            width: 160,
-            borderRadius: 15,
-            fit: BoxFit.cover,
+          Stack(
+            children: [
+              CustomImage(
+                imageUrl: item.imageUrl,
+                height: 90,
+                width: 160,
+                borderRadius: 15,
+                fit: BoxFit.cover,
+              ),
+              if (!item.isAvailable)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade700,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Out of Stock',
+                          style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           Padding(
             padding: const EdgeInsets.all(10),
@@ -425,13 +496,13 @@ class FoodItemCard extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryLight,
+                          color: item.isAvailable ? AppTheme.primaryLight : const Color(0xFFFEE2E2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.add,
+                        child: Icon(
+                          item.isAvailable ? Icons.add : Icons.block_rounded,
                           size: 16,
-                          color: AppTheme.primary,
+                          color: item.isAvailable ? AppTheme.primary : const Color(0xFFDC2626),
                         ),
                       ),
                     ),

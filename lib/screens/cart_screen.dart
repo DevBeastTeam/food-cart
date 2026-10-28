@@ -56,6 +56,19 @@ class _CartScreenState extends State<CartScreen> {
   void _handleCheckout(BuildContext context) {
     if (widget.cartState.items.isEmpty) return;
 
+    final outOfStockItems = widget.cartState.items.where((i) => !i.foodItem.isAvailable).toList();
+    if (outOfStockItems.isNotEmpty) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Aapki cart mein "${outOfStockItems.first.foodItem.name}" Out of Stock ho chuka hai 🔴 Baraye meherbani remove karein.'),
+          backgroundColor: Colors.red.shade800,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     // Guest Mode Check: If user is not logged in, intercept with Toast containing direct Login button
     final isLoggedIn = widget.userState?.isLoggedIn ?? false;
     if (!isLoggedIn && widget.userState != null) {
@@ -915,6 +928,24 @@ class _CartScreenState extends State<CartScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
+            if (!cartItem.foodItem.isAvailable)
+              Container(
+                margin: const EdgeInsets.only(top: 2, bottom: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: const Color(0xFFEF4444)),
+                ),
+                child: const Text(
+                  'Out of Stock 🔴 (ختم ہے)',
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFFDC2626),
+                  ),
+                ),
+              ),
             if (cartItem.foodItem.locationAddress.isNotEmpty)
               Text(
                 '📍 ${cartItem.foodItem.locationAddress}',

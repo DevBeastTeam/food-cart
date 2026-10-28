@@ -422,6 +422,17 @@ class ShahiDishCard extends StatelessWidget {
                               height: 48,
                               child: ElevatedButton.icon(
                                 onPressed: () {
+                                  if (!item.isAvailable) {
+                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Maafi chahte hain! "${item.name}" filhal Out of Stock hai 🔴'),
+                                        backgroundColor: Colors.red.shade800,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                    return;
+                                  }
                                   for (int i = 0; i < quantity; i++) {
                                     cartState.addItem(item, item.restaurantId, restaurantName);
                                   }
@@ -552,6 +563,35 @@ class ShahiDishCard extends StatelessWidget {
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ),
+                      if (!item.isAvailable)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade700,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.block_rounded, color: Colors.white, size: 15),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      'Out of Stock',
+                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       Positioned(
                         top: 8,
                         right: 8,
@@ -727,6 +767,17 @@ class ShahiDishCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () {
+                        if (!item.isAvailable) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Maafi chahte hain! "${item.name}" filhal Out of Stock hai 🔴'),
+                              backgroundColor: Colors.red.shade800,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
                         if (onOrderNow != null) {
                           onOrderNow!();
                         } else {
@@ -741,11 +792,11 @@ class ShahiDishCard extends StatelessWidget {
                           );
                         }
                       },
-                      icon: const Icon(Icons.flash_on_rounded, size: 16),
-                      label: const Text('Order Now'),
+                      icon: Icon(item.isAvailable ? Icons.flash_on_rounded : Icons.block_rounded, size: 16),
+                      label: Text(item.isAvailable ? 'Order Now' : 'Out of Stock'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF59E0B),
-                        foregroundColor: Colors.black87,
+                        backgroundColor: item.isAvailable ? const Color(0xFFF59E0B) : const Color(0xFFDC2626),
+                        foregroundColor: item.isAvailable ? Colors.black87 : Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         textStyle: const TextStyle(

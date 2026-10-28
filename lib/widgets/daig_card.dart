@@ -21,6 +21,17 @@ class DaigCard extends StatefulWidget {
 
 class _DaigCardState extends State<DaigCard> {
   void _openBookingSheet() {
+    if (!widget.daig.isAvailable) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Maafi chahte hain! "${widget.daig.name}" filhal Out of Stock hai 🔴'),
+          backgroundColor: Colors.red.shade800,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     String selectedSize = 'large'; // 'small', 'medium', 'large'
     int degQuantity = 1;
     String selectedOccasion = 'Dawat / Gathering';
@@ -724,6 +735,38 @@ class _DaigCardState extends State<DaigCard> {
                   fit: BoxFit.cover,
                 ),
               ),
+              if (!widget.daig.isAvailable)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade700,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withAlpha(50), blurRadius: 6),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.block_rounded, color: Colors.white, size: 16),
+                            SizedBox(width: 6),
+                            Text(
+                              'Out of Stock (ختم ہے)',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 top: 10,
                 left: 10,
@@ -944,10 +987,10 @@ class _DaigCardState extends State<DaigCard> {
                     const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: _openBookingSheet,
-                      icon: const Icon(Icons.soup_kitchen_rounded, size: 15),
-                      label: const Text('Book Daig'),
+                      icon: Icon(widget.daig.isAvailable ? Icons.soup_kitchen_rounded : Icons.block_rounded, size: 15),
+                      label: Text(widget.daig.isAvailable ? 'Book Daig' : 'Out of Stock'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primary,
+                        backgroundColor: widget.daig.isAvailable ? AppTheme.primary : const Color(0xFFDC2626),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

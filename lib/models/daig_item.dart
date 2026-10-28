@@ -27,6 +27,7 @@ class DaigItem {
   final bool isDiscounted;
   final String promoBadge;
   final String subAdminId;
+  final bool isAvailable;
 
   double get mediumDaigPrice =>
       customMediumPrice ?? (((fullDaigPrice + halfDaigPrice) / 2) / 100).round() * 100.0;
@@ -62,6 +63,7 @@ class DaigItem {
     this.isDiscounted = false,
     this.promoBadge = '',
     this.subAdminId = 'sub_admin_2',
+    this.isAvailable = true,
   });
 
   // Convert to FoodItem for seamless cart integration
@@ -130,6 +132,7 @@ class DaigItem {
       isDiscounted: isDiscounted || discountPercent > 0,
       promoBadge: promoBadge,
       subAdminId: subAdminId.isNotEmpty ? subAdminId : 'sub_admin_2',
+      isAvailable: isAvailable,
     );
   }
 }

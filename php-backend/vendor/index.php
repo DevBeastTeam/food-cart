@@ -2031,11 +2031,12 @@ $adminUser = $_SESSION['admin_user'];
 
                                         <td class="py-2.5 px-3 text-center font-mono text-[11px] text-zinc-400" x-text="(item.calories || 500) + ' kcal'"></td>
 
-                                        <td class="py-2.5 px-3">
+                                        <td class="py-2.5 px-3 whitespace-nowrap">
                                             <button type="button" @click="toggleFoodAvailability(item)"
-                                                class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
-                                                :class="item.isVisible ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/15 text-red-400 border border-red-500/30'"
-                                                x-text="item.isVisible ? 'IN STOCK' : 'OUT OF STOCK'">
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm active:scale-95"
+                                                :class="item.isVisible ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500/30'">
+                                                <span class="w-2 h-2 rounded-full" :class="item.isVisible ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'"></span>
+                                                <span x-text="item.isVisible ? 'In Stock' : 'Out of Stock'"></span>
                                             </button>
                                         </td>
 
@@ -2144,11 +2145,12 @@ $adminUser = $_SESSION['admin_user'];
                                             </template>
                                         </td>
 
-                                        <td class="py-2.5 px-3">
+                                        <td class="py-2.5 px-3 whitespace-nowrap">
                                             <button type="button" @click="toggleDaigAvailability(d)"
-                                                class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
-                                                :class="d.isVisible ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/15 text-red-400 border border-red-500/30'"
-                                                x-text="d.isVisible ? 'AVAILABLE' : 'OFFLINE'">
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm active:scale-95"
+                                                :class="d.isVisible ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500/30'">
+                                                <span class="w-2 h-2 rounded-full" :class="d.isVisible ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'"></span>
+                                                <span x-text="d.isVisible ? 'In Stock' : 'Out of Stock'"></span>
                                             </button>
                                         </td>
 
@@ -4407,14 +4409,18 @@ $adminUser = $_SESSION['admin_user'];
 
                 async toggleFoodAvailability(item) {
                     try {
+                        const newStatus = !item.isVisible;
                         await fetch(`../api/food-items/${item.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ...item, isVisible: !item.isVisible, sub_admin_id: this.subAdmin.id, restaurantId: this.subAdmin.id })
+                            body: JSON.stringify({ ...item, isVisible: newStatus, isAvailable: newStatus, sub_admin_id: this.subAdmin.id, restaurantId: this.subAdmin.id })
                         });
-                        item.isVisible = !item.isVisible;
-                        this.showToast('Dish stock availability updated.');
-                    } catch(e) {}
+                        item.isVisible = newStatus;
+                        item.isAvailable = newStatus;
+                        this.showToast(newStatus ? `🟢 "${item.name}" is now IN STOCK (Available)!` : `🔴 "${item.name}" marked as OUT OF STOCK!`);
+                    } catch(e) {
+                        this.showToast('Stock update error: ' + e.message, 'error');
+                    }
                 },
 
                 async confirmDeleteFood(item) {
@@ -4470,14 +4476,18 @@ $adminUser = $_SESSION['admin_user'];
 
                 async toggleDaigAvailability(d) {
                     try {
+                        const newStatus = !d.isVisible;
                         await fetch(`../api/daig-items/${d.id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ...d, isVisible: !d.isVisible, sub_admin_id: this.subAdmin.id })
+                            body: JSON.stringify({ ...d, isVisible: newStatus, isAvailable: newStatus, sub_admin_id: this.subAdmin.id })
                         });
-                        d.isVisible = !d.isVisible;
-                        this.showToast('Daig availability updated.');
-                    } catch(e) {}
+                        d.isVisible = newStatus;
+                        d.isAvailable = newStatus;
+                        this.showToast(newStatus ? `🟢 "${d.name}" is now IN STOCK (Available)!` : `🔴 "${d.name}" marked as OUT OF STOCK!`);
+                    } catch(e) {
+                        this.showToast('Stock update error: ' + e.message, 'error');
+                    }
                 },
 
                 async confirmDeleteDaig(d) {

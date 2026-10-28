@@ -45,6 +45,9 @@ class CartState extends ChangeNotifier {
   }
 
   bool addItem(FoodItem foodItem, String restId, String restName) {
+    if (!foodItem.isAvailable) {
+      return false;
+    }
     if (_items.isNotEmpty && _restaurantId != null && _restaurantId != restId) {
       return false;
     }

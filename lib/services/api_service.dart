@@ -146,6 +146,7 @@ class ApiService {
               isDiscounted: d['isDiscounted'] == 1 || d['isDiscounted'] == true || discPct > 0,
               promoBadge: d['promoBadge'] ?? '',
               subAdminId: d['sub_admin_id'] ?? 'sub_admin_2',
+              isAvailable: d['isAvailable'] == true || d['isAvailable'] == 1 || d['isVisible'] == true || d['isVisible'] == 1 || d['isVisible'] == null,
             ));
           }
           if (parsedDaigs.isNotEmpty) {
@@ -582,6 +583,7 @@ class ApiService {
       promoBadge: i['promoBadge'] ?? '',
       subAdminId: i['sub_admin_id'] ?? '',
       locationAddress: i['locationAddress'] ?? i['location'] ?? 'FoodCourt Central Kitchen, 14-C Gulberg III, Lahore',
+      isAvailable: i['isAvailable'] == true || i['isAvailable'] == 1 || i['isVisible'] == true || i['isVisible'] == 1 || i['isVisible'] == null,
     );
   }
 }

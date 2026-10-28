@@ -20,6 +20,7 @@ class FoodItem {
   final bool isDiscounted;
   final String promoBadge;
   final String subAdminId;
+  final bool isAvailable;
 
   const FoodItem({
     required this.id,
@@ -43,6 +44,7 @@ class FoodItem {
     this.isDiscounted = false,
     this.promoBadge = '',
     this.subAdminId = '',
+    this.isAvailable = true,
   });
 
   double get effectivePrice {
