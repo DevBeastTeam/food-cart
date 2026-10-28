@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/sample_data.dart';
+import '../models/daig_item.dart';
 import '../models/food_item.dart';
 import '../models/restaurant.dart';
 import '../services/api_service.dart';
@@ -41,6 +42,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentNavIndex = 0;
   String _selectedCategory = 'All';
   String _quickFilter = 'All'; // 'All', 'Top Rated', 'Fast Delivery', 'Free Delivery'
+  String _selectedVendorId = 'all';
+  String _selectedVendorName = 'All';
+  String _selectedVendorLocation = 'All Locations';
   final TextEditingController _homeSearchController = TextEditingController();
   String _homeSearchQuery = '';
   Timer? _searchDebounce;
@@ -61,6 +65,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Restaurant> get _filteredRestaurants {
     return SampleData.restaurants.where((rest) {
+      if (_selectedVendorId != 'all') {
+        final matchesVendor = rest.id == _selectedVendorId ||
+            rest.name.toLowerCase().trim() == _selectedVendorName.toLowerCase().trim() ||
+            rest.address.toLowerCase().contains(_selectedVendorLocation.toLowerCase());
+        if (!matchesVendor) return false;
+      }
+
       if (_homeSearchQuery.isNotEmpty) {
         final query = _homeSearchQuery.toLowerCase();
         final matchName = rest.name.toLowerCase().contains(query);
@@ -147,81 +158,387 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _showAddressSelector() {
+  void _showVendorLocationSelector() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            20,
-            20,
-            MediaQuery.of(ctx).viewInsets.bottom + 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      builder: (ctx) {
+        String searchQuery = '';
+        bool isLoading = true;
+
+        return StatefulBuilder(
+          builder: (sheetContext, setSheetState) {
+            // Trigger shimmer loading completion after 350ms
+            if (isLoading) {
+              Future.delayed(const Duration(milliseconds: 350), () {
+                if (sheetContext.mounted) {
+                  setSheetState(() {
+                    isLoading = false;
+                  });
+                }
+              });
+            }
+
+            final List<Map<String, String>> vendors = [
+              for (final r in SampleData.restaurants)
+                {
+                  'id': r.id,
+                  'name': r.name,
+                  'address': r.address,
+                  'type': 'Restaurant',
+                  'imageUrl': r.imageUrl,
+                },
+              for (final p in SampleData.pakwanCenters)
+                {
+                  'id': p.id,
+                  'name': p.name,
+                  'address': p.address,
+                  'type': 'Pakwan Center',
+                  'imageUrl': p.imageUrl,
+                },
+            ];
+
+            final filtered = vendors.where((v) {
+              if (searchQuery.isEmpty) return true;
+              final q = searchQuery.toLowerCase();
+              return v['name']!.toLowerCase().contains(q) ||
+                  v['address']!.toLowerCase().contains(q) ||
+                  v['type']!.toLowerCase().contains(q);
+            }).toList();
+
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(sheetContext).size.height * 0.85,
+              ),
+              padding: EdgeInsets.fromLTRB(
+                18,
+                16,
+                18,
+                MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Select Delivery Address',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
+                  // Handle Bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    icon: const Icon(Icons.close, size: 20),
-                    visualDensity: VisualDensity.compact,
+
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryLight,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.storefront_rounded, color: AppTheme.primary, size: 20),
+                          ),
+                          const SizedBox(width: 10),
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Select Location & Vendor',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                'لوکیشن یا وینڈر منتخب کریں',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(sheetContext),
+                        icon: const Icon(Icons.close_rounded, size: 20),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
                   ),
+
+                  const SizedBox(height: 14),
+
+                  // Search Field with Shimmer feedback
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceMuted,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: TextField(
+                      autofocus: false,
+                      onChanged: (val) {
+                        setSheetState(() {
+                          searchQuery = val.trim();
+                        });
+                      },
+                      decoration: const InputDecoration(
+                        hintText: 'Search restaurant, pakwan, or location address...',
+                        hintStyle: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
+                        prefixIcon: Icon(Icons.search, color: AppTheme.primary, size: 18),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Shimmer Effect Loading while fetching
+                  if (isLoading) ...[
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: 5,
+                        itemBuilder: (_, __) => _buildShimmerTile(),
+                      ),
+                    ),
+                  ] else ...[
+                    // Vendor List
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          // 1. ALL OPTION (Top Priority)
+                          ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                color: _selectedVendorId == 'all'
+                                    ? AppTheme.primary
+                                    : AppTheme.border,
+                              ),
+                            ),
+                            tileColor: _selectedVendorId == 'all'
+                                ? AppTheme.primaryLight.withAlpha(80)
+                                : Colors.transparent,
+                            leading: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: _selectedVendorId == 'all' ? AppTheme.primary : AppTheme.surfaceMuted,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.public_rounded,
+                                color: _selectedVendorId == 'all' ? Colors.white : AppTheme.primary,
+                                size: 22,
+                              ),
+                            ),
+                            title: const Row(
+                              children: [
+                                Text(
+                                  'All Locations (تمام لوکیشنز)',
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'All Vendors',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            subtitle: const Text(
+                              'Show all food dishes, Shahi daigs & offers from every kitchen',
+                              style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                            ),
+                            trailing: _selectedVendorId == 'all'
+                                ? const Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 22)
+                                : null,
+                            onTap: () {
+                              setState(() {
+                                _selectedVendorId = 'all';
+                                _selectedVendorName = 'All';
+                                _selectedVendorLocation = 'All Locations';
+                              });
+                              Navigator.pop(sheetContext);
+                            },
+                          ),
+
+                          const SizedBox(height: 8),
+                          const Divider(height: 1, color: AppTheme.border),
+                          const SizedBox(height: 8),
+
+                          // 2. Individual Vendors / Restaurants
+                          ...filtered.map((v) {
+                            final isSel = _selectedVendorId == v['id'] ||
+                                (_selectedVendorId != 'all' && _selectedVendorName == v['name']);
+                            final isPakwan = v['type'] == 'Pakwan Center';
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSel ? AppTheme.primary : AppTheme.border.withAlpha(120),
+                                ),
+                                color: isSel ? AppTheme.primaryLight.withAlpha(50) : Colors.white,
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    v['imageUrl']!,
+                                    width: 44,
+                                    height: 44,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      width: 44,
+                                      height: 44,
+                                      color: AppTheme.surfaceMuted,
+                                      child: Icon(
+                                        isPakwan ? Icons.soup_kitchen : Icons.restaurant,
+                                        color: AppTheme.primary,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        v['name']!,
+                                        style: TextStyle(
+                                          fontSize: 13.5,
+                                          fontWeight: isSel ? FontWeight.w800 : FontWeight.w700,
+                                          color: isSel ? AppTheme.primary : AppTheme.textPrimary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isPakwan ? const Color(0xFFFEF3C7) : const Color(0xFFF3E8FF),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        isPakwan ? 'Pakwan' : 'Restaurant',
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: isPakwan ? const Color(0xFFB45309) : const Color(0xFF7E22CE),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                subtitle: Row(
+                                  children: [
+                                    const Icon(Icons.location_on_outlined, size: 12, color: AppTheme.textSecondary),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        v['address']!,
+                                        style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                trailing: isSel
+                                    ? const Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 22)
+                                    : const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 18),
+                                onTap: () {
+                                  setState(() {
+                                    _selectedVendorId = v['id']!;
+                                    _selectedVendorName = v['name']!;
+                                    _selectedVendorLocation = v['address']!;
+                                  });
+                                  Navigator.pop(sheetContext);
+                                },
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 12),
-              ...SampleData.sampleAddresses.map((address) {
-                final isSelected = widget.cartState.deliveryAddress == address;
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppTheme.primaryLight : AppTheme.surfaceMuted,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.location_on,
-                      color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
-                      size: 20,
-                    ),
-                  ),
-                  title: Text(
-                    address,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
-                    ),
-                  ),
-                  trailing: isSelected
-                      ? const Icon(Icons.check_circle, color: AppTheme.primary, size: 22)
-                      : null,
-                  onTap: () {
-                    widget.cartState.setAddress(address);
-                    Navigator.pop(ctx);
-                  },
-                );
-              }),
-            ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildShimmerTile() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceMuted,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.black.withAlpha(15),
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 140,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(20),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: 200,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -481,9 +798,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 10),
 
-          // Address Delivery Chip Bar
+          // Location & Vendor Delivery Chip Dropdown
           InkWell(
-            onTap: _showAddressSelector,
+            onTap: _showVendorLocationSelector,
             borderRadius: BorderRadius.circular(10),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -506,7 +823,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      widget.cartState.deliveryAddress.split('•').first.trim(),
+                      'Location: ${_selectedVendorId == "all" ? "All" : _selectedVendorName}',
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -572,6 +889,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             if (appContent['showPromoBanner'] != false) ...[
               PromoBanner(
+                selectedVendorId: _selectedVendorId,
                 onOrderNow: () {
                   setState(() {
                     _selectedCategory = 'Biryani';
@@ -958,20 +1276,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCategoryDishesSection() {
-    final List<FoodItem> dishes;
+    List<FoodItem> rawDishes;
     final String title;
     final String subtitle;
     final content = ApiService.instance.appContent;
 
     if (_selectedCategory == 'All') {
-      title = content['shahiMenuTitle'] ?? '👑 Shahi Menu Dishes (Signature Selection)';
-      subtitle = content['shahiMenuSubtitle'] ?? 'Popular dishes cooked in pure desi ghee & authentic secret spices';
-      dishes = SampleData.allTrendingFoodItems.take(4).toList();
+      title = _selectedVendorId != 'all'
+          ? '👑 $_selectedVendorName Specialties'
+          : (content['shahiMenuTitle'] ?? '👑 Shahi Menu Dishes (Signature Selection)');
+      subtitle = _selectedVendorId != 'all'
+          ? 'Fresh dishes prepared at $_selectedVendorLocation'
+          : (content['shahiMenuSubtitle'] ?? 'Popular dishes cooked in pure desi ghee & authentic secret spices');
+      rawDishes = List<FoodItem>.from(SampleData.allTrendingFoodItems);
     } else {
-      title = '👑 $_selectedCategory Specials (Signature Selection)';
-      subtitle = '2-3 signature items prepared fresh at FoodCourt Central Kitchen';
-      dishes = SampleData.getDishesForCategory(_selectedCategory).take(3).toList();
+      title = '👑 $_selectedCategory Specials (${_selectedVendorId != 'all' ? _selectedVendorName : 'Signature Selection'})';
+      subtitle = 'Signature items prepared fresh at FoodCourt Central Kitchen';
+      rawDishes = List<FoodItem>.from(SampleData.getDishesForCategory(_selectedCategory));
     }
+
+    if (_selectedVendorId != 'all') {
+      final vendorFiltered = rawDishes.where((d) =>
+          d.subAdminId == _selectedVendorId ||
+          d.restaurantId == _selectedVendorId ||
+          d.locationAddress.toLowerCase().contains(_selectedVendorLocation.toLowerCase()) ||
+          d.name.toLowerCase().contains(_selectedVendorName.toLowerCase())).toList();
+      if (vendorFiltered.isNotEmpty) {
+        rawDishes = vendorFiltered;
+      }
+    }
+
+    final dishes = rawDishes.take(6).toList();
 
     if (dishes.isEmpty) return const SizedBox.shrink();
 
@@ -1304,7 +1639,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildDaigSpotlightCard() {
-    final allDaigs = SampleData.daigDishes;
+    List<DaigItem> allDaigs = List<DaigItem>.from(SampleData.daigDishes);
+    if (_selectedVendorId != 'all') {
+      final vendorDaigs = allDaigs.where((d) =>
+          d.subAdminId == _selectedVendorId ||
+          d.centerId == _selectedVendorId ||
+          d.centerName.toLowerCase().contains(_selectedVendorName.toLowerCase()) ||
+          d.location.toLowerCase().contains(_selectedVendorLocation.toLowerCase())).toList();
+      if (vendorDaigs.isNotEmpty) {
+        allDaigs = vendorDaigs;
+      }
+    }
     final displayedDaigs = _showAllDaigs ? allDaigs : allDaigs.take(2).toList();
 
     return Container(

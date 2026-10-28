@@ -185,16 +185,8 @@ class UserState extends ChangeNotifier {
     super.dispose();
   }
 
-  bool _isLoggedIn = true;
-  UserProfile? _user = UserProfile(
-    name: 'Hassan Raza',
-    email: 'hassan.raza@foodcourt.pk',
-    phone: '+92 300 8472910',
-    city: 'Lahore & Islamabad',
-    membershipTier: 'FoodCourt Member',
-    walletBalance: 2450.0,
-    loyaltyCoins: 580,
-  );
+  bool _isLoggedIn = false; // Guest user mode enabled by default
+  UserProfile? _user;
 
   final List<UserAddress> _addresses = [
     const UserAddress(

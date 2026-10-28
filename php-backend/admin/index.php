@@ -1688,6 +1688,69 @@ if ($liveSuper) {
             </div>
 
             <!-- =============================================================== -->
+            <!-- TAB: VENDOR OFFERS & MOBILE APP BANNERS -->
+            <!-- =============================================================== -->
+            <div x-show="activeTab === 'banners'" class="space-y-3.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-white/5">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i data-lucide="tag" class="w-4 h-4 text-[#FF9500]"></i>
+                            <span>Vendor Promotional Offers &amp; Carousel Banners</span>
+                        </h3>
+                        <p class="text-[11px] text-zinc-400">Master moderation for all vendor promotional offers shown to customers on the mobile app</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    <template x-for="b in banners" :key="b.id">
+                        <div class="cupertino-card rounded-2xl overflow-hidden border border-white/5 flex flex-col justify-between">
+                            <div class="relative h-36 p-4 flex flex-col justify-between overflow-hidden"
+                                :style="'background: linear-gradient(135deg, ' + (b.bgGradient?.[0] || '#6C3CE9') + ', ' + (b.bgGradient?.[1] || '#8B5CF6') + ')'">
+                                
+                                <template x-if="b.imageUrl">
+                                    <img :src="b.imageUrl" alt="" class="absolute right-0 bottom-0 w-32 h-32 object-cover rounded-full opacity-30 pointer-events-none transform translate-x-4 translate-y-4">
+                                </template>
+
+                                <div class="relative z-10 flex items-center justify-between">
+                                    <span class="px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-black/40 text-amber-300"
+                                        x-text="b.tagText || 'OFFER'"></span>
+                                    <span x-show="b.discountPercent > 0"
+                                        class="px-2 py-0.5 rounded-full text-[10px] font-black bg-white text-orange-600"
+                                        x-text="b.discountPercent + '% OFF'"></span>
+                                </div>
+
+                                <div class="relative z-10 space-y-1">
+                                    <h4 class="text-base font-extrabold text-white leading-tight line-clamp-1" x-text="b.title"></h4>
+                                    <p class="text-[11px] text-white/80 line-clamp-2" x-text="b.dishesText || 'Exclusive Deal'"></p>
+                                </div>
+
+                                <div class="relative z-10 flex items-center justify-between text-[10px]">
+                                    <span class="text-white/90 bg-white/20 px-2 py-0.5 rounded font-mono" x-text="'Vendor: ' + (b.sub_admin_id || 'Platform')"></span>
+                                    <span class="font-bold px-2 py-0.5 rounded-full"
+                                        :class="b.isVisible ? 'bg-emerald-500/80 text-white' : 'bg-zinc-800 text-zinc-400'"
+                                        x-text="b.isVisible ? 'Active' : 'Hidden'"></span>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-zinc-950/60 border-t border-white/5 flex items-center justify-between">
+                                <button type="button" @click="toggleAdminBanner(b)"
+                                    class="text-[11px] font-medium flex items-center gap-1.5"
+                                    :class="b.isVisible ? 'text-emerald-400' : 'text-zinc-500'">
+                                    <i :data-lucide="b.isVisible ? 'eye' : 'eye-off'" class="w-3.5 h-3.5"></i>
+                                    <span x-text="b.isVisible ? 'App Visible' : 'App Hidden'"></span>
+                                </button>
+                                <button type="button" @click="deleteAdminBanner(b)"
+                                    class="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                                    title="Delete Banner">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- =============================================================== -->
             <!-- TAB 5: SUPER ADMIN PROFILE & SECURITY -->
             <!-- =============================================================== -->
             <div x-show="activeTab === 'profile'" class="space-y-3.5">
@@ -2577,10 +2640,13 @@ if ($liveSuper) {
                 tabs: [
                     { id: 'analytics', label: 'Platform Analytics', icon: 'line-chart' },
                     { id: 'vendors', label: 'Vendors', icon: 'store' },
+                    { id: 'banners', label: 'Vendor Offers', icon: 'tag' },
                     { id: 'all-orders', label: 'Global Orders Hub', icon: 'shopping-bag' },
                     { id: 'settings-db', label: 'Database & Seeding Hub', icon: 'database' },
                     { id: 'profile', label: 'Admin Profile', icon: 'user' }
                 ],
+
+                banners: [],
 
                 superProfile: <?= json_encode($superUser) ?>,
                 adminProfileForm: {
@@ -2938,12 +3004,13 @@ if ($liveSuper) {
                 async refreshAll(silent = false) {
                     if (!silent) this.loading = true;
                     try {
-                        const [saRes, sRes, oRes, accRes, ridRes] = await Promise.all([
+                        const [saRes, sRes, oRes, accRes, ridRes, banRes] = await Promise.all([
                             fetch('../api/sub-admins').then(r => r.json()),
                             fetch('../api/dashboard/stats').then(r => r.json()),
                             fetch('../api/orders').then(r => r.json()),
                             fetch('../api/database/accounts').then(r => r.json()).catch(() => ({ data: [] })),
-                            fetch('../api/users?role=rider').then(r => r.json()).catch(() => ({ data: [] }))
+                            fetch('../api/users?role=rider').then(r => r.json()).catch(() => ({ data: [] })),
+                            fetch('../api/banners').then(r => r.json()).catch(() => ({ data: [] }))
                         ]);
 
                         if (saRes?.data) this.subAdmins = saRes.data;
@@ -2951,11 +3018,44 @@ if ($liveSuper) {
                         if (oRes?.data) this.orders = oRes.data;
                         if (accRes?.data) this.allAccounts = accRes.data;
                         if (ridRes?.data) this.riders = ridRes.data;
+                        if (banRes?.data) this.banners = banRes.data;
                     } catch (e) {
                         if (!silent) this.showToast('Failed to sync live data: ' + e.message, 'error');
                     } finally {
                         if (!silent) this.loading = false;
                         this.$nextTick(() => lucide.createIcons());
+                    }
+                },
+
+                async toggleAdminBanner(b) {
+                    try {
+                        const newVis = !b.isVisible;
+                        const res = await fetch(`../api/banners/${b.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ...b, isVisible: newVis })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            b.isVisible = newVis;
+                            this.showToast(`Banner is now ${newVis ? 'active on mobile app' : 'paused'}`);
+                        }
+                    } catch (e) {
+                        this.showToast('Error: ' + e.message, 'error');
+                    }
+                },
+
+                async deleteAdminBanner(b) {
+                    if (!confirm(`Are you sure you want to remove banner "${b.title}"?`)) return;
+                    try {
+                        const res = await fetch(`../api/banners/${b.id}`, { method: 'DELETE' });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.showToast('Banner removed');
+                            await this.refreshAll();
+                        }
+                    } catch (e) {
+                        this.showToast('Delete error: ' + e.message, 'error');
                     }
                 },
 

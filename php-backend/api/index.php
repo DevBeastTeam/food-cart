@@ -425,12 +425,19 @@ switch ($resource) {
     // -------------------------------------------------------------------------
     case 'banners':
         if ($method === 'GET') {
-            $stmt = $pdo->query("SELECT * FROM banners");
+            $vendorId = $_GET['sub_admin_id'] ?? $_GET['vendor_id'] ?? '';
+            if (!empty($vendorId) && $vendorId !== 'all') {
+                $stmt = $pdo->prepare("SELECT * FROM banners WHERE sub_admin_id = ? OR sub_admin_id = '' ORDER BY id DESC");
+                $stmt->execute([$vendorId]);
+            } else {
+                $stmt = $pdo->query("SELECT * FROM banners ORDER BY id DESC");
+            }
             $rows = $stmt->fetchAll();
             $list = [];
             foreach ($rows as $r) {
                 $r['bgGradient'] = json_decode($r['bgGradient'] ?? '[]', true);
                 $r['isVisible']  = (bool)$r['isVisible'];
+                $r['discountPercent'] = (int)($r['discountPercent'] ?? 0);
                 $list[] = $r;
             }
             jsonResponse(['success' => true, 'count' => count($list), 'data' => $list]);
@@ -438,8 +445,8 @@ switch ($resource) {
             $b = getJsonInput();
             $id = $b['id'] ?? ('banner_' . time());
             $stmt = $pdo->prepare("
-                INSERT INTO banners (id, tagText, title, dishesText, buttonText, bgGradient, imageUrl, isVisible, linkCategory)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO banners (id, tagText, title, dishesText, buttonText, bgGradient, imageUrl, isVisible, linkCategory, sub_admin_id, discountPercent)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $id,
@@ -450,17 +457,19 @@ switch ($resource) {
                 json_encode($b['bgGradient'] ?? ['#6C3CE9', '#8B5CF6']),
                 $b['imageUrl'] ?? '',
                 isset($b['isVisible']) ? ($b['isVisible'] ? 1 : 0) : 1,
-                $b['linkCategory'] ?? 'Biryani'
+                $b['linkCategory'] ?? 'Biryani',
+                $b['sub_admin_id'] ?? '',
+                (int)($b['discountPercent'] ?? 0)
             ]);
             jsonResponse(['success' => true, 'message' => 'Banner created', 'data' => ['id' => $id]], 201);
         } elseif ($method === 'PUT' && $subId !== '') {
             $b = getJsonInput();
             $stmt = $pdo->prepare("
-                UPDATE banners SET tagText = ?, title = ?, dishesText = ?, buttonText = ?, bgGradient = ?, imageUrl = ?, isVisible = ?, linkCategory = ?
+                UPDATE banners SET tagText = ?, title = ?, dishesText = ?, buttonText = ?, bgGradient = ?, imageUrl = ?, isVisible = ?, linkCategory = ?, sub_admin_id = ?, discountPercent = ?
                 WHERE id = ?
             ");
             $stmt->execute([
-                $b['tagText'] ?? '',
+                $b['tagText'] ?? 'SPECIAL OFFER',
                 $b['title'] ?? '',
                 $b['dishesText'] ?? '',
                 $b['buttonText'] ?? 'Order Now',
@@ -468,6 +477,8 @@ switch ($resource) {
                 $b['imageUrl'] ?? '',
                 isset($b['isVisible']) ? ($b['isVisible'] ? 1 : 0) : 1,
                 $b['linkCategory'] ?? 'Biryani',
+                $b['sub_admin_id'] ?? '',
+                (int)($b['discountPercent'] ?? 0),
                 $subId
             ]);
             jsonResponse(['success' => true, 'message' => 'Banner updated']);

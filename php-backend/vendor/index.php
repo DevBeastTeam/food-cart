@@ -2121,6 +2121,118 @@ $adminUser = $_SESSION['admin_user'];
             </section>
 
             <!-- =============================================================== -->
+            <!-- TAB: OFFERS & PROMOS (VENDOR BANNERS FOR MOBILE APP) -->
+            <!-- =============================================================== -->
+            <section x-show="activeTab === 'offers'" class="space-y-3.5">
+                
+                <!-- Section Header -->
+                <div class="p-3.5 cupertino-card rounded-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-orange-500/15 text-[#FF9500] flex items-center justify-center font-bold text-base shrink-0">
+                            🏷️
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-white flex items-center gap-2">
+                                <span>Promotional Offers &amp; App Banners</span>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/10 text-zinc-300 font-mono" x-text="vendorBanners.length + ' Live Deals'"></span>
+                            </h3>
+                            <p class="text-[10.5px] text-zinc-400">Manage promotional discount banners displayed at the top of the mobile app when customers view your outlet</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="openOfferModal()"
+                        class="px-3.5 py-2 bg-[#FF9500] hover:bg-orange-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-orange-500/20 shrink-0">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                        <span>Create New Offer Banner</span>
+                    </button>
+                </div>
+
+                <!-- Offers Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    
+                    <template x-for="b in vendorBanners" :key="b.id">
+                        <div class="cupertino-card rounded-2xl overflow-hidden border border-white/5 flex flex-col justify-between group hover:border-orange-500/30 transition-all">
+                            
+                            <!-- Banner Visual Preview Header -->
+                            <div class="relative h-36 p-4 flex flex-col justify-between overflow-hidden"
+                                :style="'background: linear-gradient(135deg, ' + (b.bgGradient?.[0] || '#EA580C') + ', ' + (b.bgGradient?.[1] || '#9A3412') + ')'">
+                                
+                                <!-- Background Image with Opacity -->
+                                <template x-if="b.imageUrl">
+                                    <img :src="b.imageUrl" alt="" class="absolute right-0 bottom-0 w-32 h-32 object-cover rounded-full opacity-30 pointer-events-none transform translate-x-4 translate-y-4">
+                                </template>
+
+                                <!-- Top Row: Tag & Discount Badge -->
+                                <div class="relative z-10 flex items-center justify-between">
+                                    <span class="px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider bg-black/40 text-amber-300 backdrop-blur-sm"
+                                        x-text="b.tagText || 'SPECIAL OFFER'"></span>
+                                    
+                                    <span x-show="b.discountPercent > 0"
+                                        class="px-2 py-0.5 rounded-full text-[10px] font-black bg-white text-orange-600 shadow-sm"
+                                        x-text="b.discountPercent + '% OFF'"></span>
+                                </div>
+
+                                <!-- Middle Title & Dishes -->
+                                <div class="relative z-10 space-y-1">
+                                    <h4 class="text-base font-extrabold text-white tracking-tight leading-tight line-clamp-1" x-text="b.title"></h4>
+                                    <p class="text-[11px] text-white/80 line-clamp-2 leading-relaxed" x-text="b.dishesText || 'Special kitchen deal'"></p>
+                                </div>
+
+                                <!-- Bottom CTA & Visibility Badge -->
+                                <div class="relative z-10 flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-white/90 bg-white/20 px-2 py-0.5 rounded" x-text="b.buttonText || 'Order Now'"></span>
+                                    <span class="text-[9.5px] font-bold px-2 py-0.5 rounded-full"
+                                        :class="b.isVisible ? 'bg-emerald-500/80 text-white' : 'bg-zinc-800/80 text-zinc-400'"
+                                        x-text="b.isVisible ? 'Active on App' : 'Paused'"></span>
+                                </div>
+                            </div>
+
+                            <!-- Footer Actions Bar -->
+                            <div class="p-3 bg-zinc-950/60 border-t border-white/5 flex items-center justify-between">
+                                <button type="button" @click="toggleOfferVisibility(b)"
+                                    class="text-[11px] font-medium flex items-center gap-1.5 transition-colors"
+                                    :class="b.isVisible ? 'text-emerald-400 hover:text-emerald-300' : 'text-zinc-500 hover:text-zinc-300'">
+                                    <i :data-lucide="b.isVisible ? 'eye' : 'eye-off'" class="w-3.5 h-3.5"></i>
+                                    <span x-text="b.isVisible ? 'Shown on App' : 'Hidden'"></span>
+                                </button>
+
+                                <div class="flex items-center gap-1">
+                                    <button type="button" @click="openOfferModal(b)"
+                                        class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors"
+                                        title="Edit Offer">
+                                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                    <button type="button" @click="deleteOffer(b)"
+                                        class="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
+                                        title="Delete Offer">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </template>
+
+                    <!-- Empty State -->
+                    <template x-if="vendorBanners.length === 0">
+                        <div class="col-span-full p-8 cupertino-card rounded-2xl text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-2xl bg-orange-500/15 text-[#FF9500] flex items-center justify-center text-xl">
+                                🏷️
+                            </div>
+                            <h4 class="text-sm font-bold text-white">No Promotional Offers Yet</h4>
+                            <p class="text-xs text-zinc-400 max-w-md mx-auto">Create your first offer banner with a discount percentage, featured dishes, and background image to attract more customers in the mobile app!</p>
+                            <button type="button" @click="openOfferModal()"
+                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#FF9500] hover:bg-orange-500 text-white font-bold rounded-xl text-xs transition-all shadow-lg shadow-orange-500/20">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                <span>Create First Offer Banner</span>
+                            </button>
+                        </div>
+                    </template>
+
+                </div>
+
+            </section>
+
+            <!-- =============================================================== -->
             <!-- TAB 6: PROFILE & STORE SETTINGS -->
             <!-- =============================================================== -->
             <section x-show="activeTab === 'profile'" class="space-y-3">
@@ -2777,6 +2889,136 @@ $adminUser = $_SESSION['admin_user'];
         </div>
     </div>
 
+    <!-- Offer Banner Modal -->
+    <div x-show="modal.offer" class="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-sm" x-cloak>
+        <div class="w-full max-w-lg cupertino-glass rounded-3xl p-5 border border-white/10 shadow-2xl max-h-[90vh] overflow-y-auto" @click.away="modal.offer = false">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-white/5">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-orange-500/20 text-[#FF9500] flex items-center justify-center font-bold text-xs">
+                        🏷️
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-white" x-text="offerForm.id ? 'Edit Promo Offer Banner' : 'Create New Promo Offer Banner'"></h3>
+                        <p class="text-[10px] text-zinc-400">Offer will be displayed in mobile app auto-carousel &amp; outlet filter</p>
+                    </div>
+                </div>
+                <button type="button" @click="modal.offer = false" class="p-1 rounded-lg text-zinc-400 hover:text-white">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Form Fields -->
+            <form @submit.prevent="saveOffer()" class="space-y-3.5 mt-3.5">
+                
+                <!-- Tag & Discount % Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-300 mb-1">Badge Tag</label>
+                        <input type="text" x-model="offerForm.tagText" placeholder="e.g. SPECIAL OFFER, WEEKEND DEAL"
+                            class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-xs focus:outline-none focus:border-[#FF9500]">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-300 mb-1">Discount % Off</label>
+                        <div class="relative">
+                            <input type="number" min="0" max="90" x-model.number="offerForm.discountPercent" placeholder="e.g. 25, 40"
+                                class="w-full px-3 py-2 pr-8 rounded-xl bg-zinc-900 border border-white/10 text-white text-xs font-bold focus:outline-none focus:border-[#FF9500]">
+                            <span class="absolute right-3 top-2 text-xs font-bold text-zinc-400">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Offer Title -->
+                <div>
+                    <label class="block text-[11px] font-bold text-zinc-300 mb-1">
+                        Offer Title <span class="text-red-400">*</span>
+                    </label>
+                    <input type="text" x-model="offerForm.title" placeholder="e.g. 40% OFF Special Bannu Feast or Wood-Fire Daig Deal" required
+                        class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-xs font-bold focus:outline-none focus:border-[#FF9500]">
+                </div>
+
+                <!-- Subtitle / Dishes Included -->
+                <div>
+                    <label class="block text-[11px] font-bold text-zinc-300 mb-1">Subtitle / Featured Dishes</label>
+                    <textarea x-model="offerForm.dishesText" rows="2" placeholder="e.g. Shahi Qorma, Beef Kabab, Degi Biryani, Mutton Karahi, Zarda with Free Raita & Naan"
+                        class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-xs focus:outline-none focus:border-[#FF9500]"></textarea>
+                </div>
+
+                <!-- Background Image (File Upload or Direct URL) -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[11px] font-bold text-zinc-300">Banner Background Image</label>
+                        <div class="flex items-center gap-1 text-[10px]">
+                            <button type="button" @click="offerForm.imageMode = 'file'"
+                                :class="offerForm.imageMode === 'file' ? 'bg-[#FF9500] text-white font-bold' : 'bg-zinc-800 text-zinc-400'"
+                                class="px-2 py-0.5 rounded transition-all">Upload File</button>
+                            <button type="button" @click="offerForm.imageMode = 'url'"
+                                :class="offerForm.imageMode === 'url' ? 'bg-[#FF9500] text-white font-bold' : 'bg-zinc-800 text-zinc-400'"
+                                class="px-2 py-0.5 rounded transition-all">Image URL</button>
+                        </div>
+                    </div>
+
+                    <!-- File Upload Mode -->
+                    <div x-show="offerForm.imageMode === 'file'" class="space-y-1.5">
+                        <input type="file" accept="image/*" @change="uploadOfferImageFile($event)"
+                            class="block w-full text-xs text-zinc-400 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-[#FF9500]/20 file:text-[#FF9500] hover:file:bg-[#FF9500]/30 cursor-pointer">
+                        <p x-show="uploadingOfferImage" class="text-[10px] text-orange-400 flex items-center gap-1">
+                            <span class="animate-spin inline-block w-3 h-3 border border-orange-400 border-t-transparent rounded-full"></span>
+                            <span>Uploading image to server...</span>
+                        </p>
+                    </div>
+
+                    <!-- Image URL Mode -->
+                    <div x-show="offerForm.imageMode === 'url'">
+                        <input type="url" x-model="offerForm.imageUrl" placeholder="https://images.unsplash.com/photo-..."
+                            class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-xs focus:outline-none focus:border-[#FF9500]">
+                    </div>
+
+                    <!-- Live Image Thumbnail Preview -->
+                    <template x-if="offerForm.imageUrl">
+                        <div class="relative w-full h-24 rounded-xl overflow-hidden border border-white/10 bg-zinc-900">
+                            <img :src="offerForm.imageUrl" alt="" class="w-full h-full object-cover">
+                            <button type="button" @click="offerForm.imageUrl = ''"
+                                class="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/60 text-white hover:bg-black/80">
+                                <i data-lucide="x" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Action Button Text & Visibility -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-300 mb-1">Button Text</label>
+                        <input type="text" x-model="offerForm.buttonText" placeholder="Order Now"
+                            class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white text-xs focus:outline-none focus:border-[#FF9500]">
+                    </div>
+                    <div class="flex items-center gap-2 pt-5">
+                        <input type="checkbox" id="offerIsVisible" x-model="offerForm.isVisible"
+                            class="w-4 h-4 rounded text-orange-500 focus:ring-0 bg-zinc-900 border-white/20">
+                        <label for="offerIsVisible" class="text-xs font-semibold text-zinc-200 cursor-pointer">
+                            Active &amp; Visible on Mobile App
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="pt-3 border-t border-white/5 flex items-center justify-end gap-2">
+                    <button type="button" @click="modal.offer = false"
+                        class="px-3.5 py-1.5 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-medium hover:bg-zinc-700">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-1.5 rounded-xl bg-[#FF9500] hover:bg-orange-500 text-white text-xs font-bold shadow-md shadow-orange-500/20">
+                        Save &amp; Publish Offer
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
     <!-- ======================================================================= -->
     <!-- ALPINE CONTROLLER FOR VENDOR PORTAL -->
     <!-- ======================================================================= -->
@@ -2795,6 +3037,7 @@ $adminUser = $_SESSION['admin_user'];
                 tabs: [
                     { id: 'analytics', label: 'Analytics', icon: 'pie-chart' },
                     { id: 'food-listing', label: 'Food Listing', icon: 'utensils' },
+                    { id: 'offers', label: 'Offers & Promos', icon: 'tag' },
                     { id: 'customers', label: 'Customers', icon: 'users' },
                     { id: 'riders', label: 'Riders Fleet', icon: 'bike' },
                     { id: 'orders', label: 'Orders Hub', icon: 'shopping-bag' },
@@ -2808,6 +3051,7 @@ $adminUser = $_SESSION['admin_user'];
                 vendorCustomers: [],
                 foodItems: [],
                 daigItems: [],
+                vendorBanners: [],
 
                 // Pagination (100 per page standard)
                 ridersPage: 1,
@@ -2833,7 +3077,19 @@ $adminUser = $_SESSION['admin_user'];
 
                 // Drawers & Modals
                 sheet: { customer: false, rider: false },
-                modal: { rider: false, food: false, daig: false, orderDetail: false, reject: false, assignRider: false },
+                modal: { rider: false, food: false, daig: false, orderDetail: false, reject: false, assignRider: false, offer: false },
+                offerForm: {
+                    id: '',
+                    tagText: 'SPECIAL OFFER',
+                    title: '',
+                    discountPercent: 25,
+                    dishesText: '',
+                    buttonText: 'Order Now',
+                    imageUrl: '',
+                    isVisible: true,
+                    imageMode: 'file',
+                },
+                uploadingOfferImage: false,
                 activeCustomer: null,
                 activeRider: null,
                 activeOrder: null,
@@ -3346,13 +3602,14 @@ $adminUser = $_SESSION['admin_user'];
                     this.loading = true;
                     try {
                         const sid = this.subAdmin.id;
-                        const [statsRes, custRes, ordRes, ridRes, foodRes, daigRes] = await Promise.all([
+                        const [statsRes, custRes, ordRes, ridRes, foodRes, daigRes, banRes] = await Promise.all([
                             fetch(`../api/vendor/stats?sub_admin_id=${sid}`).then(r => r.json()).catch(() => ({ data: {} })),
                             fetch(`../api/vendor/customers?sub_admin_id=${sid}`).then(r => r.json()).catch(() => ({ data: [] })),
                             fetch(`../api/orders?sub_admin_id=${sid}`).then(r => r.json()).catch(() => ({ data: [] })),
                             fetch(`../api/users?role=rider`).then(r => r.json()).catch(() => ({ data: [] })),
                             fetch(`../api/food-items`).then(r => r.json()).catch(() => ({ data: [] })),
-                            fetch(`../api/daig-items`).then(r => r.json()).catch(() => ({ data: [] }))
+                            fetch(`../api/daig-items`).then(r => r.json()).catch(() => ({ data: [] })),
+                            fetch(`../api/banners?sub_admin_id=${sid}`).then(r => r.json()).catch(() => ({ data: [] }))
                         ]);
 
                         if (statsRes?.data) this.vendorStats = statsRes.data;
@@ -3361,6 +3618,7 @@ $adminUser = $_SESSION['admin_user'];
                         if (ridRes?.data) this.riders = ridRes.data;
                         if (foodRes?.data) this.foodItems = foodRes.data;
                         if (daigRes?.data) this.daigItems = daigRes.data;
+                        if (banRes?.data) this.vendorBanners = banRes.data;
                     } catch (e) {
                         this.showToast('Sync error: ' + e.message, 'error');
                     } finally {
@@ -3369,6 +3627,132 @@ $adminUser = $_SESSION['admin_user'];
                             setTimeout(() => this.initCharts(), 120);
                         }
                         this.$nextTick(() => lucide.createIcons());
+                    }
+                },
+
+                // Promotional Offers & Banners Management
+                openOfferModal(offer = null) {
+                    if (offer) {
+                        this.offerForm = {
+                            id: offer.id,
+                            tagText: offer.tagText || 'SPECIAL OFFER',
+                            title: offer.title || '',
+                            discountPercent: offer.discountPercent || 20,
+                            dishesText: offer.dishesText || '',
+                            buttonText: offer.buttonText || 'Order Now',
+                            imageUrl: offer.imageUrl || '',
+                            isVisible: offer.isVisible !== false,
+                            imageMode: (offer.imageUrl && offer.imageUrl.startsWith('http')) ? 'url' : 'file',
+                        };
+                    } else {
+                        this.offerForm = {
+                            id: '',
+                            tagText: 'SPECIAL OFFER',
+                            title: '',
+                            discountPercent: 25,
+                            dishesText: '',
+                            buttonText: 'Order Now',
+                            imageUrl: '',
+                            isVisible: true,
+                            imageMode: 'file',
+                        };
+                    }
+                    this.modal.offer = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                async uploadOfferImageFile(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    this.uploadingOfferImage = true;
+                    try {
+                        const fd = new FormData();
+                        fd.append('image', file);
+                        const res = await fetch('../api/upload', { method: 'POST', body: fd });
+                        const data = await res.json();
+                        if (data.success && data.url) {
+                            this.offerForm.imageUrl = data.url;
+                            this.showToast('✅ Offer banner image uploaded!');
+                        } else {
+                            this.showToast(data.message || 'Image upload failed', 'error');
+                        }
+                    } catch (err) {
+                        this.showToast('Upload error: ' + err.message, 'error');
+                    } finally {
+                        this.uploadingOfferImage = false;
+                    }
+                },
+
+                async saveOffer() {
+                    if (!this.offerForm.title.trim()) {
+                        this.showToast('Please enter an offer title', 'error');
+                        return;
+                    }
+                    try {
+                        const isEdit = !!this.offerForm.id;
+                        const url = isEdit ? `../api/banners/${this.offerForm.id}` : '../api/banners';
+                        const method = isEdit ? 'PUT' : 'POST';
+                        const payload = {
+                            ...this.offerForm,
+                            sub_admin_id: this.subAdmin.id,
+                            discountPercent: parseInt(this.offerForm.discountPercent) || 0,
+                            tagText: this.offerForm.tagText || 'SPECIAL OFFER',
+                            buttonText: this.offerForm.buttonText || 'Order Now',
+                            bgGradient: ['#EA580C', '#C2410C']
+                        };
+                        const res = await fetch(url, {
+                            method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.showToast(`✅ Offer banner ${isEdit ? 'updated' : 'published'} successfully!`);
+                            this.modal.offer = false;
+                            await this.refreshAll();
+                        } else {
+                            this.showToast(data.message || 'Failed to save offer', 'error');
+                        }
+                    } catch (e) {
+                        this.showToast('Error saving offer: ' + e.message, 'error');
+                    }
+                },
+
+                async deleteOffer(b) {
+                    if (!confirm(`Are you sure you want to delete offer "${b.title}"?`)) return;
+                    try {
+                        const res = await fetch(`../api/banners/${b.id}`, { method: 'DELETE' });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.showToast('🗑️ Offer deleted successfully');
+                            await this.refreshAll();
+                        } else {
+                            this.showToast(data.message || 'Failed to delete offer', 'error');
+                        }
+                    } catch (e) {
+                        this.showToast('Delete error: ' + e.message, 'error');
+                    }
+                },
+
+                async toggleOfferVisibility(b) {
+                    try {
+                        const newVis = !b.isVisible;
+                        const res = await fetch(`../api/banners/${b.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ...b,
+                                isVisible: newVis,
+                                sub_admin_id: this.subAdmin.id
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            b.isVisible = newVis;
+                            this.showToast(`Offer is now ${newVis ? 'active & visible' : 'hidden'}`);
+                        }
+                    } catch (e) {
+                        this.showToast('Error updating status: ' + e.message, 'error');
                     }
                 },
 

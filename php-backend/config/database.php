@@ -214,6 +214,8 @@ function migrateSchemaUpdates(PDO $pdo): void {
     $helper('users', 'address', "TEXT DEFAULT ''");
     $helper('users', 'banned', "INTEGER DEFAULT 0");
 
+    $helper('banners', 'sub_admin_id', "TEXT DEFAULT ''");
+    $helper('banners', 'discountPercent', "INTEGER DEFAULT 0");
     $helper('food_items', 'sub_admin_id', "TEXT DEFAULT ''");
     $helper('food_items', 'discountPercent', "INTEGER DEFAULT 0");
     $helper('food_items', 'discountPrice', "REAL DEFAULT 0");
@@ -240,6 +242,11 @@ function migrateSchemaUpdates(PDO $pdo): void {
     $pdo->exec("UPDATE users SET latitude = 31.4870, longitude = 74.3210 WHERE id = 'sub_admin_2' AND (latitude IS NULL OR latitude = 0)");
     $pdo->exec("UPDATE users SET latitude = 31.5204, longitude = 74.3587 WHERE id = 'sub_admin_1' AND (latitude IS NULL OR latitude = 0)");
     $pdo->exec("UPDATE users SET latitude = 31.4697, longitude = 74.3792 WHERE id = 'sub_admin_3' AND (latitude IS NULL OR latitude = 0)");
+
+    // Ensure banners have vendor and discount set
+    $pdo->exec("UPDATE banners SET sub_admin_id = 'sub_admin_2', discountPercent = 25 WHERE id = 'ban_1' AND (sub_admin_id IS NULL OR sub_admin_id = '')");
+    $pdo->exec("UPDATE banners SET sub_admin_id = 'sub_admin_1', discountPercent = 40 WHERE id = 'ban_2' AND (sub_admin_id IS NULL OR sub_admin_id = '')");
+    $pdo->exec("UPDATE banners SET sub_admin_id = 'sub_admin_3', discountPercent = 30 WHERE id = 'ban_3' AND (sub_admin_id IS NULL OR sub_admin_id = '')");
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
         id TEXT PRIMARY KEY,

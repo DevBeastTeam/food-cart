@@ -241,9 +241,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   const SizedBox(height: 16),
 
-                  // 3-Role Selector Tabs (Customer, Rider, Admin)
+                  // 2-Role Selector Tabs: Customer on Left (Default), Rider on Right
                   const Text(
-                    'SELECT ROLE / PORTAL',
+                    'SELECT ROLE / رول منتخب کریں',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -263,18 +263,13 @@ class _AuthScreenState extends State<AuthScreen> {
                       children: [
                         _buildRoleTab(
                           role: UserRole.client,
-                          label: 'Customer',
+                          label: 'Customer (کسٹمر)',
                           icon: Icons.person_rounded,
                         ),
                         _buildRoleTab(
                           role: UserRole.rider,
-                          label: 'Rider',
+                          label: 'Rider (رائیڈر)',
                           icon: Icons.two_wheeler_rounded,
-                        ),
-                        _buildRoleTab(
-                          role: UserRole.admin,
-                          label: 'Admin',
-                          icon: Icons.shield_rounded,
                         ),
                       ],
                     ),
@@ -526,6 +521,55 @@ class _AuthScreenState extends State<AuthScreen> {
                                   ? 'Register as ${_selectedRole.name.toUpperCase()}'
                                   : 'Log In as ${_selectedRole.name.toUpperCase()}',
                               style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Bottom Switcher to toggle Login & Sign Up
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _isSignUp ? "Already have an account? " : "Don't have an account? ",
+                              style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _isSignUp = !_isSignUp;
+                                });
+                              },
+                              child: Text(
+                                _isSignUp ? "Log In" : "Sign Up",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: _selectedRole == UserRole.rider ? const Color(0xFF1B2A4A) : AppTheme.primary,
+                                  fontWeight: FontWeight.w800,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Kitchen Admin Switch Option
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _selectedRole = _selectedRole == UserRole.admin ? UserRole.client : UserRole.admin;
+                                _isSignUp = false;
+                                _applyRoleDefaults(_selectedRole);
+                              });
+                            },
+                            icon: Icon(
+                              _selectedRole == UserRole.admin ? Icons.arrow_back : Icons.shield_outlined,
+                              size: 14,
+                              color: AppTheme.textSecondary,
+                            ),
+                            label: Text(
+                              _selectedRole == UserRole.admin ? "Back to Customer / Rider Login" : "Kitchen Admin Sign In",
+                              style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
                             ),
                           ),
                         ),
