@@ -511,7 +511,7 @@ class _PromoBannerState extends State<PromoBanner> {
   }
 }
 
-/// Outlined discount percentage tag with a continuous silver text & border shimmer
+/// Outlined discount percentage tag with a continuous silver text shimmer
 class ShimmerOutlinedOfferTag extends StatefulWidget {
   final String text;
 
@@ -524,14 +524,19 @@ class ShimmerOutlinedOfferTag extends StatefulWidget {
 class _ShimmerOutlinedOfferTagState extends State<ShimmerOutlinedOfferTag>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 2500),
     )..repeat();
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.70, curve: Curves.easeInOutCubic),
+    );
   }
 
   @override
@@ -543,73 +548,74 @@ class _ShimmerOutlinedOfferTagState extends State<ShimmerOutlinedOfferTag>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _controller,
+      animation: _animation,
       builder: (context, _) {
         return Container(
-          clipBehavior: Clip.antiAlias,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.28),
+            color: Colors.black.withValues(alpha: 0.35),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.75),
-              width: 1.1,
+              color: const Color(0xFFCBD5E1).withValues(alpha: 0.85),
+              width: 1.2,
             ),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Content: local offer icon + offer percentage
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.local_offer_rounded,
-                    color: Colors.white,
-                    size: 11,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    widget.text,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                ],
-              ),
-
-              // Diagonal Silver Sheen sweeping across the outline badge
-              Positioned.fill(
-                child: Transform.translate(
-                  offset: Offset(-80.0 + _controller.value * 200.0, 0),
-                  child: Transform.rotate(
-                    angle: 0.45,
-                    child: Container(
-                      width: 24,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withValues(alpha: 0.0),
-                            const Color(0xFFCBD5E1).withValues(alpha: 0.45),
-                            Colors.white.withValues(alpha: 0.95),
-                            const Color(0xFFE2E8F0).withValues(alpha: 0.6),
-                            Colors.white.withValues(alpha: 0.0),
-                          ],
-                          stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
+          ),
+          child: ShaderMask(
+            blendMode: BlendMode.srcIn,
+            shaderCallback: (bounds) {
+              return LinearGradient(
+                colors: const [
+                  Color(0xFF94A3B8), // slate silver
+                  Color(0xFFE2E8F0), // light metallic silver
+                  Colors.white,      // brilliant white shine
+                  Color(0xFFE2E8F0), // light metallic silver
+                  Color(0xFF94A3B8), // slate silver
+                ],
+                stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
+                transform: _SilverShimmerTransform(_animation.value),
+              ).createShader(bounds);
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.local_offer_rounded,
+                  color: Colors.white,
+                  size: 11.5,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  widget.text,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
+  }
+}
+
+class _SilverShimmerTransform extends GradientTransform {
+  final double slidePercent;
+  const _SilverShimmerTransform(this.slidePercent);
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * (slidePercent * 2.4 - 1.2), 0, 0);
   }
 }
 
@@ -631,14 +637,19 @@ class ShimmerOrderButton extends StatefulWidget {
 class _ShimmerOrderButtonState extends State<ShimmerOrderButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+      duration: const Duration(milliseconds: 2500),
     )..repeat();
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.70, curve: Curves.easeInOutCubic),
+    );
   }
 
   @override
@@ -655,69 +666,88 @@ class _ShimmerOrderButtonState extends State<ShimmerOrderButton>
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(22),
         child: AnimatedBuilder(
-          animation: _controller,
+          animation: _animation,
           builder: (context, child) {
-            return Container(
-              clipBehavior: Clip.antiAlias,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.28),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(22),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Text & Arrow Icon
-                  const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Order Now',
-                        style: TextStyle(
-                          color: AppTheme.primary,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.2,
+                  // 1. Button Base
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.28),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
                         ),
-                      ),
-                      SizedBox(width: 5),
-                      Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 14,
-                        color: AppTheme.primary,
-                      ),
-                    ],
-                  ),
-
-                  // Diagonal Pure Silver Shimmer Sheen sweeping across the button
-                  Positioned.fill(
-                    child: Transform.translate(
-                      offset: Offset(-100.0 + _controller.value * 260.0, 0),
-                      child: Transform.rotate(
-                        angle: 0.45,
-                        child: Container(
-                          width: 32,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withValues(alpha: 0.0),
-                                const Color(0xFFCBD5E1).withValues(alpha: 0.5),
-                                Colors.white.withValues(alpha: 0.95),
-                                const Color(0xFFE2E8F0).withValues(alpha: 0.65),
-                                Colors.white.withValues(alpha: 0.0),
-                              ],
-                              stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-                            ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.text,
+                          style: const TextStyle(
+                            color: AppTheme.primary,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.2,
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 5),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 14,
+                          color: AppTheme.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 2. Smooth Diagonal Metallic Silver Glint Sweep
+                  Positioned.fill(
+                    child: LayoutBuilder(
+                      builder: (ctx, constraints) {
+                        final w = constraints.maxWidth;
+                        final h = constraints.maxHeight;
+                        final leftPos = -w + _animation.value * (w * 2.5);
+
+                        return IgnorePointer(
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                left: leftPos,
+                                top: -h * 0.8,
+                                bottom: -h * 0.8,
+                                width: 34,
+                                child: Transform.rotate(
+                                  angle: 0.40,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.white.withValues(alpha: 0.0),
+                                          const Color(0xFF94A3B8).withValues(alpha: 0.28),
+                                          const Color(0xFFE2E8F0).withValues(alpha: 0.65),
+                                          Colors.white.withValues(alpha: 0.95),
+                                          const Color(0xFFCBD5E1).withValues(alpha: 0.50),
+                                          Colors.white.withValues(alpha: 0.0),
+                                        ],
+                                        stops: const [0.0, 0.2, 0.45, 0.55, 0.8, 1.0],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

@@ -46,7 +46,7 @@ class SampleData {
     {'name': 'Naan & Roti', 'icon': '🫓', 'image': 'https://images.unsplash.com/photo-1626074353765-517a681e40be?w=200&q=80'},
   ];
 
-  static const List<String> sampleAddresses = [
+  static final List<String> sampleAddresses = [
     'Home • F-7 Markaz, Jinnah Super, Islamabad',
     'Office • Blue Area, Sector F-6, Islamabad',
     'Campus • Bahria Town Phase 4, Islamabad / Rawalpindi',
@@ -564,7 +564,7 @@ class SampleData {
   // =========================================================================
   // PAKWAN CENTER — 8-9 TRADITIONAL DEGI DISHES (SOLD PER DAIG)
   // =========================================================================
-  static const List<DaigItem> daigDishes = [
+  static final List<DaigItem> daigDishes = [
     DaigItem(
       id: 'daig_1',
       name: 'Shahi Chicken Degi Biryani',
