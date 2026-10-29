@@ -941,6 +941,121 @@ class _OrdersScreenState extends State<OrdersScreen>
                     ),
                   ),
 
+                // Assigned Rider Contact Bar (with JUST 2 Icons Button)
+                if (order.riderPhone != null &&
+                    order.riderPhone!.trim().isNotEmpty &&
+                    !isDelivered &&
+                    order.status != 'Cancelled')
+                  Container(
+                    margin: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFF0FDF4), Color(0xFFDCFCE7)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFF86EFAC)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF16A34A),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.two_wheeler_rounded, size: 15, color: Colors.white),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      'Rider: ${order.riderName ?? "Assigned"}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFF14532D),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFBBF7D0),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'ACTIVE',
+                                      style: TextStyle(
+                                        fontSize: 8.5,
+                                        fontWeight: FontWeight.w900,
+                                        color: Color(0xFF166534),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 1),
+                              Text(
+                                order.riderPhone!,
+                                style: const TextStyle(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF15803D),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Just 2 Icons Button:
+                        // 1. 📞 Call Button
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _launchRiderCall(order.riderPhone!),
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF2563EB),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.phone_in_talk_rounded, size: 14, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // 2. 💬 WhatsApp Button
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _launchRiderWhatsApp(order.riderPhone!, order.riderName ?? 'Rider', order.id),
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF25D366),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.chat_bubble_rounded, size: 14, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 // Action buttons row
                 const SizedBox(height: 10),
                 Row(
@@ -1386,20 +1501,30 @@ class _OrdersScreenState extends State<OrdersScreen>
                             ],
                           ),
                         ),
-                        if (hasRider)
+                        if (hasRider) ...[
+                          // Just 2 Icons Button:
+                          // 1. Call Button
                           IconButton(
-                            onPressed: () async {
-                              final Uri uri = Uri.parse('tel:$riderPhone');
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(uri);
-                              }
-                            },
+                            onPressed: () => _launchRiderCall(riderPhone),
                             icon: const Icon(Icons.phone_in_talk_rounded),
+                            color: const Color(0xFF2563EB),
+                            tooltip: 'Call Rider',
+                            style: IconButton.styleFrom(
+                              backgroundColor: const Color(0xFFDBEAFE),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          // 2. WhatsApp Button
+                          IconButton(
+                            onPressed: () => _launchRiderWhatsApp(riderPhone, order.riderName ?? 'Rider', order.id),
+                            icon: const Icon(Icons.chat_bubble_rounded),
                             color: const Color(0xFF16A34A),
+                            tooltip: 'WhatsApp Rider',
                             style: IconButton.styleFrom(
                               backgroundColor: const Color(0xFFDCFCE7),
                             ),
                           ),
+                        ],
                       ],
                     ),
                   ),
@@ -1887,6 +2012,62 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
+  String _formatWhatsAppPhone(String phone) {
+    String clean = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.startsWith('03')) {
+      clean = '92${clean.substring(1)}';
+    } else if (clean.startsWith('3') && clean.length == 10) {
+      clean = '92$clean';
+    }
+    return clean;
+  }
+
+  Future<void> _launchRiderWhatsApp(String phone, String riderName, String orderId) async {
+    try {
+      final clean = _formatWhatsAppPhone(phone);
+      final text = Uri.encodeComponent(
+        'Assalam-o-Alaikum $riderName bhai, main FoodCourt order #$orderId ke hawalay se rabta kar raha hoon.',
+      );
+      final uri = Uri.parse('https://wa.me/$clean?text=$text');
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('WhatsApp: $phone'),
+              backgroundColor: const Color(0xFF25D366),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[OrdersScreen] Error launching rider WhatsApp: $e');
+    }
+  }
+
+  Future<void> _launchRiderCall(String phone) async {
+    try {
+      final uri = Uri.parse('tel:$phone');
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Calling Rider: $phone'),
+              backgroundColor: Colors.blueAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[OrdersScreen] Error launching rider call: $e');
+    }
+  }
+
   Color _getStatusBadgeColor(String status) {
     switch (status) {
       case 'Pending':
@@ -2275,8 +2456,117 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  // Floating Action Button with JUST WhatsApp icon
+  // Floating Action Button for Assigned Rider WhatsApp & Direct Call (with JUST 2 icon buttons)
   Widget _buildSupportFab(BuildContext context) {
+    final activeRiderOrders = widget.userState.orders.where((o) =>
+      o.status != 'Delivered' &&
+      o.status != 'Cancelled' &&
+      o.riderPhone != null &&
+      o.riderPhone!.trim().isNotEmpty
+    ).toList();
+
+    if (activeRiderOrders.isNotEmpty) {
+      final activeOrder = activeRiderOrders.first;
+      final riderName = activeOrder.riderName ?? 'Rider';
+      final riderPhone = activeOrder.riderPhone!;
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F172A),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(70),
+              blurRadius: 16,
+              offset: const Offset(0, 5),
+            ),
+          ],
+          border: Border.all(color: const Color(0xFF22C55E).withAlpha(150), width: 1.5),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Rider Avatar / Bike Icon
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: const BoxDecoration(
+                color: Color(0xFF22C55E),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.two_wheeler_rounded, size: 16, color: Colors.white),
+            ),
+            const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 125),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    riderName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    'Order #${activeOrder.id}',
+                    style: const TextStyle(
+                      color: Color(0xFF86EFAC),
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // Just 2 Icons Button:
+            // 1. 📞 Call Rider Icon Button
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _launchRiderCall(riderPhone),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF2563EB),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.phone_in_talk_rounded, size: 16, color: Colors.white),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // 2. 💬 WhatsApp Rider Icon Button
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _launchRiderWhatsApp(riderPhone, riderName, activeOrder.id),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF25D366),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.chat_bubble_rounded, size: 16, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return FloatingActionButton(
       onPressed: () => _showSupportModal(context),
       backgroundColor: const Color(0xFF25D366),

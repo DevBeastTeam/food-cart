@@ -288,6 +288,20 @@ This document specifies the complete functional architecture, workflows, operati
 
 ---
 
+## 19. 🛵 Assigned Rider Floating Call & WhatsApp (2-Icon Button Architecture)
+- **Automatic Reveal upon Rider Assignment**:
+  - As soon as a vendor assigns an order to a rider (`order.riderPhone != null`), the customer app surfaces direct rider communication controls across screens:
+  1. **Floating Action Bar (2 Icons Button)**:
+     - On `OrdersScreen`, the floating action button dynamically switches to a dark floating pill displaying the rider's name, assigned order number, and **JUST 2 icon buttons**:
+       - 📞 **Direct Call Button**: One-tap trigger opening native dialer (`tel:$phone`).
+       - 💬 **WhatsApp Button**: One-tap direct WhatsApp chat launcher (`https://wa.me/...`) with prefilled order inquiry.
+  2. **Active Order Card Strip**:
+     - Each active order card displays an emerald-bordered rider strip with the rider's name, phone, and the same 2 icon buttons.
+  3. **Order Details Bottom Sheet**:
+     - Inside the detailed view, the 2 icon buttons allow immediate calling or WhatsApp coordination with the assigned delivery partner.
+
+---
+
 ## 15. 🚀 Mandatory Deployment Rules
 - **Automatic Deployment Command**:
   Whenever code changes are made:
