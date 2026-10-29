@@ -917,7 +917,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isAvailable ? AppTheme.primary : Colors.grey,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -926,40 +926,48 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text(
-                                  'TOTAL',
-                                  style: TextStyle(
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.5,
-                                    color: Colors.white70,
+                            Flexible(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'TOTAL',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
+                                      color: Colors.white70,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  'Rs. ${_totalPrice.toInt()}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Rs. ${_totalPrice.toInt()}',
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 6),
                             const Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   'Add to Cart',
                                   style: TextStyle(
-                                    fontSize: 14.5,
+                                    fontSize: 13.5,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
-                                SizedBox(width: 6),
-                                Icon(Icons.arrow_forward_rounded, size: 18),
+                                SizedBox(width: 4),
+                                Icon(Icons.arrow_forward_rounded, size: 16),
                               ],
                             ),
                           ],
