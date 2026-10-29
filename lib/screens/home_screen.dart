@@ -1824,14 +1824,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9), // Cupertino soft background container
+        color: const Color(0xFFE2E8F0), // Prominent, clear Cupertino tabs tray
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+        border: Border.all(color: const Color(0xFFCBD5E1), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
             offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.9),
+            blurRadius: 1,
+            offset: const Offset(0, -1),
           ),
         ],
       ),
@@ -1840,7 +1845,11 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // 1. RESTAURANT TAB BUTTON
           Expanded(
-            child: GestureDetector(
+            child: CupertinoAnimatedTabButton(
+              isSelected: isRestaurant,
+              title: 'Restaurant',
+              icon: Icons.restaurant_rounded,
+              imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80',
               onTap: () {
                 if (_activeListingTab != 'restaurant') {
                   setState(() {
@@ -1850,130 +1859,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 }
               },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                height: 62,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isRestaurant ? AppTheme.primary : Colors.transparent,
-                    width: isRestaurant ? 2.5 : 0,
-                  ),
-                  boxShadow: isRestaurant
-                      ? [
-                          BoxShadow(
-                            color: AppTheme.primary.withAlpha(90),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(isRestaurant ? 11.5 : 14),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Restaurant Photography Background Image
-                      CustomImage(
-                        imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80',
-                        fit: BoxFit.cover,
-                      ),
-                      // Gradient Overlay (Rich tone when selected, dimmed when inactive)
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: isRestaurant
-                                ? [
-                                    Colors.black.withAlpha(80),
-                                    const Color(0xFFC2410C).withAlpha(205),
-                                  ]
-                                : [
-                                    Colors.black.withAlpha(160),
-                                    Colors.black.withAlpha(220),
-                                  ],
-                          ),
-                        ),
-                      ),
-                      // Text & Icon Content
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: isRestaurant
-                                    ? Colors.white.withAlpha(50)
-                                    : Colors.white.withAlpha(25),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.restaurant_rounded,
-                                size: 16,
-                                color: isRestaurant ? Colors.white : Colors.white70,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                'Restaurant',
-                                style: TextStyle(
-                                  fontSize: 14.5,
-                                  fontWeight: isRestaurant ? FontWeight.w900 : FontWeight.w700,
-                                  color: isRestaurant ? Colors.white : Colors.white70,
-                                  letterSpacing: 0.2,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Cupertino Active Selection Badge
-                      if (isRestaurant)
-                        Positioned(
-                          top: 5,
-                          right: 6,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withAlpha(40),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.check_circle_rounded, size: 10, color: Color(0xFFEA580C)),
-                                SizedBox(width: 3),
-                                Text(
-                                  'SELECTED',
-                                  style: TextStyle(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFFEA580C),
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
+              selectedGradientColors: [
+                Colors.black.withValues(alpha: 0.35),
+                const Color(0xFFC2410C).withValues(alpha: 0.88),
+              ],
+              borderGradientColors: const [
+                Color(0xFFEA580C),
+                Color(0xFF431407), // dark rich tone
+                Color(0xFFFF9500),
+                Color(0xFF7C2D12), // dark rich tone
+                Color(0xFFEA580C),
+              ],
             ),
           ),
 
@@ -1981,7 +1877,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // 2. SHAHI PAKWAN TAB BUTTON
           Expanded(
-            child: GestureDetector(
+            child: CupertinoAnimatedTabButton(
+              isSelected: isPakwan,
+              title: 'Shahi Pakwan',
+              icon: Icons.outdoor_grill_rounded,
+              imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&q=80',
               onTap: () {
                 if (_activeListingTab != 'pakwan') {
                   setState(() {
@@ -1991,130 +1891,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 }
               },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                height: 62,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isPakwan ? const Color(0xFFD97706) : Colors.transparent,
-                    width: isPakwan ? 2.5 : 0,
-                  ),
-                  boxShadow: isPakwan
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFFD97706).withAlpha(90),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(isPakwan ? 11.5 : 14),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Shahi Daig Background Photography
-                      CustomImage(
-                        imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&q=80',
-                        fit: BoxFit.cover,
-                      ),
-                      // Gradient Overlay (Rich Amber when selected, dimmed when inactive)
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: isPakwan
-                                ? [
-                                    Colors.black.withAlpha(80),
-                                    const Color(0xFFB45309).withAlpha(205),
-                                  ]
-                                : [
-                                    Colors.black.withAlpha(160),
-                                    Colors.black.withAlpha(220),
-                                  ],
-                          ),
-                        ),
-                      ),
-                      // Text & Icon Content
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: isPakwan
-                                    ? Colors.white.withAlpha(50)
-                                    : Colors.white.withAlpha(25),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.outdoor_grill_rounded,
-                                size: 16,
-                                color: isPakwan ? Colors.white : Colors.white70,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                'Shahi Pakwan',
-                                style: TextStyle(
-                                  fontSize: 14.5,
-                                  fontWeight: isPakwan ? FontWeight.w900 : FontWeight.w700,
-                                  color: isPakwan ? Colors.white : Colors.white70,
-                                  letterSpacing: 0.2,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Cupertino Active Selection Badge
-                      if (isPakwan)
-                        Positioned(
-                          top: 5,
-                          right: 6,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withAlpha(40),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.check_circle_rounded, size: 10, color: Color(0xFFD97706)),
-                                SizedBox(width: 3),
-                                Text(
-                                  'SELECTED',
-                                  style: TextStyle(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFFD97706),
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
+              selectedGradientColors: [
+                Colors.black.withValues(alpha: 0.35),
+                const Color(0xFFB45309).withValues(alpha: 0.88),
+              ],
+              borderGradientColors: const [
+                Color(0xFFD97706),
+                Color(0xFF451A03), // dark rich tone
+                Color(0xFFF59E0B),
+                Color(0xFF78350F), // dark rich tone
+                Color(0xFFD97706),
+              ],
             ),
           ),
         ],
@@ -2519,6 +2306,256 @@ class _HomeScreenState extends State<HomeScreen> {
           label: 'Account',
         ),
       ],
+    );
+  }
+}
+
+/// Animated Cupertino Tab Button with dynamic rotating dark gradient border
+class CupertinoAnimatedTabButton extends StatefulWidget {
+  final bool isSelected;
+  final VoidCallback onTap;
+  final String title;
+  final IconData icon;
+  final String imageUrl;
+  final List<Color> selectedGradientColors;
+  final List<Color> borderGradientColors;
+
+  const CupertinoAnimatedTabButton({
+    super.key,
+    required this.isSelected,
+    required this.onTap,
+    required this.title,
+    required this.icon,
+    required this.imageUrl,
+    required this.selectedGradientColors,
+    required this.borderGradientColors,
+  });
+
+  @override
+  State<CupertinoAnimatedTabButton> createState() => _CupertinoAnimatedTabButtonState();
+}
+
+class _CupertinoAnimatedTabButtonState extends State<CupertinoAnimatedTabButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _borderController;
+
+  @override
+  void initState() {
+    super.initState();
+    _borderController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3200),
+    );
+    if (widget.isSelected) {
+      _borderController.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant CupertinoAnimatedTabButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isSelected && !_borderController.isAnimating) {
+      _borderController.repeat();
+    } else if (!widget.isSelected && _borderController.isAnimating) {
+      _borderController.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _borderController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _borderController,
+        builder: (context, child) {
+          return Container(
+            height: 64,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: widget.isSelected
+                  ? SweepGradient(
+                      transform: GradientRotation(_borderController.value * 2 * 3.14159265),
+                      colors: widget.borderGradientColors,
+                    )
+                  : null,
+              border: widget.isSelected
+                  ? null
+                  : Border.all(color: Colors.black.withValues(alpha: 0.12), width: 1.0),
+              boxShadow: widget.isSelected
+                  ? [
+                      BoxShadow(
+                        color: widget.selectedGradientColors.first.withValues(alpha: 0.4),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : null,
+            ),
+            padding: EdgeInsets.all(widget.isSelected ? 2.5 : 1.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(widget.isSelected ? 12.5 : 14),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CustomImage(
+                    imageUrl: widget.imageUrl,
+                    fit: BoxFit.cover,
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: widget.isSelected
+                            ? widget.selectedGradientColors
+                            : [
+                                Colors.black.withValues(alpha: 0.70),
+                                Colors.black.withValues(alpha: 0.88),
+                              ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: widget.isSelected
+                                ? Colors.white.withValues(alpha: 0.25)
+                                : Colors.white.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            widget.icon,
+                            size: 16,
+                            color: widget.isSelected ? Colors.white : Colors.white70,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: ShimmerTabText(
+                            text: widget.title,
+                            isSelected: widget.isSelected,
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: widget.isSelected ? FontWeight.w900 : FontWeight.w700,
+                              color: widget.isSelected ? Colors.white : Colors.white70,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Shimmer text sweep effect applied strictly to the selected tab text
+class ShimmerTabText extends StatefulWidget {
+  final String text;
+  final bool isSelected;
+  final TextStyle style;
+
+  const ShimmerTabText({
+    super.key,
+    required this.text,
+    required this.isSelected,
+    required this.style,
+  });
+
+  @override
+  State<ShimmerTabText> createState() => _ShimmerTabTextState();
+}
+
+class _ShimmerTabTextState extends State<ShimmerTabText>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    );
+    if (widget.isSelected) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ShimmerTabText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isSelected && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!widget.isSelected && _controller.isAnimating) {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isSelected) {
+      return Text(
+        widget.text,
+        style: widget.style,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return ShaderMask(
+          blendMode: BlendMode.srcIn,
+          shaderCallback: (bounds) {
+            final val = _controller.value;
+            return LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: [
+                (val - 0.35).clamp(0.0, 1.0),
+                val.clamp(0.0, 1.0),
+                (val + 0.35).clamp(0.0, 1.0),
+              ],
+              colors: const [
+                Colors.white,
+                Color(0xFFFFD54F),
+                Colors.white,
+              ],
+            ).createShader(bounds);
+          },
+          child: Text(
+            widget.text,
+            style: widget.style.copyWith(color: Colors.white),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+      },
     );
   }
 }
