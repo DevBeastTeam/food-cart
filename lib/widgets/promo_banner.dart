@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../data/sample_data.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 
@@ -56,6 +58,7 @@ class _PromoBannerState extends State<PromoBanner> {
     {
       'id': 'ban_2',
       'shop_name': 'Bannu Beef Pulao',
+      'location': 'Tariq Road, PECHS, Karachi',
       'offerText': '40% OFF',
       'tagText': 'BANNU BEEF PULAO',
       'title': 'Bannu Beef Pulao Feast',
@@ -69,6 +72,7 @@ class _PromoBannerState extends State<PromoBanner> {
     {
       'id': 'ban_1',
       'shop_name': 'Shahi Pakwan Center',
+      'location': 'Burns Road, Saddar, Karachi',
       'offerText': '25% OFF',
       'tagText': 'SHAHI PAKWAN CENTER',
       'title': 'Wood-Fire Shahi Daig Booking',
@@ -82,6 +86,7 @@ class _PromoBannerState extends State<PromoBanner> {
     {
       'id': 'ban_3',
       'shop_name': 'Shinwari Karahi',
+      'location': 'Gulshan-e-Iqbal, Block 4, Karachi',
       'offerText': '30% OFF',
       'tagText': 'SHINWARI KARAHI',
       'title': 'Shinwari Mutton Karahi',
@@ -95,6 +100,7 @@ class _PromoBannerState extends State<PromoBanner> {
     {
       'id': 'ban_4',
       'shop_name': 'Madina Pakwan',
+      'location': 'Nazimabad No. 2, Karachi',
       'offerText': '20% OFF',
       'tagText': 'MADINA PAKWAN',
       'title': 'Special Degi Biryani & Daig',
@@ -128,6 +134,39 @@ class _PromoBannerState extends State<PromoBanner> {
           return tag;
         }
         return 'Food Court Special';
+    }
+  }
+
+  static String _resolveShopLocation(Map<String, dynamic> banner) {
+    if (banner['location'] != null && banner['location'].toString().trim().isNotEmpty) {
+      return banner['location'].toString().trim();
+    }
+    if (banner['address'] != null && banner['address'].toString().trim().isNotEmpty) {
+      return banner['address'].toString().trim();
+    }
+    final sid = (banner['sub_admin_id'] ?? '').toString();
+    switch (sid) {
+      case 'sub_admin_1':
+        return 'Tariq Road, PECHS, Karachi';
+      case 'sub_admin_2':
+        return 'Burns Road, Saddar, Karachi';
+      case 'sub_admin_3':
+        return 'Gulshan-e-Iqbal, Block 4, Karachi';
+      case 'sub_admin_4':
+        return 'Nazimabad No. 2, Karachi';
+      default:
+        final shop = _resolveShopName(banner).toLowerCase();
+        for (final r in SampleData.restaurants) {
+          if (r.name.toLowerCase().contains(shop) || shop.contains(r.name.toLowerCase())) {
+            return r.address;
+          }
+        }
+        for (final p in SampleData.pakwanCenters) {
+          if (p.name.toLowerCase().contains(shop) || shop.contains(p.name.toLowerCase())) {
+            return p.address;
+          }
+        }
+        return 'Central Hub, Karachi';
     }
   }
 
@@ -216,10 +255,12 @@ class _PromoBannerState extends State<PromoBanner> {
 
     // Dynamic branded banner for the selected vendor
     final shopName = _resolveShopName({'sub_admin_id': widget.selectedVendorId});
+    final shopLocation = _resolveShopLocation({'sub_admin_id': widget.selectedVendorId});
     return [
       {
         'id': 'vendor_banner_${widget.selectedVendorId}',
         'shop_name': shopName,
+        'location': shopLocation,
         'offerText': 'SPECIAL DEAL',
         'tagText': shopName.toUpperCase(),
         'title': '$shopName Exclusive Offer',
@@ -282,6 +323,7 @@ class _PromoBannerState extends State<PromoBanner> {
 
   Widget _buildBannerCard(Map<String, dynamic> banner) {
     final shopName = _resolveShopName(banner);
+    final shopLocation = _resolveShopLocation(banner);
     final offerText = _resolveOfferText(banner);
     final effectiveTitle = widget.title ?? banner['title'] ?? 'Special Feast';
     final effectiveDishes = widget.dishesText ??
@@ -402,56 +444,12 @@ class _PromoBannerState extends State<PromoBanner> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Row: Shop Name Tag
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.38),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              width: 0.8,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.storefront_rounded,
-                                color: Colors.white70,
-                                size: 13,
-                              ),
-                              const SizedBox(width: 5),
-                              Flexible(
-                                child: Text(
-                                  shopName,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.2,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 7),
-
                   // Title
                   Text(
                     effectiveTitle,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 17.5,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.3,
                       height: 1.15,
@@ -466,7 +464,7 @@ class _PromoBannerState extends State<PromoBanner> {
                     child: Text(
                       effectiveDishes,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.92),
+                        color: Colors.white.withValues(alpha: 0.90),
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
                         height: 1.25,
@@ -476,30 +474,80 @@ class _PromoBannerState extends State<PromoBanner> {
                     ),
                   ),
 
-                  // Bottom Right: Percentage Off outlined with silver shimmer + Order Now button
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (offerText.isNotEmpty) ...[
-                          ShimmerOutlinedOfferTag(text: offerText),
-                          const SizedBox(width: 8),
-                        ],
-                        ShimmerOrderButton(
-                          text: 'Order Now',
-                          onTap: () {
-                            if (widget.onOrderBanner != null) {
-                              widget.onOrderBanner!(banner);
-                            } else if (widget.onOrderNow != null) {
-                              widget.onOrderNow!();
-                            } else if (widget.onApplyPromo != null) {
-                              widget.onApplyPromo!();
-                            }
-                          },
+                  // Bottom Row:
+                  // Left: Shop Name (without badge, ellipsis) + tiny location address with pin icon
+                  // Right: Percentage Off outlined tag (flutter_animate silver shimmer) + Order Now button (clean solid)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // Shop Name & Location Address (Left)
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              shopName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on_rounded,
+                                  size: 11,
+                                  color: Colors.white70,
+                                ),
+                                const SizedBox(width: 3),
+                                Expanded(
+                                  child: Text(
+                                    shopLocation,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.82),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Right: Offer Tag + Order Now Button
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (offerText.isNotEmpty) ...[
+                            ShimmerOutlinedOfferTag(text: offerText),
+                            const SizedBox(width: 6),
+                          ],
+                          CleanOrderButton(
+                            text: 'Order Now',
+                            onTap: () {
+                              if (widget.onOrderBanner != null) {
+                                widget.onOrderBanner!(banner);
+                              } else if (widget.onOrderNow != null) {
+                                widget.onOrderNow!();
+                              } else if (widget.onApplyPromo != null) {
+                                widget.onApplyPromo!();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -511,251 +559,121 @@ class _PromoBannerState extends State<PromoBanner> {
   }
 }
 
-/// Outlined discount percentage tag with a continuous silver text shimmer
-class ShimmerOutlinedOfferTag extends StatefulWidget {
+/// Outlined discount percentage tag with clean silver shimmer using flutter_animate
+class ShimmerOutlinedOfferTag extends StatelessWidget {
   final String text;
 
   const ShimmerOutlinedOfferTag({super.key, required this.text});
 
   @override
-  State<ShimmerOutlinedOfferTag> createState() => _ShimmerOutlinedOfferTagState();
-}
-
-class _ShimmerOutlinedOfferTagState extends State<ShimmerOutlinedOfferTag>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2500),
-    )..repeat();
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.70, curve: Curves.easeInOutCubic),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, _) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFCBD5E1).withValues(alpha: 0.85),
-              width: 1.2,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 5.5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.38),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.80),
+          width: 1.1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.20),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.local_offer_rounded,
+            color: Colors.white,
+            size: 11,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.4,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
+          ),
+        ],
+      )
+          .animate(onPlay: (controller) => controller.repeat())
+          .shimmer(
+            duration: 2200.ms,
+            delay: 400.ms,
+            colors: const [
+              Color(0xFFCBD5E1), // soft silver
+              Colors.white,      // brilliant silver white
+              Color(0xFFCBD5E1), // soft silver
             ],
-          ),
-          child: ShaderMask(
             blendMode: BlendMode.srcIn,
-            shaderCallback: (bounds) {
-              return LinearGradient(
-                colors: const [
-                  Color(0xFF94A3B8), // slate silver
-                  Color(0xFFE2E8F0), // light metallic silver
-                  Colors.white,      // brilliant white shine
-                  Color(0xFFE2E8F0), // light metallic silver
-                  Color(0xFF94A3B8), // slate silver
-                ],
-                stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
-                transform: _SilverShimmerTransform(_animation.value),
-              ).createShader(bounds);
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.local_offer_rounded,
-                  color: Colors.white,
-                  size: 11.5,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  widget.text,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
           ),
-        );
-      },
     );
   }
 }
 
-class _SilverShimmerTransform extends GradientTransform {
-  final double slidePercent;
-  const _SilverShimmerTransform(this.slidePercent);
-
-  @override
-  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
-    return Matrix4.translationValues(bounds.width * (slidePercent * 2.4 - 1.2), 0, 0);
-  }
-}
-
-/// Order Now Button with a continuous light silver shimmer sweep effect
-class ShimmerOrderButton extends StatefulWidget {
+/// Clean Order Now Button without shimmer
+class CleanOrderButton extends StatelessWidget {
   final VoidCallback? onTap;
   final String text;
 
-  const ShimmerOrderButton({
+  const CleanOrderButton({
     super.key,
     this.onTap,
     this.text = 'Order Now',
   });
 
   @override
-  State<ShimmerOrderButton> createState() => _ShimmerOrderButtonState();
-}
-
-class _ShimmerOrderButtonState extends State<ShimmerOrderButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2500),
-    )..repeat();
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.70, curve: Curves.easeInOutCubic),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: widget.onTap,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(22),
-        child: AnimatedBuilder(
-          animation: _animation,
-          builder: (context, child) {
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(22),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // 1. Button Base
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.28),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.text,
-                          style: const TextStyle(
-                            color: AppTheme.primary,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 14,
-                          color: AppTheme.primary,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 2. Smooth Diagonal Metallic Silver Glint Sweep
-                  Positioned.fill(
-                    child: LayoutBuilder(
-                      builder: (ctx, constraints) {
-                        final w = constraints.maxWidth;
-                        final h = constraints.maxHeight;
-                        final leftPos = -w + _animation.value * (w * 2.5);
-
-                        return IgnorePointer(
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                left: leftPos,
-                                top: -h * 0.8,
-                                bottom: -h * 0.8,
-                                width: 34,
-                                child: Transform.rotate(
-                                  angle: 0.40,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.white.withValues(alpha: 0.0),
-                                          const Color(0xFF94A3B8).withValues(alpha: 0.28),
-                                          const Color(0xFFE2E8F0).withValues(alpha: 0.65),
-                                          Colors.white.withValues(alpha: 0.95),
-                                          const Color(0xFFCBD5E1).withValues(alpha: 0.50),
-                                          Colors.white.withValues(alpha: 0.0),
-                                        ],
-                                        stops: const [0.0, 0.2, 0.45, 0.55, 0.8, 1.0],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7.5),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
               ),
-            );
-          },
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                text,
+                style: const TextStyle(
+                  color: AppTheme.primary,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              const SizedBox(width: 4.5),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 14,
+                color: AppTheme.primary,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+typedef ShimmerOrderButton = CleanOrderButton;
