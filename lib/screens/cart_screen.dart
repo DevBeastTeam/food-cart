@@ -712,62 +712,67 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget _buildCartContent(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
+        // Cash on Delivery Indicator at the very TOP (scrolls with items)
+        _buildCashOnDeliveryHeader(),
+
+        const SizedBox(height: 12),
+
         // List of unified item cards
         ...widget.cartState.items.map(_buildCartItemCard),
 
-        const SizedBox(height: 10),
-
         if (_isPakwanCart()) ...[
+          const SizedBox(height: 10),
           _buildPakwanScheduleCard(context),
         ],
 
-        // Cash on Delivery Indicator
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0FDF4),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF86EFAC)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.payments_rounded, color: Color(0xFF16A34A), size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'کیش آن ڈیلیوری (Cash on Delivery - COD)',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13,
-                        color: Color(0xFF15803D),
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Pay cash to the rider when food arrives at your address',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF166534)),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
         const SizedBox(height: 20),
       ],
+    );
+  }
+
+  Widget _buildCashOnDeliveryHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF86EFAC)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCFCE7),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.payments_rounded, color: Color(0xFF16A34A), size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'کیش آن ڈیلیوری (Cash on Delivery - COD)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12.5,
+                    color: Color(0xFF15803D),
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Pay cash to the rider when food arrives at your address',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF166534)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1053,7 +1058,7 @@ class _CartScreenState extends State<CartScreen> {
   Widget _buildBottomCheckoutBar(BuildContext context) {
     return SafeArea(
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           border: const Border(
@@ -1061,36 +1066,45 @@ class _CartScreenState extends State<CartScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(12),
-              blurRadius: 10,
-              offset: const Offset(0, -3),
+              color: Colors.black.withAlpha(10),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
             ),
           ],
         ),
         child: Row(
           children: [
-            // Left: Clear Cart button with confirmation dialog
-            OutlinedButton.icon(
-              onPressed: () => _showClearCartConfirmation(context),
-              icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent, size: 18),
-              label: const Text(
-                'Clear',
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12.5,
+            // Left: Compact Clear Cart button with confirmation dialog
+            InkWell(
+              onTap: () => _showClearCartConfirmation(context),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50.withAlpha(90),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.delete_sweep_rounded, color: Colors.redAccent, size: 15),
+                    SizedBox(width: 3),
+                    Text(
+                      'Clear',
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.red.shade200),
-                backgroundColor: Colors.red.shade50.withAlpha(80),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
 
-            // Total Price Info
+            // Middle: Compact Total Price Info
             Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1098,7 +1112,7 @@ class _CartScreenState extends State<CartScreen> {
                 const Text(
                   'Total Price',
                   style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 9.5,
                     fontWeight: FontWeight.w600,
                     color: AppTheme.textSecondary,
                   ),
@@ -1106,16 +1120,16 @@ class _CartScreenState extends State<CartScreen> {
                 Text(
                   'Rs. ${widget.cartState.grandTotal.toInt()}',
                   style: const TextStyle(
-                    fontSize: 16.5,
+                    fontSize: 14,
                     fontWeight: FontWeight.w900,
                     color: AppTheme.primary,
                   ),
                 ),
               ],
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
 
-            // Right: Expanded "سبمٹ آرڈر (Submit Order)" Button with Continuous Shimmer
+            // Right: Expanded "سبمٹ آرڈر (Submit Order)" Button with Guaranteed FittedBox (No Overflow)
             Expanded(
               child: _SubmitOrderShimmerButton(
                 onPressed: () => _handleCheckout(context),
@@ -1163,9 +1177,9 @@ class _SubmitOrderShimmerButtonState extends State<_SubmitOrderShimmerButton>
       builder: (context, child) {
         return InkWell(
           onTap: widget.onPressed,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(10),
           child: Ink(
-            height: 48,
+            height: 42,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: const [
@@ -1185,31 +1199,38 @@ class _SubmitOrderShimmerButtonState extends State<_SubmitOrderShimmerButton>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF16A34A).withAlpha(100),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+                  color: const Color(0xFF16A34A).withAlpha(80),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                  SizedBox(width: 6),
-                  Text(
-                    'سبمٹ آرڈر (Submit Order)',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.2,
-                    ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                      SizedBox(width: 4),
+                      Text(
+                        'سبمٹ آرڈر (Submit Order)',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
