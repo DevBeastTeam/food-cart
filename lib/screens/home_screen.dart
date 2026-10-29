@@ -1433,29 +1433,18 @@ class _HomeScreenState extends State<HomeScreen> {
     final canGoBack = currentPage > 1;
     final canGoForward = currentPage < totalPages;
 
-    // Calculate visible page buttons (up to 5 buttons, sliding window)
-    List<int> visiblePages = [];
-    if (totalPages <= 5) {
-      visiblePages = List.generate(totalPages, (i) => i + 1);
-    } else {
-      int start = (currentPage - 2).clamp(1, totalPages - 4);
-      int end = (start + 4).clamp(5, totalPages);
-      if (end - start < 4) start = (end - 4).clamp(1, totalPages);
-      visiblePages = [for (int i = start; i <= end; i++) i];
-    }
-
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+      margin: const EdgeInsets.symmetric(vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.border),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            blurRadius: 5,
+            offset: const Offset(0, 1.5),
           ),
         ],
       ),
@@ -1465,14 +1454,14 @@ class _HomeScreenState extends State<HomeScreen> {
           // 1. Double Arrow Left (Full back to First Page)
           InkWell(
             onTap: canGoBack ? () => onPageChanged(1) : null,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(7),
             child: Container(
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: canGoBack ? AppTheme.primaryLight : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(7),
                 border: Border.all(
                   color: canGoBack ? AppTheme.primary.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
                   width: 1,
@@ -1480,24 +1469,24 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Icon(
                 Icons.first_page_rounded,
-                size: 20,
+                size: 17,
                 color: canGoBack ? AppTheme.primary : const Color(0xFF94A3B8),
               ),
             ),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 4),
 
           // 2. Single Arrow Left (Previous Page)
           InkWell(
             onTap: canGoBack ? () => onPageChanged(currentPage - 1) : null,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(7),
             child: Container(
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: canGoBack ? AppTheme.primaryLight : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(7),
                 border: Border.all(
                   color: canGoBack ? AppTheme.primary.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
                   width: 1,
@@ -1505,69 +1494,81 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Icon(
                 Icons.chevron_left_rounded,
-                size: 20,
+                size: 17,
                 color: canGoBack ? AppTheme.primary : const Color(0xFF94A3B8),
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
 
-          // 3. Middle Page Numbers (1, 2, 3, etc.)
-          ...visiblePages.map((page) {
-            final isCurrent = page == currentPage;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2.5),
-              child: InkWell(
-                onTap: isCurrent ? null : () => onPageChanged(page),
-                borderRadius: BorderRadius.circular(8),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 32,
-                  height: 32,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isCurrent ? AppTheme.primary : Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isCurrent ? AppTheme.primary : const Color(0xFFCBD5E1),
-                      width: 1.2,
-                    ),
-                    boxShadow: isCurrent
-                        ? [
-                            BoxShadow(
-                              color: AppTheme.primary.withValues(alpha: 0.35),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+          // 3. Middle Page Numbers (Scrollable horizontally if extra pages)
+          Flexible(
+            child: Center(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (int page = 1; page <= totalPages; page++) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: InkWell(
+                          onTap: page == currentPage ? null : () => onPageChanged(page),
+                          borderRadius: BorderRadius.circular(7),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 28,
+                            height: 28,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: page == currentPage ? AppTheme.primary : Colors.white,
+                              borderRadius: BorderRadius.circular(7),
+                              border: Border.all(
+                                color: page == currentPage ? AppTheme.primary : const Color(0xFFCBD5E1),
+                                width: 1.1,
+                              ),
+                              boxShadow: page == currentPage
+                                  ? [
+                                      BoxShadow(
+                                        color: AppTheme.primary.withValues(alpha: 0.35),
+                                        blurRadius: 3,
+                                        offset: const Offset(0, 1.5),
+                                      ),
+                                    ]
+                                  : null,
                             ),
-                          ]
-                        : null,
-                  ),
-                  child: Text(
-                    '$page',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w700,
-                      color: isCurrent ? Colors.white : const Color(0xFF334155),
-                    ),
-                  ),
+                            child: Text(
+                              '$page',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: page == currentPage ? FontWeight.w900 : FontWeight.w700,
+                                color: page == currentPage ? Colors.white : const Color(0xFF334155),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-            );
-          }),
+            ),
+          ),
 
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
 
           // 4. Single Arrow Right (Next Page)
           InkWell(
             onTap: canGoForward ? () => onPageChanged(currentPage + 1) : null,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(7),
             child: Container(
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: canGoForward ? AppTheme.primaryLight : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(7),
                 border: Border.all(
                   color: canGoForward ? AppTheme.primary.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
                   width: 1,
@@ -1575,24 +1576,24 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Icon(
                 Icons.chevron_right_rounded,
-                size: 20,
+                size: 17,
                 color: canGoForward ? AppTheme.primary : const Color(0xFF94A3B8),
               ),
             ),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 4),
 
           // 5. Double Arrow Right (Full forward to Last Page)
           InkWell(
             onTap: canGoForward ? () => onPageChanged(totalPages) : null,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(7),
             child: Container(
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: canGoForward ? AppTheme.primaryLight : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(7),
                 border: Border.all(
                   color: canGoForward ? AppTheme.primary.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
                   width: 1,
@@ -1600,7 +1601,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Icon(
                 Icons.last_page_rounded,
-                size: 20,
+                size: 17,
                 color: canGoForward ? AppTheme.primary : const Color(0xFF94A3B8),
               ),
             ),
