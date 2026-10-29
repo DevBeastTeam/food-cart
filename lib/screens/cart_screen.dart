@@ -1057,6 +1057,8 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget _buildBottomCheckoutBar(BuildContext context) {
     return SafeArea(
+      top: false,
+      bottom: !widget.isEmbedded,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
@@ -1122,14 +1124,14 @@ class _CartScreenState extends State<CartScreen> {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
-                    color: AppTheme.primary,
+                    color: AppTheme.primaryDark,
                   ),
                 ),
               ],
             ),
             const SizedBox(width: 8),
 
-            // Right: Expanded "سبمٹ آرڈر (Submit Order)" Button with Guaranteed FittedBox (No Overflow)
+            // Right: Expanded Outlined Shimmer Submit Order Button in Deep Purple Theme
             Expanded(
               child: _SubmitOrderShimmerButton(
                 onPressed: () => _handleCheckout(context),
@@ -1142,7 +1144,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 }
 
-/// Shimmering Submit Order Action Button
+/// Outlined Shimmering Submit Order Action Button in Brand Deep Purple Theme
 class _SubmitOrderShimmerButton extends StatefulWidget {
   final VoidCallback onPressed;
   const _SubmitOrderShimmerButton({required this.onPressed});
@@ -1160,7 +1162,7 @@ class _SubmitOrderShimmerButtonState extends State<_SubmitOrderShimmerButton>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 2000),
     )..repeat();
   }
 
@@ -1175,60 +1177,73 @@ class _SubmitOrderShimmerButtonState extends State<_SubmitOrderShimmerButton>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return InkWell(
-          onTap: widget.onPressed,
-          borderRadius: BorderRadius.circular(10),
-          child: Ink(
-            height: 42,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: const [
-                  Color(0xFF16A34A),
-                  Color(0xFF22C55E),
-                  Color(0xFF86EFAC),
-                  Color(0xFF22C55E),
-                  Color(0xFF16A34A),
-                ],
-                stops: [
-                  0.0,
-                  (_controller.value - 0.2).clamp(0.0, 1.0),
-                  _controller.value.clamp(0.0, 1.0),
-                  (_controller.value + 0.2).clamp(0.0, 1.0),
-                  1.0,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF16A34A).withAlpha(80),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
+        // Safe animated alignment sweep across button (No clamp stops bug!)
+        final slide = _controller.value;
+        final beginX = -2.5 + (slide * 5.0);
+        final endX = beginX + 1.2;
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onPressed,
+            borderRadius: BorderRadius.circular(10),
+            splashColor: const Color(0xFF6C3CE9).withAlpha(50),
+            highlightColor: const Color(0xFF6C3CE9).withAlpha(30),
+            child: Container(
+              height: 42,
+              decoration: BoxDecoration(
+                // Theme Outlined Border in Deep Royal Purple
+                border: Border.all(
+                  color: const Color(0xFF6C3CE9),
+                  width: 1.8,
                 ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        'سبمٹ آرڈر (Submit Order)',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.2,
+                borderRadius: BorderRadius.circular(10),
+                // Smooth Shimmer Gradient Sweep
+                gradient: LinearGradient(
+                  begin: Alignment(beginX, -0.2),
+                  end: Alignment(endX, 0.2),
+                  colors: const [
+                    Color(0xFFF3E8FF), // Theme light purple
+                    Color(0xFFE9D5FF), // Lavender
+                    Color(0xFFFFFFFF), // Bright shimmer light
+                    Color(0xFFE9D5FF), // Lavender
+                    Color(0xFFF3E8FF), // Theme light purple
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6C3CE9).withAlpha(45),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(
+                          Icons.check_circle_rounded,
+                          color: Color(0xFF6C3CE9),
+                          size: 18,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 5),
+                        Text(
+                          'سبمٹ آرڈر (Submit Order)',
+                          style: TextStyle(
+                            color: Color(0xFF4C1D95), // Deep Purple text
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
