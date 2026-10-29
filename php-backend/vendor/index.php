@@ -570,7 +570,19 @@ $adminUser = $_SESSION['admin_user'];
                                         <!-- Customer & Phone -->
                                         <td class="py-2.5 px-3">
                                             <div class="font-semibold text-white" x-text="ord.customerName || 'Walk-in Customer'"></div>
-                                            <div class="text-[10px] text-[#FF9500] font-mono" x-text="ord.customerPhone || '—'"></div>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <span class="text-[10px] text-[#FF9500] font-mono" x-text="ord.customerPhone || '—'"></span>
+                                                <template x-if="ord.customerPhone">
+                                                    <span class="inline-flex items-center gap-1">
+                                                        <a :href="'tel:' + ord.customerPhone" title="Call Customer" class="text-blue-400 hover:text-blue-300">
+                                                            <i data-lucide="phone" class="w-2.5 h-2.5"></i>
+                                                        </a>
+                                                        <a :href="'https://wa.me/' + (ord.customerPhone || '').replace(/[^0-9]/g, '')" target="_blank" title="WhatsApp Customer" class="text-emerald-400 hover:text-emerald-300">
+                                                            <i data-lucide="message-circle" class="w-2.5 h-2.5"></i>
+                                                        </a>
+                                                    </span>
+                                                </template>
+                                            </div>
                                         </td>
 
                                         <!-- Order Type -->
@@ -1088,7 +1100,19 @@ $adminUser = $_SESSION['admin_user'];
 
                                         <td class="py-2.5 px-3">
                                             <div class="font-semibold text-white" x-text="ord.customerName"></div>
-                                            <div class="text-[10px] text-[#FF9500] font-mono" x-text="ord.customerPhone"></div>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <span class="text-[10px] text-[#FF9500] font-mono" x-text="ord.customerPhone"></span>
+                                                <template x-if="ord.customerPhone">
+                                                    <span class="inline-flex items-center gap-1">
+                                                        <a :href="'tel:' + ord.customerPhone" title="Call Customer" class="text-blue-400 hover:text-blue-300">
+                                                            <i data-lucide="phone" class="w-2.5 h-2.5"></i>
+                                                        </a>
+                                                        <a :href="'https://wa.me/' + (ord.customerPhone || '').replace(/[^0-9]/g, '')" target="_blank" title="WhatsApp Customer" class="text-emerald-400 hover:text-emerald-300">
+                                                            <i data-lucide="message-circle" class="w-2.5 h-2.5"></i>
+                                                        </a>
+                                                    </span>
+                                                </template>
+                                            </div>
                                             <div class="text-[10px] text-zinc-400 truncate max-w-[140px]" x-text="ord.deliveryAddress"></div>
                                         </td>
 
@@ -2943,7 +2967,24 @@ $adminUser = $_SESSION['admin_user'];
                 <div class="space-y-1">
                     <p class="font-bold text-white">Customer Details:</p>
                     <p class="text-zinc-300" x-text="activeOrder?.customerName + ' (' + activeOrder?.customerPhone + ')'"></p>
-                    <p class="text-zinc-400" x-text="activeOrder?.deliveryAddress"></p>
+                    <div class="flex items-center gap-2 mt-1">
+                        <template x-if="activeOrder?.customerPhone">
+                            <a :href="'tel:' + activeOrder.customerPhone"
+                                class="px-2.5 py-1 bg-blue-600/90 hover:bg-blue-600 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 transition-all">
+                                <i data-lucide="phone" class="w-3 h-3"></i>
+                                <span>Call Customer</span>
+                            </a>
+                        </template>
+                        <template x-if="activeOrder?.customerPhone">
+                            <a :href="'https://wa.me/' + (activeOrder.customerPhone || '').replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent('Assalam-o-Alaikum ' + (activeOrder.customerName || 'Customer') + ', FoodCourt/Pakwan order #' + activeOrder.id + ' ke hawalay se rabta kar rahe hain.')"
+                               target="_blank"
+                               class="px-2.5 py-1 bg-emerald-600/90 hover:bg-emerald-600 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 transition-all">
+                                <i data-lucide="message-circle" class="w-3 h-3"></i>
+                                <span>WhatsApp Customer</span>
+                            </a>
+                        </template>
+                    </div>
+                    <p class="text-zinc-400 mt-1" x-text="activeOrder?.deliveryAddress"></p>
                     <template x-if="activeOrder?.latitude">
                         <a :href="'https://www.google.com/maps/search/?api=1&query=' + activeOrder.latitude + ',' + activeOrder.longitude" target="_blank"
                             class="text-[#FF9500] hover:underline font-bold inline-flex items-center gap-1 mt-0.5">
@@ -2952,6 +2993,24 @@ $adminUser = $_SESSION['admin_user'];
                         </a>
                     </template>
                 </div>
+
+                <template x-if="activeOrder?.isDaigBooking || activeOrder?.occasion || activeOrder?.notes || activeOrder?.event_date">
+                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1 mt-2">
+                        <div class="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
+                            <i data-lucide="soup" class="w-3.5 h-3.5"></i>
+                            <span>Shahi Pakwan / Daig Booking Details</span>
+                        </div>
+                        <template x-if="activeOrder?.occasion">
+                            <p class="text-zinc-300 text-[11px]"><span class="text-zinc-400">Occasion:</span> <span class="font-semibold text-amber-200" x-text="activeOrder.occasion"></span></p>
+                        </template>
+                        <template x-if="activeOrder?.event_date || activeOrder?.event_time">
+                            <p class="text-zinc-300 text-[11px]"><span class="text-zinc-400">Event Schedule:</span> <span class="font-semibold text-white" x-text="(activeOrder.event_date || '') + ' ' + (activeOrder.event_time || '')"></span></p>
+                        </template>
+                        <template x-if="activeOrder?.notes">
+                            <p class="text-zinc-300 text-[11px]"><span class="text-zinc-400">Special Instructions / Spice:</span> <span class="text-white italic" x-text="activeOrder.notes"></span></p>
+                        </template>
+                    </div>
+                </template>
 
                 <div class="space-y-1 pt-2 border-t border-white/5">
                     <p class="font-bold text-white">Items Summary:</p>

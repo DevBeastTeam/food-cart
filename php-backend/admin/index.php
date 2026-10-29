@@ -1313,7 +1313,19 @@ if ($liveSuper) {
                                                 </td>
                                                 <td class="py-2.5 px-3 whitespace-nowrap">
                                                     <div class="font-semibold text-white" x-text="ord.customerName"></div>
-                                                    <div class="text-[10px] text-[#FF9500] font-mono" x-text="ord.customerPhone"></div>
+                                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                                        <span class="text-[10px] text-[#FF9500] font-mono" x-text="ord.customerPhone"></span>
+                                                        <template x-if="ord.customerPhone">
+                                                            <span class="inline-flex items-center gap-1">
+                                                                <a :href="'tel:' + ord.customerPhone" title="Call Customer" class="text-blue-400 hover:text-blue-300">
+                                                                    <i data-lucide="phone" class="w-2.5 h-2.5"></i>
+                                                                </a>
+                                                                <a :href="'https://wa.me/' + (ord.customerPhone || '').replace(/[^0-9]/g, '')" target="_blank" title="WhatsApp Customer" class="text-emerald-400 hover:text-emerald-300">
+                                                                    <i data-lucide="message-circle" class="w-2.5 h-2.5"></i>
+                                                                </a>
+                                                            </span>
+                                                        </template>
+                                                    </div>
                                                 </td>
                                                 <td class="py-2.5 px-3 whitespace-nowrap">
                                                     <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
@@ -1388,7 +1400,19 @@ if ($liveSuper) {
                                             </td>
                                             <td class="py-2.5 px-3">
                                                 <div class="font-bold text-white" x-text="o.customerName"></div>
-                                                <div class="text-[10px] text-zinc-400 font-mono" x-text="o.customerPhone"></div>
+                                                <div class="flex items-center gap-1.5 mt-0.5">
+                                                    <span class="text-[10px] text-zinc-400 font-mono" x-text="o.customerPhone"></span>
+                                                    <template x-if="o.customerPhone">
+                                                        <span class="inline-flex items-center gap-1">
+                                                            <a :href="'tel:' + o.customerPhone" title="Call Customer" class="text-blue-400 hover:text-blue-300">
+                                                                <i data-lucide="phone" class="w-2.5 h-2.5"></i>
+                                                            </a>
+                                                            <a :href="'https://wa.me/' + (o.customerPhone || '').replace(/[^0-9]/g, '')" target="_blank" title="WhatsApp Customer" class="text-emerald-400 hover:text-emerald-300">
+                                                                <i data-lucide="message-circle" class="w-2.5 h-2.5"></i>
+                                                            </a>
+                                                        </span>
+                                                    </template>
+                                                </div>
                                             </td>
                                             <td class="py-2.5 px-3">
                                                 <div class="flex items-center gap-1">
@@ -1821,7 +1845,19 @@ if ($liveSuper) {
                                         </td>
                                         <td class="py-2.5 px-3">
                                             <div class="font-bold text-white" x-text="o.customerName"></div>
-                                            <div class="text-[10px] text-zinc-400 font-mono" x-text="o.customerPhone"></div>
+                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                <span class="text-[10px] text-zinc-400 font-mono" x-text="o.customerPhone"></span>
+                                                <template x-if="o.customerPhone">
+                                                    <span class="inline-flex items-center gap-1">
+                                                        <a :href="'tel:' + o.customerPhone" title="Call Customer" class="text-blue-400 hover:text-blue-300">
+                                                            <i data-lucide="phone" class="w-2.5 h-2.5"></i>
+                                                        </a>
+                                                        <a :href="'https://wa.me/' + (o.customerPhone || '').replace(/[^0-9]/g, '')" target="_blank" title="WhatsApp Customer" class="text-emerald-400 hover:text-emerald-300">
+                                                            <i data-lucide="message-circle" class="w-2.5 h-2.5"></i>
+                                                        </a>
+                                                    </span>
+                                                </template>
+                                            </div>
                                         </td>
                                         <td class="py-2.5 px-3 text-zinc-300 truncate max-w-xs" x-text="(o.items || []).join(', ')"></td>
                                         <td class="py-2.5 px-3 font-bold text-white tabular-nums" x-text="'Rs. ' + o.totalAmount"></td>

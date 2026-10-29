@@ -71,6 +71,7 @@ class DaigItem {
     required String sizeName, // 'small', 'medium', 'large'
     String occasion = '',
     String notes = '',
+    String spiceLevel = '',
   }) {
     final double price;
     final String label;
@@ -99,6 +100,7 @@ class DaigItem {
 
     final extraInfo = [
       serves,
+      if (spiceLevel.isNotEmpty) 'Spice: $spiceLevel',
       if (occasion.isNotEmpty) 'Occasion: $occasion',
       if (notes.isNotEmpty) 'Notes: $notes',
       'Fresh coal dum cooked',
