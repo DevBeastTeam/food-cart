@@ -9,6 +9,7 @@ import '../state/user_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_image.dart';
 import 'food_detail_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrdersScreen extends StatefulWidget {
   final UserState userState;
@@ -470,7 +471,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
 
-          // 2. ORDER FROM SECTION (Shop Name, Shop Icon, Location Pin, Location Name)
+          // 2. ORDER FROM & RIDER INFO SECTION
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
             child: Container(
@@ -480,61 +481,303 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: (shop['image'] != null && shop['image']!.isNotEmpty)
-                        ? CustomImage(
-                            imageUrl: shop['image']!,
-                            width: 36,
-                            height: 36,
-                            fit: BoxFit.cover,
-                          )
-                        : Container(
-                            width: 36,
-                            height: 36,
-                            color: Colors.amber.shade100,
-                            child: const Icon(Icons.storefront_rounded, size: 18, color: Color(0xFFD97706)),
-                          ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'ORDER FROM: ${shop['name']}',
-                          style: const TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1E293B),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
+                  // --- ROW 1: SHOP DETAILS ---
+                  Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: (shop['image'] != null && shop['image']!.isNotEmpty)
+                            ? CustomImage(
+                                imageUrl: shop['image']!,
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                width: 36,
+                                height: 36,
+                                color: Colors.amber.shade100,
+                                child: const Icon(Icons.storefront_rounded, size: 18, color: Color(0xFFD97706)),
+                              ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.location_on_rounded, size: 11.5, color: Color(0xFF94A3B8)),
-                            const SizedBox(width: 3),
-                            Expanded(
-                              child: Text(
-                                shop['address']!,
-                                style: const TextStyle(
-                                  fontSize: 10.5,
-                                  color: Color(0xFF94A3B8),
+                            Text(
+                              'ORDER FROM: ${shop['name']}',
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1E293B),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on_rounded, size: 11.5, color: Color(0xFF94A3B8)),
+                                const SizedBox(width: 3),
+                                Expanded(
+                                  child: Text(
+                                    shop['address']!,
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      color: Color(0xFF94A3B8),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // --- DIVIDER LINE INSIDE CONTAINER ---
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 7),
+                    child: Divider(height: 1, thickness: 0.8, color: Color(0xFFE2E8F0)),
+                  ),
+
+                  // --- ROW 2: RIDER DETAILS OR WAITING STATE ---
+                  if (order.status == 'Pending') ...[
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.hourglass_top_rounded, size: 18, color: Color(0xFFD97706)),
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Wait for Accepting (تصدیق کا انتظار ہے)',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF92400E),
+                                ),
+                              ),
+                              SizedBox(height: 1),
+                              Text(
+                                'Rider details will appear after kitchen accepts order',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFFB45309),
                                   fontWeight: FontWeight.w500,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
+                  ] else if (order.status == 'Cancelled') ...[
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.cancel_outlined, size: 18, color: Colors.red.shade700),
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'Order Cancelled / Rejected (کوئی رائیڈر مقرر نہیں)',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              color: Color(0xFFDC2626),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    // Rider Assigned and Ready/Active
+                    Builder(builder: (context) {
+                      final rName = (order.riderName != null && order.riderName!.trim().isNotEmpty)
+                          ? order.riderName!
+                          : 'Captain Tariq Mehmood';
+                      final rPhone = (order.riderPhone != null && order.riderPhone!.trim().isNotEmpty)
+                          ? order.riderPhone!
+                          : '+92 302 9988776';
+                      final rImage = order.riderImage;
+
+                      return Row(
+                        children: [
+                          // Rider Thumbnail (Rounded 8-10px)
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: (rImage != null && rImage.isNotEmpty)
+                                ? CustomImage(
+                                    imageUrl: rImage,
+                                    width: 36,
+                                    height: 36,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFFCBD5E1), width: 0.8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.sports_motorsports_rounded,
+                                      size: 20,
+                                      color: Color(0xFF475569),
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Rider Name and Phone Column
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Text(
+                                      'RIDER: ',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        rName,
+                                        style: const TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF1E293B),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.phone_rounded, size: 10.5, color: Color(0xFF94A3B8)),
+                                    const SizedBox(width: 3),
+                                    Expanded(
+                                      child: Text(
+                                        rPhone,
+                                        style: const TextStyle(
+                                          fontSize: 10.5,
+                                          color: Color(0xFF64748B),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(width: 6),
+
+                          // Action Buttons: Call & WhatsApp
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Call Action Button
+                              InkWell(
+                                onTap: () => _callPhone(rPhone),
+                                borderRadius: BorderRadius.circular(6),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF6FF),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.call, size: 11.5, color: Color(0xFF2563EB)),
+                                      SizedBox(width: 2.5),
+                                      Text(
+                                        'Call',
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF2563EB),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+
+                              // WhatsApp Action Button
+                              InkWell(
+                                onTap: () => _openWhatsApp(rPhone, rName, order.id),
+                                borderRadius: BorderRadius.circular(6),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF0FDF4),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.chat_bubble_rounded, size: 11, color: Color(0xFF16A34A)),
+                                      SizedBox(width: 2.5),
+                                      Text(
+                                        'Chat',
+                                        style: TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF16A34A),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    }),
+                  ],
                 ],
               ),
             ),
@@ -958,6 +1201,62 @@ class _OrdersScreenState extends State<OrdersScreen> {
         ),
       ),
     );
+  }
+
+  String _formatWhatsAppPhone(String phone) {
+    String clean = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.startsWith('03')) {
+      clean = '92${clean.substring(1)}';
+    } else if (clean.startsWith('3') && clean.length == 10) {
+      clean = '92$clean';
+    }
+    return clean;
+  }
+
+  Future<void> _callPhone(String phone) async {
+    try {
+      final uri = Uri.parse('tel:$phone');
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Rider Phone: $phone'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: AppTheme.primary,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[OrdersScreen] Error calling rider: $e');
+    }
+  }
+
+  Future<void> _openWhatsApp(String phone, String riderName, String orderId) async {
+    try {
+      final clean = _formatWhatsAppPhone(phone);
+      final text = Uri.encodeComponent(
+        'Assalam-o-Alaikum $riderName bhai, main FoodCourt order #$orderId ke hawalay se rabta kar raha hoon.',
+      );
+      final uri = Uri.parse('https://wa.me/$clean?text=$text');
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('WhatsApp: $phone'),
+              backgroundColor: const Color(0xFF25D366),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[OrdersScreen] Error launching rider WhatsApp: $e');
+    }
   }
 
   Color _getStatusBadgeColor(String status) {

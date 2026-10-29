@@ -56,6 +56,7 @@ class UserOrder {
   String? notes;
   String? riderName;
   String? riderPhone;
+  final String? riderImage;
   final String customerName;
   final String customerPhone;
   final String? rejectionReason;
@@ -97,6 +98,7 @@ class UserOrder {
     this.notes,
     this.riderName,
     this.riderPhone,
+    this.riderImage,
     this.customerName = 'Hassan Raza',
     this.customerPhone = '+92 300 8472910',
     this.eventDate,
@@ -113,6 +115,7 @@ class UserOrder {
     String? prepTime,
     String? riderName,
     String? riderPhone,
+    String? riderImage,
     String? discountInfo,
     String? customerName,
     String? customerPhone,
@@ -143,6 +146,7 @@ class UserOrder {
       notes: notes ?? this.notes,
       riderName: riderName ?? this.riderName,
       riderPhone: riderPhone ?? this.riderPhone,
+      riderImage: riderImage ?? this.riderImage,
       customerName: customerName ?? this.customerName,
       customerPhone: customerPhone ?? this.customerPhone,
       rejectionReason: rejectionReason ?? this.rejectionReason,
