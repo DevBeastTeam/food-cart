@@ -252,6 +252,29 @@ function migrateSchemaUpdates(PDO $pdo): void {
     $pdo->exec("UPDATE banners SET sub_admin_id = 'sub_admin_1', discountPercent = 40 WHERE id = 'ban_2' AND (sub_admin_id IS NULL OR sub_admin_id = '')");
     $pdo->exec("UPDATE banners SET sub_admin_id = 'sub_admin_3', discountPercent = 30 WHERE id = 'ban_3' AND (sub_admin_id IS NULL OR sub_admin_id = '')");
 
+    // Ensure pakwan and standard categories exist in SQLite
+    $pakwanCount = (int)$pdo->query("SELECT COUNT(*) FROM categories WHERE type = 'pakwan'")->fetchColumn();
+    if ($pakwanCount < 4) {
+        $stdCats = [
+            ['cat_all', 'All', '🍽️', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&q=80', 0, 'both'],
+            ['cat_pkw_1', 'Biryani & Pulao', '🍲', 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80', 1, 'pakwan'],
+            ['cat_pkw_2', 'Qorma & Karahi', '🥘', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=200&q=80', 2, 'pakwan'],
+            ['cat_pkw_3', 'Haleem & Nihari', '🥣', 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=200&q=80', 3, 'pakwan'],
+            ['cat_pkw_4', 'Sweet & Desserts', '🍨', 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=200&q=80', 4, 'pakwan'],
+            ['cat_pkw_5', 'Shahi Daig Catering', '👑', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80', 5, 'pakwan'],
+            ['cat_pulao', 'Pulao', '🍲', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80', 1, 'restaurant'],
+            ['cat_biryani', 'Biryani', '🍚', 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80', 2, 'restaurant'],
+            ['cat_mutton_karahi', 'Karahi & Handi', '🥘', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=200&q=80', 3, 'restaurant'],
+            ['cat_kabab', 'BBQ & Grills', '🍢', 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=200&q=80', 4, 'restaurant'],
+            ['cat_fastfood', 'Fast Food', '🍔', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&q=80', 5, 'restaurant'],
+        ];
+        $cStmt = $pdo->prepare("INSERT OR REPLACE INTO categories (id, name, icon, image, display_order, type) VALUES (?, ?, ?, ?, ?, ?)");
+        foreach ($stdCats as $c) {
+            $cStmt->execute($c);
+        }
+        $pdo->exec("UPDATE categories SET type = 'both' WHERE name = 'All' OR name = 'Zarda & Meetha' OR name = 'Desserts & Sweets'");
+    }
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS notifications (
         id TEXT PRIMARY KEY,
         recipient_type TEXT DEFAULT 'sub_admin',

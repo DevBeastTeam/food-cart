@@ -18,9 +18,7 @@ import 'all_places_foods_screen.dart';
 import 'auth_screen.dart';
 import 'cart_screen.dart';
 import 'orders_screen.dart';
-import 'pakwan_centers_screen.dart';
 import 'restaurant_details_screen.dart';
-import 'restaurants_screen.dart';
 import 'rider_dashboard_screen.dart';
 import 'user_dashboard_screen.dart';
 
@@ -51,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isSearching = false;
   List<FoodItem> _searchResults = [];
   List<DaigItem> _searchDaigResults = [];
-  bool _showAllDaigs = false;
   bool _isSearchFieldOpen = false;
   String _activeListingTab = 'restaurant'; // 'restaurant' or 'pakwan'
   int _restaurantPage = 1;
@@ -1128,21 +1125,11 @@ class _HomeScreenState extends State<HomeScreen> {
               // Single Row of Category Pills (Rectangular subcategory pill style, non-rounded)
               _buildCategoryPillsRow(isPakwan: false),
 
-              const SizedBox(height: 20),
-
-              // Top Restaurants Section
-              _buildRestaurantsSection(),
-
-              const SizedBox(height: 24),
+              const SizedBox(height: 14),
 
               // Category Menu Dishes
               _buildCategoryDishesSection(),
             ] else ...[
-              // Shahi Daig Catering Spotlight (Pakwan Center)
-              _buildDaigSpotlightCard(),
-
-              const SizedBox(height: 18),
-
               // Pakwan Items Header with dynamic title and View All
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1207,7 +1194,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // Single Row of Pakwan Category Pills
               _buildCategoryPillsRow(isPakwan: true),
 
-              const SizedBox(height: 22),
+              const SizedBox(height: 14),
 
               // Shahi Daigs & Pakwan Dishes Section
               _buildCategoryDishesSection(),
@@ -1744,6 +1731,7 @@ class _HomeScreenState extends State<HomeScreen> {
               (dish) => ShahiDishCard(
                 item: dish,
                 cartState: widget.cartState,
+                isPakwan: false,
               ),
             ),
           ],
@@ -1766,68 +1754,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentPage = _pakwanPage.clamp(1, totalPages);
     final displayedDaigs = allDaigs.skip((currentPage - 1) * _itemsPerPage).take(_itemsPerPage).toList();
 
-    final String title = _selectedVendorId != 'all'
-        ? '🍲 $_selectedVendorName Shahi Degs'
-        : (_selectedCategory == 'All'
-            ? '🍲 Shahi Pakwan & Degs (شاہی دیگیں)'
-            : '🍲 $_selectedCategory Pakwan Degs');
-    final String subtitle = _selectedVendorId != 'all'
-        ? 'Directly from $_selectedVendorLocation'
-        : 'Authentic cauldrons & catering prepared by expert ustaads';
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildListingTabSwitcher(),
-
-        // Section Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16.5,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '$totalDaigs Degs',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFFB45309),
-                ),
-              ),
-            ),
-          ],
-        ),
-
         // TOP PAGINATION BAR
         _buildPaginationBar(
           currentPage: currentPage,
@@ -1861,12 +1790,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ] else ...[
           ...displayedDaigs.map(
-            (daig) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: DaigCard(
-                daig: daig,
-                cartState: widget.cartState,
-              ),
+            (daig) => ShahiDishCard(
+              daig: daig,
+              cartState: widget.cartState,
+              isPakwan: true,
             ),
           ),
         ],
@@ -1982,7 +1909,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (liveCats.isNotEmpty) {
       effectiveCats = liveCats.where((c) {
-        final t = (c['type'] ?? 'restaurant').toString();
+        final t = (c['type'] ?? 'restaurant').toString().toLowerCase().trim();
         if (isPakwan) {
           return t == 'pakwan' || t == 'both';
         } else {
@@ -1991,22 +1918,31 @@ class _HomeScreenState extends State<HomeScreen> {
       }).map((c) => Map<String, dynamic>.from(c)).toList();
     }
 
-    if (effectiveCats.isEmpty) {
+    if (effectiveCats.isEmpty || (isPakwan && effectiveCats.length <= 1)) {
       if (isPakwan) {
         effectiveCats = [
           {'name': 'All', 'icon': '🍽️'},
           {'name': 'Biryani & Pulao', 'icon': '🍲'},
           {'name': 'Qorma & Karahi', 'icon': '🥘'},
           {'name': 'Haleem & Nihari', 'icon': '🥣'},
-          {'name': 'Sweet & Desserts', 'icon': '🍮'},
+          {'name': 'Sweet & Desserts', 'icon': '🍨'},
           {'name': 'Shahi Daig Catering', 'icon': '👑'},
         ];
       } else {
-        effectiveCats = SampleData.categories.map((c) => Map<String, dynamic>.from(c)).toList();
+        effectiveCats = [
+          {'name': 'All', 'icon': '🍽️'},
+          {'name': 'Biryani', 'icon': '🍚'},
+          {'name': 'Pulao', 'icon': '🍲'},
+          {'name': 'Karahi & Handi', 'icon': '🥘'},
+          {'name': 'BBQ & Grills', 'icon': '🍢'},
+          {'name': 'Fast Food', 'icon': '🍔'},
+          {'name': 'Zarda & Meetha', 'icon': '🍮'},
+        ];
       }
     }
 
-    if (effectiveCats.isEmpty || effectiveCats.first['name'] != 'All') {
+    final hasAll = effectiveCats.any((c) => (c['name'] ?? '').toString().toLowerCase() == 'all');
+    if (!hasAll) {
       effectiveCats.insert(0, {'name': 'All', 'icon': '🍽️'});
     }
 
@@ -2070,237 +2006,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDaigSpotlightCard() {
-    List<DaigItem> allDaigs = List<DaigItem>.from(SampleData.daigDishes);
-    if (_selectedVendorId != 'all') {
-      final vendorDaigs = allDaigs.where((d) =>
-          d.subAdminId == _selectedVendorId ||
-          d.centerId == _selectedVendorId ||
-          d.centerName.toLowerCase().contains(_selectedVendorName.toLowerCase()) ||
-          d.location.toLowerCase().contains(_selectedVendorLocation.toLowerCase())).toList();
-      if (vendorDaigs.isNotEmpty) {
-        allDaigs = vendorDaigs;
-      }
-    }
-    final displayedDaigs = _showAllDaigs ? allDaigs : allDaigs.take(2).toList();
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2E1065), Color(0xFF4C1D95), Color(0xFF6D28D9)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF4C1D95).withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.soup_kitchen_rounded, color: Color(0xFFFBBF24), size: 22),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      ApiService.instance.appContent['daigSpotlightTitle'] ?? '🍲 Pakwan Center & Shahi Daig Catering',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      ApiService.instance.appContent['daigSpotlightSubtitle'] ?? 'Sealed hot cauldrons for Dawats, Weddings & Niyaz (${allDaigs.length} Degs available)',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => PakwanCentersScreen(cartState: widget.cartState),
-                        ),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.18),
-                      foregroundColor: const Color(0xFFFBBF24),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      minimumSize: Size.zero,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text('Centers ›', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold)),
-                  ),
-                  if (allDaigs.length > 2) ...[
-                    const SizedBox(width: 4),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _showAllDaigs = !_showAllDaigs;
-                        });
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.18),
-                        foregroundColor: const Color(0xFFFBBF24),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        minimumSize: Size.zero,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: Text(
-                        _showAllDaigs ? 'Less' : 'All (${allDaigs.length})',
-                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Daig Item Cards
-          ...displayedDaigs.map(
-            (daig) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: DaigCard(
-                daig: daig,
-                cartState: widget.cartState,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRestaurantsSection() {
-    final restaurants = _filteredRestaurants;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _selectedCategory == 'All'
-                        ? '🍽️ Top Restaurants (${restaurants.length})'
-                        : '🍽️ $_selectedCategory Restaurants (${restaurants.length})',
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'Order directly from popular partner restaurants & kitchens',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: AppTheme.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => RestaurantsScreen(cartState: widget.cartState),
-                  ),
-                );
-              },
-              child: const Text('View All ›', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (restaurants.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(24),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: Column(
-              children: [
-                const Icon(Icons.store_mall_directory_outlined, size: 36, color: AppTheme.textLight),
-                const SizedBox(height: 8),
-                const Text(
-                  'No restaurants match your search or filter',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedCategory = 'All';
-                      _quickFilter = 'All';
-                      _homeSearchQuery = '';
-                      _homeSearchController.clear();
-                    });
-                  },
-                  child: const Text('Reset Filters'),
-                ),
-              ],
-            ),
-          )
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: restaurants.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 14),
-            itemBuilder: (context, index) {
-              final restaurant = restaurants[index];
-              return RestaurantCard(
-                restaurant: restaurant,
-                onTap: () => _openRestaurant(restaurant),
-              );
-            },
-          ),
-      ],
-    );
-  }
 
   // ===========================================================================
   // BOTTOM NAVIGATION BAR

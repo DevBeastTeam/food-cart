@@ -1,503 +1,160 @@
 import 'package:flutter/material.dart';
 import '../models/food_item.dart';
+import '../models/daig_item.dart';
 import '../screens/food_detail_screen.dart';
-import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
 import 'custom_image.dart';
 
 class ShahiDishCard extends StatelessWidget {
-  final FoodItem item;
+  final FoodItem? item;
+  final DaigItem? daig;
   final CartState cartState;
   final String restaurantName;
   final VoidCallback? onOrderNow;
+  final bool isPakwan;
 
   const ShahiDishCard({
     super.key,
-    required this.item,
+    this.item,
+    this.daig,
     required this.cartState,
     this.restaurantName = 'FoodCourt Central Kitchen',
     this.onOrderNow,
-  });
+    this.isPakwan = false,
+  }) : assert(item != null || daig != null, 'Either item or daig must be provided');
 
-  void openDetailModal(BuildContext context) {
-    int quantity = 1;
-    String selectedBadge = item.badges.isNotEmpty ? item.badges.first : 'Standard Portion';
-    final notesController = TextEditingController();
-    bool isOfferExpanded = false;
+  bool get _isDaigMode => daig != null || isPakwan;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (modalContext, setModalState) {
-            final totalPrice = item.effectivePrice * quantity;
-            final vendorOffer = ApiService.instance.getVendorActiveOffer(item.subAdminId);
+  String get _title => daig?.name ?? item?.name ?? '';
+  String get _urduSubtitle => daig?.urduName ?? '';
+  String get _imageUrl => daig?.imageUrl ?? item?.imageUrl ?? '';
+  String get _description => daig?.description ?? item?.description ?? '';
+  String get _category => daig?.category ?? item?.category ?? 'Special Dish';
+  double get _rating => daig?.rating ?? item?.rating ?? 4.9;
+  bool get _isAvailable => daig?.isAvailable ?? item?.isAvailable ?? true;
 
-            return Container(
-              margin: EdgeInsets.only(
-                top: MediaQuery.of(ctx).size.height * 0.08,
-              ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    14,
-                    20,
-                    MediaQuery.of(ctx).viewInsets.bottom + 20,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Drag handle
-                      Center(
-                        child: Container(
-                          width: 44,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
+  String get _shopName {
+    if (daig != null) {
+      return daig!.centerName.isNotEmpty ? daig!.centerName : 'Shahi Pakwan Center';
+    }
+    return restaurantName.isNotEmpty ? restaurantName : 'FoodCourt Kitchen';
+  }
 
-                      // Dish Title & Close Button
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.textPrimary,
-                                letterSpacing: -0.4,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close_rounded, size: 22),
-                            onPressed: () => Navigator.pop(ctx),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                        ],
-                      ),
+  String get _location {
+    if (daig != null) {
+      return daig!.location.isNotEmpty ? daig!.location : 'Lahore';
+    }
+    return item?.locationAddress.isNotEmpty == true ? item!.locationAddress : 'FoodCourt Central Kitchen';
+  }
 
-                      const SizedBox(height: 10),
+  String get _priceDisplay {
+    if (daig != null) {
+      return 'From Rs. ${daig!.halfDaigPrice.toInt()}';
+    }
+    return 'Rs. ${item!.effectivePrice.toInt()}';
+  }
 
-                      // Address / Route Card
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFAF5FF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFE9D5FF)),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.alt_route_rounded, color: Color(0xFF7E22CE), size: 18),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'PREPARATION & DISPATCH LOCATION',
-                                    style: TextStyle(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF7E22CE),
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  Text(
-                                    item.locationAddress,
-                                    style: const TextStyle(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+  String get _cutPriceDisplay {
+    if (daig != null) {
+      if (daig!.cutPrice > daig!.fullDaigPrice) {
+        return 'Rs. ${daig!.cutPrice.toInt()}';
+      }
+      return '';
+    }
+    if (item != null && item!.cutPrice > item!.effectivePrice) {
+      return 'Rs. ${item!.cutPrice.toInt()}';
+    }
+    return '';
+  }
 
-                      // Collapsible Vendor Promo Offer Strip
-                      if (vendorOffer != null) ...[
-                        const SizedBox(height: 10),
-                        InkWell(
-                          onTap: () {
-                            setModalState(() {
-                              isOfferExpanded = !isOfferExpanded;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: isOfferExpanded
-                                    ? [const Color(0xFFEA580C), const Color(0xFFC2410C)]
-                                    : [const Color(0xFFFFF7ED), const Color(0xFFFED7AA)],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isOfferExpanded ? const Color(0xFFEA580C) : const Color(0xFFFDBA74),
-                              ),
-                              boxShadow: isOfferExpanded
-                                  ? [
-                                      BoxShadow(
-                                        color: const Color(0xFFEA580C).withAlpha(60),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: isOfferExpanded ? Colors.white : const Color(0xFFEA580C),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        '${vendorOffer['discountPercent'] ?? 20}% OFF',
-                                        style: TextStyle(
-                                          color: isOfferExpanded ? const Color(0xFFEA580C) : Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        vendorOffer['title'] ?? 'Special Outlet Deal',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w800,
-                                          color: isOfferExpanded ? Colors.white : const Color(0xFF9A3412),
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Icon(
-                                      isOfferExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                                      color: isOfferExpanded ? Colors.white : const Color(0xFF9A3412),
-                                      size: 18,
-                                    ),
-                                  ],
-                                ),
-                                if (isOfferExpanded) ...[
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    vendorOffer['dishesText'] ?? 'Special discount available on this kitchen outlet.',
-                                    style: const TextStyle(
-                                      fontSize: 11.5,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                      height: 1.3,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withAlpha(40),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          'TAG: ${vendorOffer['tagText'] ?? 'SPECIAL OFFER'}',
-                                          style: const TextStyle(
-                                            color: Colors.amberAccent,
-                                            fontSize: 9.5,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ),
-                                      const Text(
-                                        'Tap to collapse ▲',
-                                        style: TextStyle(color: Colors.white70, fontSize: 10),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+  void _handleOrder(BuildContext context) {
+    if (!_isAvailable) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Maafi chahte hain! "$_title" filhal Out of Stock hai 🔴'),
+          backgroundColor: Colors.red.shade800,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-                      const SizedBox(height: 14),
+    if (onOrderNow != null) {
+      onOrderNow!();
+      return;
+    }
 
-                      // Large Hero Image
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: CustomImage(
-                          imageUrl: item.imageUrl,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Rating & Most Ordered Badge
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFFBEB),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFFDE68A)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.star_rounded, size: 16, color: Color(0xFFD97706)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${item.rating} • ${item.badge}',
-                                  style: const TextStyle(
-                                    color: Color(0xFF92400E),
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              item.category,
-                              style: TextStyle(
-                                color: Colors.grey.shade800,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Description (2-4 lines)
-                      const Text(
-                        'Recipe & Preparation Details:',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.description,
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          color: AppTheme.textSecondary,
-                          height: 1.45,
-                        ),
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      // Portion / Variant Badges
-                      const Text(
-                        'Portion & Options:',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: item.badges.map((b) {
-                          final isSelected = selectedBadge == b;
-                          return InkWell(
-                            onTap: () => setModalState(() => selectedBadge = b),
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFF2E1065) : Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isSelected ? const Color(0xFF2E1065) : AppTheme.border,
-                                ),
-                              ),
-                              child: Text(
-                                b,
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                  color: isSelected ? Colors.white : AppTheme.textPrimary,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Special Instructions Note
-                      TextField(
-                        controller: notesController,
-                        maxLines: 2,
-                        decoration: InputDecoration(
-                          hintText: 'Special instructions: e.g. Extra spicy, mild raita, cutlery required...',
-                          hintStyle: const TextStyle(fontSize: 12, color: Colors.grey),
-                          filled: true,
-                          fillColor: const Color(0xFFF9FAFB),
-                          contentPadding: const EdgeInsets.all(12),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: AppTheme.border),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      // Quantity & Add to Cart Action
-                      Row(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppTheme.border),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.remove, size: 16),
-                                  onPressed: quantity > 1 ? () => setModalState(() => quantity--) : null,
-                                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                                  padding: EdgeInsets.zero,
-                                ),
-                                Text(
-                                  '$quantity',
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.add, size: 16),
-                                  onPressed: () => setModalState(() => quantity++),
-                                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                                  padding: EdgeInsets.zero,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: SizedBox(
-                              height: 48,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  if (!item.isAvailable) {
-                                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Maafi chahte hain! "${item.name}" filhal Out of Stock hai 🔴'),
-                                        backgroundColor: Colors.red.shade800,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  for (int i = 0; i < quantity; i++) {
-                                    cartState.addItem(item, item.restaurantId, restaurantName);
-                                  }
-                                  if (notesController.text.trim().isNotEmpty) {
-                                    cartState.setSpecialInstructions(notesController.text.trim());
-                                  }
-                                  Navigator.pop(ctx);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Added $quantity x ${item.name} to Cart!'),
-                                      backgroundColor: AppTheme.primary,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.flash_on_rounded, size: 18),
-                                label: Text(
-                                  'Order Now • Rs. ${totalPrice.toInt()}',
-                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primary,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+    if (daig != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => FoodDetailScreen(
+            daigItem: daig,
+            cartState: cartState,
+          ),
+        ),
+      );
+    } else if (item != null) {
+      cartState.addItem(item!, item!.restaurantId, restaurantName);
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(child: Text('Added "$_title" to Cart! 🛍️')),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E293B),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isShahi = _isDaigMode;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF230E4E),
-            Color(0xFF38106A),
-            Color(0xFF4C1D95),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        // Navy blue for restaurant, Deep orange with slight black gradient for shahi pakwan
+        gradient: isShahi
+            ? const LinearGradient(
+                colors: [
+                  Color(0xFFC2410C), // Deep Orange
+                  Color(0xFF9A3412), // Rust Orange
+                  Color(0xFF18181B), // Soft Black / Charcoal
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: [0.0, 0.45, 1.0],
+              )
+            : const LinearGradient(
+                colors: [
+                  Color(0xFF0F172A), // Slate 900
+                  Color(0xFF1E293B), // Slate 800
+                  Color(0xFF0B132B), // Deep Navy
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: [0.0, 0.55, 1.0],
+              ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: Colors.white.withAlpha(30),
-          width: 1.2,
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 1.1,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2E1065).withAlpha(80),
-            blurRadius: 14,
+            color: isShahi
+                ? const Color(0xFF7C2D12).withValues(alpha: 0.40)
+                : const Color(0xFF0F172A).withValues(alpha: 0.45),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -510,6 +167,7 @@ class ShahiDishCard extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => FoodDetailScreen(
                   foodItem: item,
+                  daigItem: daig,
                   cartState: cartState,
                 ),
               ),
@@ -521,151 +179,54 @@ class ShahiDishCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Menu Name at the Top (Subtitle removed as requested!)
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.3,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                const SizedBox(height: 6),
-
-                // 2. Address & Route Row (Where it is available from)
+                // 1. TOP: Title
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.alt_route_rounded,
-                      color: Color(0xFFFBBF24),
-                      size: 15,
-                    ),
-                    const SizedBox(width: 6),
                     Expanded(
-                      child: Text(
-                        item.locationAddress,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
-
-                // 3. Hero Thumbnail / Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      CustomImage(
-                        imageUrl: item.imageUrl,
-                        height: 150,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                      if (!item.isAvailable)
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.6),
-                              borderRadius: BorderRadius.circular(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.3,
                             ),
-                            child: Center(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade700,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.block_rounded, color: Colors.white, size: 15),
-                                    SizedBox(width: 5),
-                                    Text(
-                                      'Out of Stock',
-                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12),
-                                    ),
-                                  ],
-                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (_urduSubtitle.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              _urduSubtitle,
+                              style: TextStyle(
+                                color: isShahi ? const Color(0xFFFDE68A) : const Color(0xFF93C5FD),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                          ),
-                        ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(160),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            item.category,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // 4. Most Ordered & Star Rating
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF59E0B),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.star_rounded, size: 13, color: Colors.white),
-                          const SizedBox(width: 3),
-                          Text(
-                            '${item.rating}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
+                          ],
                         ],
                       ),
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(35),
+                        color: Colors.black.withValues(alpha: 0.35),
                         borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.local_fire_department_rounded, size: 13, color: Color(0xFFFBBF24)),
-                          const SizedBox(width: 4),
+                          const Icon(Icons.star_rounded, size: 13, color: Colors.amber),
+                          const SizedBox(width: 3),
                           Text(
-                            item.badge,
+                            '$_rating',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 11,
@@ -678,55 +239,101 @@ class ShahiDishCard extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
 
-                // 5. Description (2 to 4 lines)
+                // 2. Image
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    children: [
+                      CustomImage(
+                        imageUrl: _imageUrl,
+                        height: 155,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                      if (!_isAvailable)
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.65),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade700,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.block_rounded, color: Colors.white, size: 14),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      'Out of Stock',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 11.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // 3. Description
                 Text(
-                  item.description,
+                  _description,
                   style: TextStyle(
-                    color: Colors.white.withAlpha(220),
+                    color: Colors.white.withValues(alpha: 0.88),
                     fontSize: 12,
                     height: 1.35,
                   ),
-                  maxLines: 3,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
 
                 const SizedBox(height: 10),
 
-                // 6. List of Badges / Tags (Full daig, half daig, kg, etc.)
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: item.badges.map((b) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(25),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: Colors.white.withAlpha(40),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Text(
-                        b,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                // 4. Category Type
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.22),
+                      width: 0.9,
+                    ),
+                  ),
+                  child: Text(
+                    _category,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 12),
 
-                // 7. Price & Order Now Button Row
+                // 5. Price (Left) & Order Now Button (Right)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Price
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -735,80 +342,59 @@ class ShahiDishCard extends StatelessWidget {
                             'PRICE',
                             style: TextStyle(
                               color: Colors.white60,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
                               letterSpacing: 0.5,
                             ),
                           ),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                _priceDisplay,
+                                style: const TextStyle(
+                                  color: Color(0xFFFDE047),
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.3,
+                                ),
+                              ),
+                              if (_cutPriceDisplay.isNotEmpty) ...[
+                                const SizedBox(width: 6),
                                 Text(
-                                  item.formattedPrice,
+                                  _cutPriceDisplay,
                                   style: const TextStyle(
-                                    color: Color(0xFFFDE047),
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: -0.5,
+                                    color: Colors.white54,
+                                    fontSize: 11.5,
+                                    decoration: TextDecoration.lineThrough,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                if (item.hasDiscount && item.savingsAmount > 0) ...[
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    item.formattedOriginalPrice,
-                                    style: const TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 12,
-                                      decoration: TextDecoration.lineThrough,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
                               ],
-                            ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+
+                    // Order Now button
                     ElevatedButton.icon(
-                      onPressed: () {
-                        if (!item.isAvailable) {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Maafi chahte hain! "${item.name}" filhal Out of Stock hai 🔴'),
-                              backgroundColor: Colors.red.shade800,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                          return;
-                        }
-                        if (onOrderNow != null) {
-                          onOrderNow!();
-                        } else {
-                          cartState.addItem(item, item.restaurantId, restaurantName);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Added "${item.name}" to Cart!'),
-                              backgroundColor: AppTheme.primary,
-                              behavior: SnackBarBehavior.floating,
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        }
-                      },
-                      icon: Icon(item.isAvailable ? Icons.flash_on_rounded : Icons.block_rounded, size: 16),
-                      label: Text(item.isAvailable ? 'Order Now' : 'Out of Stock'),
+                      onPressed: () => _handleOrder(context),
+                      icon: Icon(
+                        _isAvailable ? Icons.flash_on_rounded : Icons.block_rounded,
+                        size: 15,
+                      ),
+                      label: Text(_isAvailable ? 'Order Now' : 'Out of Stock'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: item.isAvailable ? const Color(0xFFF59E0B) : const Color(0xFFDC2626),
-                        foregroundColor: item.isAvailable ? Colors.black87 : Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        backgroundColor: _isAvailable
+                            ? (isShahi ? const Color(0xFFF97316) : AppTheme.primary)
+                            : const Color(0xFFDC2626),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         textStyle: const TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w900,
@@ -818,11 +404,106 @@ class ShahiDishCard extends StatelessWidget {
                     ),
                   ],
                 ),
+
+                const SizedBox(height: 12),
+                const Divider(height: 1, thickness: 0.8, color: Colors.white24),
+                const SizedBox(height: 9),
+
+                // 6. Bottom: Shop Name: Location with white/silver shimmer effect
+                _ShimmerSilverLocationText(
+                  text: '$_shopName: $_location',
+                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+/// Small silver/white shimmer text for Shop Name: Location
+class _ShimmerSilverLocationText extends StatefulWidget {
+  final String text;
+
+  const _ShimmerSilverLocationText({required this.text});
+
+  @override
+  State<_ShimmerSilverLocationText> createState() => _ShimmerSilverLocationTextState();
+}
+
+class _ShimmerSilverLocationTextState extends State<_ShimmerSilverLocationText>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, _) {
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              colors: [
+                const Color(0xFF94A3B8), // slate grey
+                const Color(0xFFCBD5E1), // light silver
+                Colors.white,             // white shine
+                const Color(0xFFCBD5E1), // light silver
+                const Color(0xFF94A3B8), // slate grey
+              ],
+              stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
+              transform: _LocationShimmerTransform(_ctrl.value),
+            ).createShader(bounds);
+          },
+          child: Row(
+            children: [
+              const Icon(
+                Icons.location_on_rounded,
+                size: 13,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  widget.text,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _LocationShimmerTransform extends GradientTransform {
+  final double slidePercent;
+  const _LocationShimmerTransform(this.slidePercent);
+
+  @override
+  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(bounds.width * (slidePercent * 2 - 1), 0, 0);
   }
 }

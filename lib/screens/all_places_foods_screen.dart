@@ -5,9 +5,8 @@ import '../models/daig_item.dart';
 import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
-import '../widgets/custom_image.dart';
+import '../widgets/shahi_dish_card.dart';
 import 'cart_screen.dart';
-import 'food_detail_screen.dart';
 
 class AllPlacesFoodsScreen extends StatefulWidget {
   final bool isPakwan;
@@ -33,6 +32,8 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'All';
+  int _currentPage = 1;
+  final int _itemsPerPage = 10;
 
   @override
   void dispose() {
@@ -105,43 +106,80 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
     return items;
   }
 
-  void _handleQuickOrderRestaurant(FoodItem item) {
-    if (!item.isAvailable) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Maafi chahte hain! "${item.name}" filhal Out of Stock hai 🔴'),
-          backgroundColor: Colors.red.shade800,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
+  Widget _buildPaginationBar({
+    required int currentPage,
+    required int totalPages,
+    required int totalItems,
+    required ValueChanged<int> onPageChanged,
+  }) {
+    if (totalPages <= 1) return const SizedBox.shrink();
 
-    widget.cartState.addItem(item, item.restaurantId, 'FoodCourt Central Kitchen');
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 10),
-            Expanded(child: Text('Added "${item.name}" to cart! 🛍️')),
-          ],
-        ),
-        action: SnackBarAction(
-          label: 'VIEW CART',
-          textColor: Colors.amberAccent,
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => CartScreen(cartState: widget.cartState)),
-            );
-          },
-        ),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    final startItem = (currentPage - 1) * _itemsPerPage + 1;
+    final endItem = (currentPage * _itemsPerPage).clamp(1, totalItems);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Showing $startItem-$endItem of $totalItems items',
+            style: const TextStyle(
+              fontSize: 11.5,
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left_rounded),
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                color: currentPage > 1 ? AppTheme.primary : AppTheme.textLight,
+                onPressed: currentPage > 1 ? () => onPageChanged(currentPage - 1) : null,
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryLight,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$currentPage / $totalPages',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right_rounded),
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                color: currentPage < totalPages ? AppTheme.primary : AppTheme.textLight,
+                onPressed: currentPage < totalPages ? () => onPageChanged(currentPage + 1) : null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -219,7 +257,7 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
           // 1. Search Field directly under AppBar
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
             child: Container(
               decoration: BoxDecoration(
                 color: const Color(0xFFF1F5F9),
@@ -228,7 +266,12 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
               ),
               child: TextField(
                 controller: _searchController,
-                onChanged: (val) => setState(() => _searchQuery = val),
+                onChanged: (val) {
+                  setState(() {
+                    _searchQuery = val;
+                    _currentPage = 1;
+                  });
+                },
                 style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
                 decoration: InputDecoration(
                   hintText: widget.isPakwan
@@ -241,7 +284,10 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
                           icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF64748B)),
                           onPressed: () {
                             _searchController.clear();
-                            setState(() => _searchQuery = '');
+                            setState(() {
+                              _searchQuery = '';
+                              _currentPage = 1;
+                            });
                           },
                         )
                       : null,
@@ -261,7 +307,7 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
 
           const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
 
-          // 3. Food Items List
+          // 3. Food Items List with Top & Bottom Pagination
           Expanded(
             child: widget.isPakwan ? _buildPakwanList() : _buildRestaurantList(),
           ),
@@ -276,7 +322,7 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
 
     if (liveCats.isNotEmpty) {
       effectiveCats = liveCats.where((c) {
-        final t = (c['type'] ?? 'restaurant').toString();
+        final t = (c['type'] ?? 'restaurant').toString().toLowerCase().trim();
         if (widget.isPakwan) {
           return t == 'pakwan' || t == 'both';
         } else {
@@ -285,7 +331,7 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
       }).map((c) => Map<String, dynamic>.from(c)).toList();
     }
 
-    if (effectiveCats.isEmpty) {
+    if (effectiveCats.isEmpty || (widget.isPakwan && effectiveCats.length <= 1)) {
       if (widget.isPakwan) {
         effectiveCats = [
           {'name': 'All', 'icon': '🍽️'},
@@ -293,23 +339,24 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
           {'name': 'Qorma & Karahi', 'icon': '🥘'},
           {'name': 'Haleem & Nihari', 'icon': '🥣'},
           {'name': 'Sweet & Desserts', 'icon': '🍨'},
+          {'name': 'Shahi Daig Catering', 'icon': '👑'},
         ];
       } else {
         effectiveCats = [
           {'name': 'All', 'icon': '🍽️'},
           {'name': 'Biryani', 'icon': '🍚'},
+          {'name': 'Pulao', 'icon': '🍲'},
           {'name': 'Karahi & Handi', 'icon': '🥘'},
           {'name': 'BBQ & Grills', 'icon': '🍢'},
           {'name': 'Fast Food', 'icon': '🍔'},
-          {'name': 'Chinese & Soups', 'icon': '🍜'},
-          {'name': 'Desserts', 'icon': '🍰'},
+          {'name': 'Zarda & Meetha', 'icon': '🍮'},
         ];
       }
-    } else {
-      final hasAll = effectiveCats.any((c) => (c['name'] ?? '').toString().toLowerCase() == 'all');
-      if (!hasAll) {
-        effectiveCats.insert(0, {'name': 'All', 'icon': '🍽️'});
-      }
+    }
+
+    final hasAll = effectiveCats.any((c) => (c['name'] ?? '').toString().toLowerCase() == 'all');
+    if (!hasAll) {
+      effectiveCats.insert(0, {'name': 'All', 'icon': '🍽️'});
     }
 
     return SizedBox(
@@ -329,6 +376,7 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
             onTap: () {
               setState(() {
                 _selectedCategory = name;
+                _currentPage = 1;
               });
             },
             borderRadius: BorderRadius.circular(6),
@@ -403,6 +451,7 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
                     setState(() {
                       _searchQuery = '';
                       _selectedCategory = 'All';
+                      _currentPage = 1;
                       _searchController.clear();
                     });
                   },
@@ -414,170 +463,41 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return _buildRestaurantFoodTile(item);
-      },
-    );
-  }
+    final totalItems = items.length;
+    final totalPages = (totalItems / _itemsPerPage).ceil().clamp(1, 999);
+    final currentPage = _currentPage.clamp(1, totalPages);
+    final pageItems = items.skip((currentPage - 1) * _itemsPerPage).take(_itemsPerPage).toList();
 
-  Widget _buildRestaurantFoodTile(FoodItem item) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => FoodDetailScreen(
-                  foodItem: item,
-                  cartState: widget.cartState,
-                ),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Leading Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Stack(
-                    children: [
-                      CustomImage(
-                        imageUrl: item.imageUrl,
-                        width: 76,
-                        height: 76,
-                        fit: BoxFit.cover,
-                      ),
-                      if (!item.isAvailable)
-                        Container(
-                          width: 76,
-                          height: 76,
-                          color: Colors.black.withValues(alpha: 0.6),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'OUT OF\nSTOCK',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      children: [
+        // Top Pagination Bar
+        _buildPaginationBar(
+          currentPage: currentPage,
+          totalPages: totalPages,
+          totalItems: totalItems,
+          onPageChanged: (p) => setState(() => _currentPage = p),
+        ),
 
-                // 2. Middle Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.name,
-                        style: const TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        item.description,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Text(
-                            'Rs. ${item.effectivePrice.toInt()}',
-                            style: const TextStyle(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w900,
-                              color: AppTheme.primary,
-                            ),
-                          ),
-                          if (item.cutPrice > item.effectivePrice) ...[
-                            const SizedBox(width: 6),
-                            Text(
-                              'Rs. ${item.cutPrice.toInt()}',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                decoration: TextDecoration.lineThrough,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                          ],
-                          const Spacer(),
-                          // 3. Trailing Order Now text button
-                          TextButton(
-                            onPressed: () => _handleQuickOrderRestaurant(item),
-                            style: TextButton.styleFrom(
-                              backgroundColor: AppTheme.primary.withValues(alpha: 0.08),
-                              foregroundColor: AppTheme.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
-                              ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Order Now',
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                SizedBox(width: 3),
-                                Icon(Icons.add_rounded, size: 14),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+        const SizedBox(height: 6),
+
+        // Food Items Cards (Navy Blue luxury gradient)
+        ...pageItems.map(
+          (dish) => ShahiDishCard(
+            item: dish,
+            cartState: widget.cartState,
+            isPakwan: false,
           ),
         ),
-      ),
+
+        // Bottom Pagination Bar
+        _buildPaginationBar(
+          currentPage: currentPage,
+          totalPages: totalPages,
+          totalItems: totalItems,
+          onPageChanged: (p) => setState(() => _currentPage = p),
+        ),
+      ],
     );
   }
 
@@ -610,6 +530,7 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
                     setState(() {
                       _searchQuery = '';
                       _selectedCategory = 'All';
+                      _currentPage = 1;
                       _searchController.clear();
                     });
                   },
@@ -621,185 +542,41 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return _buildPakwanFoodTile(item);
-      },
-    );
-  }
+    final totalItems = items.length;
+    final totalPages = (totalItems / _itemsPerPage).ceil().clamp(1, 999);
+    final currentPage = _currentPage.clamp(1, totalPages);
+    final pageItems = items.skip((currentPage - 1) * _itemsPerPage).take(_itemsPerPage).toList();
 
-  Widget _buildPakwanFoodTile(DaigItem item) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => FoodDetailScreen(
-                  daigItem: item,
-                  cartState: widget.cartState,
-                ),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Leading Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Stack(
-                    children: [
-                      CustomImage(
-                        imageUrl: item.imageUrl,
-                        width: 76,
-                        height: 76,
-                        fit: BoxFit.cover,
-                      ),
-                      if (!item.isAvailable)
-                        Container(
-                          width: 76,
-                          height: 76,
-                          color: Colors.black.withValues(alpha: 0.6),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'OUT OF\nSTOCK',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      children: [
+        // Top Pagination Bar
+        _buildPaginationBar(
+          currentPage: currentPage,
+          totalPages: totalPages,
+          totalItems: totalItems,
+          onPageChanged: (p) => setState(() => _currentPage = p),
+        ),
 
-                // 2. Middle Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.name,
-                              style: const TextStyle(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textPrimary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (item.urduName.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          item.urduName,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFFB45309),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 3),
-                      Text(
-                        item.description,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Text(
-                            'From Rs. ${item.halfDaigPrice.toInt()}',
-                            style: const TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w900,
-                              color: AppTheme.primary,
-                            ),
-                          ),
-                          const Spacer(),
-                          // 3. Trailing Order Now text button
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => FoodDetailScreen(
-                                    daigItem: item,
-                                    cartState: widget.cartState,
-                                  ),
-                                ),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              backgroundColor: AppTheme.primary.withValues(alpha: 0.08),
-                              foregroundColor: AppTheme.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(color: AppTheme.primary.withValues(alpha: 0.2)),
-                              ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Order Now',
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                SizedBox(width: 3),
-                                Icon(Icons.add_rounded, size: 14),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+        const SizedBox(height: 6),
+
+        // Shahi Daig Cards (Deep Orange with subtle black gradient)
+        ...pageItems.map(
+          (daig) => ShahiDishCard(
+            daig: daig,
+            cartState: widget.cartState,
+            isPakwan: true,
           ),
         ),
-      ),
+
+        // Bottom Pagination Bar
+        _buildPaginationBar(
+          currentPage: currentPage,
+          totalPages: totalPages,
+          totalItems: totalItems,
+          onPageChanged: (p) => setState(() => _currentPage = p),
+        ),
+      ],
     );
   }
 }
