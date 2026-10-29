@@ -107,15 +107,8 @@ class CartState extends ChangeNotifier {
     if (index >= 0) {
       if (_items[index].quantity > 1) {
         _items[index].quantity -= 1;
-      } else {
-        _items.removeAt(index);
+        notifyListeners();
       }
-      if (_items.isEmpty) {
-        _restaurantId = null;
-        _restaurantName = null;
-        _subAdminId = null;
-      }
-      notifyListeners();
     }
   }
 

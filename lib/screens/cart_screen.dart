@@ -933,11 +933,17 @@ class _CartScreenState extends State<CartScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   InkWell(
-                                    onTap: () => widget.cartState.decrement(cartItem.foodItem.id),
+                                    onTap: cartItem.quantity > 1
+                                        ? () => widget.cartState.decrement(cartItem.foodItem.id)
+                                        : null,
                                     borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
-                                    child: const Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                      child: Icon(Icons.remove, size: 16, color: AppTheme.textPrimary),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                      child: Icon(
+                                        Icons.remove,
+                                        size: 16,
+                                        color: cartItem.quantity > 1 ? AppTheme.textPrimary : Colors.grey.shade400,
+                                      ),
                                     ),
                                   ),
                                   Padding(
