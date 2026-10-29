@@ -1032,11 +1032,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_homeSearchQuery.trim().isNotEmpty) ...[
             _buildSearchResultsSection(),
           ] else ...[
-            // 3. TWO PRIMARY MAIN FEATURE CARDS (Restaurants & Pakwan Centers)
-            _buildMainFeatureSelectionCards(),
-
-            const SizedBox(height: 16),
-
+            // 1. PromoBanner / Carousel FIRST at the top
             if (appContent['showPromoBanner'] != false) ...[
               PromoBanner(
                 selectedVendorId: _selectedVendorId,
@@ -1046,93 +1042,104 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
             ],
 
-            // 4. Cuisines for you (Horizontal Carousel)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  appContent['cuisinesSectionTitle'] ?? 'Cuisines for you',
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                if (_selectedCategory != 'All')
-                  InkWell(
-                    onTap: () => setState(() => _selectedCategory = 'All'),
-                    child: const Text(
-                      'Reset',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primary,
-                      ),
+            // 2. Cupertino iOS Tab Bar (Restaurant vs Shahi Pakwan)
+            _buildCupertinoCategoryTabBar(),
+
+            const SizedBox(height: 18),
+
+            // 3. Conditional Content based on Selected Tab
+            if (_activeListingTab == 'restaurant') ...[
+              // Cuisines for you (Horizontal Carousel)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    appContent['cuisinesSectionTitle'] ?? 'Cuisines for you',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 42,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: SampleData.categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final cat = SampleData.categories[index];
-                  final name = cat['name'] as String;
-                  final icon = cat['icon'] as String;
-                  return CategoryChip(
-                    label: name,
-                    icon: icon,
-                    isSelected: _selectedCategory == name,
-                    onTap: () {
-                      setState(() {
-                        _selectedCategory = name;
-                      });
-                    },
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // 5. Quick Filter Pills (Horizontal)
-            SizedBox(
-              height: 28,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _buildQuickFilterPill('All'),
-                  const SizedBox(width: 6),
-                  _buildQuickFilterPill('Top Rated', icon: Icons.star_rounded),
-                  const SizedBox(width: 6),
-                  _buildQuickFilterPill('Fast Delivery', icon: Icons.electric_bolt_rounded),
-                  const SizedBox(width: 6),
-                  _buildQuickFilterPill('Free Delivery', icon: Icons.delivery_dining_rounded),
+                  if (_selectedCategory != 'All')
+                    InkWell(
+                      onTap: () => setState(() => _selectedCategory = 'All'),
+                      child: const Text(
+                        'Reset',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
                 ],
               ),
-            ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 42,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: SampleData.categories.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final cat = SampleData.categories[index];
+                    final name = cat['name'] as String;
+                    final icon = cat['icon'] as String;
+                    return CategoryChip(
+                      label: name,
+                      icon: icon,
+                      isSelected: _selectedCategory == name,
+                      onTap: () {
+                        setState(() {
+                          _selectedCategory = name;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-            // 6. Shahi Daig Catering Spotlight (Pakwan Center)
-            _buildDaigSpotlightCard(),
+              // Quick Filter Pills (Horizontal)
+              SizedBox(
+                height: 28,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _buildQuickFilterPill('All'),
+                    const SizedBox(width: 6),
+                    _buildQuickFilterPill('Top Rated', icon: Icons.star_rounded),
+                    const SizedBox(width: 6),
+                    _buildQuickFilterPill('Fast Delivery', icon: Icons.electric_bolt_rounded),
+                    const SizedBox(width: 6),
+                    _buildQuickFilterPill('Free Delivery', icon: Icons.delivery_dining_rounded),
+                  ],
+                ),
+              ),
 
-            const SizedBox(height: 22),
+              const SizedBox(height: 20),
 
-            // 7. Top Restaurants Section
-            _buildRestaurantsSection(),
+              // Top Restaurants Section
+              _buildRestaurantsSection(),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // 8. Category Menu Dishes (Shahi Daig Design)
-            _buildCategoryDishesSection(),
+              // Category Menu Dishes
+              _buildCategoryDishesSection(),
+            ] else ...[
+              // Shahi Daig Catering Spotlight (Pakwan Center)
+              _buildDaigSpotlightCard(),
+
+              const SizedBox(height: 22),
+
+              // Shahi Daigs & Pakwan Dishes Section
+              _buildCategoryDishesSection(),
+            ],
 
             const SizedBox(height: 20),
           ],
@@ -1429,118 +1436,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildListingTabSwitcher() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceMuted,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Row(
-        children: [
-          // 1. Restaurant Tab
-          Expanded(
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _activeListingTab = 'restaurant';
-                  _restaurantPage = 1;
-                });
-              },
-              borderRadius: BorderRadius.circular(10),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 9),
-                decoration: BoxDecoration(
-                  color: _activeListingTab == 'restaurant' ? AppTheme.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: _activeListingTab == 'restaurant'
-                      ? [
-                          BoxShadow(
-                            color: AppTheme.primary.withAlpha(70),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.restaurant_rounded,
-                      size: 16,
-                      color: _activeListingTab == 'restaurant' ? Colors.white : AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Restaurants (ریسٹورنٹ)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: _activeListingTab == 'restaurant' ? Colors.white : AppTheme.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 4),
-
-          // 2. Pakwan & Deg Tab
-          Expanded(
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  _activeListingTab = 'pakwan';
-                  _pakwanPage = 1;
-                });
-              },
-              borderRadius: BorderRadius.circular(10),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 9),
-                decoration: BoxDecoration(
-                  color: _activeListingTab == 'pakwan' ? const Color(0xFFD97706) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: _activeListingTab == 'pakwan'
-                      ? [
-                          BoxShadow(
-                            color: const Color(0xFFD97706).withAlpha(70),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.soup_kitchen_rounded,
-                      size: 16,
-                      color: _activeListingTab == 'pakwan' ? Colors.white : AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Shahi Pakwan (شاہی پکوان)',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: _activeListingTab == 'pakwan' ? Colors.white : AppTheme.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   Widget _buildPaginationBar({
@@ -1915,283 +1811,306 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ===========================================================================
-  // 2 MAIN FEATURE SELECTION CARDS (RESTAURANTS & PAKWAN CENTERS)
+  // CUPERTINO iOS SEGMENTED TAB BAR (RESTAURANT & SHAHI PAKWAN)
   // ===========================================================================
-  Widget _buildMainFeatureSelectionCards() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isDesktop = constraints.maxWidth > 650;
-        final cardHeight = isDesktop ? 165.0 : 152.0;
+  Widget _buildCupertinoCategoryTabBar() {
+    final isRestaurant = _activeListingTab == 'restaurant';
+    final isPakwan = _activeListingTab == 'pakwan';
 
-        return Row(
-          children: [
-            // 1. RESTAURANTS CARD
-            Expanded(
-              child: _buildFeatureCard(
-                title: 'Restaurants',
-                subtitle: 'Fast Food • Pizza • Burgers',
-                badgeText: 'RESTAURANTS',
-                badgeIcon: Icons.local_fire_department_rounded,
-                accentColor: const Color(0xFFFF4B3A),
-                glowColor: const Color(0xFFFF4B3A),
-                borderColor: const Color(0xFFFF4B3A).withAlpha(120),
-                icon: Icons.storefront_rounded,
-                imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80',
-                buttonText: 'Order Food',
-                height: cardHeight,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => RestaurantsScreen(cartState: widget.cartState),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // 2. PAKWAN CENTERS CARD
-            Expanded(
-              child: _buildFeatureCard(
-                title: 'Pakwan Centers',
-                subtitle: 'Shahi Degs • Catering',
-                badgeText: 'PAKWAN & DEGS',
-                badgeIcon: Icons.workspace_premium_rounded,
-                accentColor: const Color(0xFFD97706),
-                glowColor: const Color(0xFFF59E0B),
-                borderColor: const Color(0xFFF59E0B).withAlpha(140),
-                icon: Icons.soup_kitchen_rounded,
-                imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&q=80',
-                buttonText: 'Book Daig',
-                height: cardHeight,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => PakwanCentersScreen(cartState: widget.cartState),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildFeatureCard({
-    required String title,
-    required String subtitle,
-    required String badgeText,
-    required IconData badgeIcon,
-    required Color accentColor,
-    required Color glowColor,
-    required Color borderColor,
-    required IconData icon,
-    required String imageUrl,
-    required String buttonText,
-    required double height,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        height: height,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: glowColor.withAlpha(50),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-            BoxShadow(
-              color: Colors.black.withAlpha(15),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18.5),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // Background appetizing image (clearly visible)
-              CustomImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                fallbackIcon: icon,
-              ),
-
-              // Multi-stop clean gradient: clear on top for delicious imagery, dark at bottom for contrast
-              Container(
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9), // Cupertino soft background container
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(8),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(5),
+      child: Row(
+        children: [
+          // 1. RESTAURANT TAB BUTTON
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (_activeListingTab != 'restaurant') {
+                  setState(() {
+                    _activeListingTab = 'restaurant';
+                    _restaurantPage = 1;
+                  });
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                height: 62,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.black.withAlpha(20),
-                      Colors.black.withAlpha(60),
-                      Colors.black.withAlpha(195),
-                      Colors.black.withAlpha(235),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isRestaurant ? AppTheme.primary : Colors.transparent,
+                    width: isRestaurant ? 2.5 : 0,
+                  ),
+                  boxShadow: isRestaurant
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.primary.withAlpha(90),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(isRestaurant ? 11.5 : 14),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Restaurant Photography Background Image
+                      CustomImage(
+                        imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80',
+                        fit: BoxFit.cover,
+                      ),
+                      // Gradient Overlay (Rich tone when selected, dimmed when inactive)
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: isRestaurant
+                                ? [
+                                    Colors.black.withAlpha(80),
+                                    const Color(0xFFC2410C).withAlpha(205),
+                                  ]
+                                : [
+                                    Colors.black.withAlpha(160),
+                                    Colors.black.withAlpha(220),
+                                  ],
+                          ),
+                        ),
+                      ),
+                      // Text & Icon Content
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: isRestaurant
+                                    ? Colors.white.withAlpha(50)
+                                    : Colors.white.withAlpha(25),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.restaurant_rounded,
+                                size: 16,
+                                color: isRestaurant ? Colors.white : Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Restaurant',
+                                style: TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: isRestaurant ? FontWeight.w900 : FontWeight.w700,
+                                  color: isRestaurant ? Colors.white : Colors.white70,
+                                  letterSpacing: 0.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Cupertino Active Selection Badge
+                      if (isRestaurant)
+                        Positioned(
+                          top: 5,
+                          right: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(40),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.check_circle_rounded, size: 10, color: Color(0xFFEA580C)),
+                                SizedBox(width: 3),
+                                Text(
+                                  'SELECTED',
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFFEA580C),
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
-                    stops: const [0.0, 0.40, 0.72, 1.0],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
                   ),
                 ),
               ),
+            ),
+          ),
 
-              // Content overlay
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Top Row: White Frosted Circle Icon + Glowing Badge
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6.5),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(45),
-                                blurRadius: 6,
-                              ),
-                            ],
+          const SizedBox(width: 6),
+
+          // 2. SHAHI PAKWAN TAB BUTTON
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (_activeListingTab != 'pakwan') {
+                  setState(() {
+                    _activeListingTab = 'pakwan';
+                    _pakwanPage = 1;
+                  });
+                }
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                height: 62,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isPakwan ? const Color(0xFFD97706) : Colors.transparent,
+                    width: isPakwan ? 2.5 : 0,
+                  ),
+                  boxShadow: isPakwan
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFFD97706).withAlpha(90),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
                           ),
-                          child: Icon(icon, color: accentColor, size: 17),
+                        ]
+                      : null,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(isPakwan ? 11.5 : 14),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Shahi Daig Background Photography
+                      CustomImage(
+                        imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&q=80',
+                        fit: BoxFit.cover,
+                      ),
+                      // Gradient Overlay (Rich Amber when selected, dimmed when inactive)
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: isPakwan
+                                ? [
+                                    Colors.black.withAlpha(80),
+                                    const Color(0xFFB45309).withAlpha(205),
+                                  ]
+                                : [
+                                    Colors.black.withAlpha(160),
+                                    Colors.black.withAlpha(220),
+                                  ],
+                          ),
                         ),
-                        const SizedBox(width: 4),
-                        Flexible(
+                      ),
+                      // Text & Icon Content
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: isPakwan
+                                    ? Colors.white.withAlpha(50)
+                                    : Colors.white.withAlpha(25),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.outdoor_grill_rounded,
+                                size: 16,
+                                color: isPakwan ? Colors.white : Colors.white70,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Shahi Pakwan',
+                                style: TextStyle(
+                                  fontSize: 14.5,
+                                  fontWeight: isPakwan ? FontWeight.w900 : FontWeight.w700,
+                                  color: isPakwan ? Colors.white : Colors.white70,
+                                  letterSpacing: 0.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Cupertino Active Selection Badge
+                      if (isPakwan)
+                        Positioned(
+                          top: 5,
+                          right: 6,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: accentColor,
-                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
-                                  color: accentColor.withAlpha(110),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
+                                  color: Colors.black.withAlpha(40),
+                                  blurRadius: 4,
                                 ),
                               ],
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(badgeIcon, color: Colors.white, size: 10),
-                                const SizedBox(width: 3),
-                                Flexible(
-                                  child: Text(
-                                    badgeText,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 8.5,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.5,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                Icon(Icons.check_circle_rounded, size: 10, color: Color(0xFFD97706)),
+                                SizedBox(width: 3),
+                                Text(
+                                  'SELECTED',
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFFD97706),
+                                    letterSpacing: 0.4,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
-
-                    // Bottom info: Title, Subtitle, CTA Button
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.3,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black87,
-                                blurRadius: 6,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white.withAlpha(230),
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w600,
-                            shadows: const [
-                              Shadow(
-                                color: Colors.black87,
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: accentColor,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: accentColor.withAlpha(90),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  buttonText,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.2,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.arrow_forward_rounded,
-                                color: Colors.white,
-                                size: 11,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -2263,25 +2182,49 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              if (allDaigs.length > 2)
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _showAllDaigs = !_showAllDaigs;
-                    });
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.18),
-                    foregroundColor: const Color(0xFFFBBF24),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: Size.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => PakwanCentersScreen(cartState: widget.cartState),
+                        ),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.18),
+                      foregroundColor: const Color(0xFFFBBF24),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: Size.zero,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Centers ›', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold)),
                   ),
-                  child: Text(
-                    _showAllDaigs ? 'Show Less' : 'View All (${allDaigs.length})',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                  ),
-                ),
+                  if (allDaigs.length > 2) ...[
+                    const SizedBox(width: 4),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _showAllDaigs = !_showAllDaigs;
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.18),
+                        foregroundColor: const Color(0xFFFBBF24),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: Size.zero,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: Text(
+                        _showAllDaigs ? 'Less' : 'All (${allDaigs.length})',
+                        style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -2336,6 +2279,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => RestaurantsScreen(cartState: widget.cartState),
+                  ),
+                );
+              },
+              child: const Text('View All ›', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
             ),
           ],
         ),
