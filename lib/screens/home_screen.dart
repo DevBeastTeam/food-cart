@@ -1783,16 +1783,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               },
               selectedGradientColors: [
-                Colors.black.withValues(alpha: 0.30),
-                const Color(0xFF1E3A8A).withValues(alpha: 0.90), // Rich Navy Blue
-                const Color(0xFF1E40AF).withValues(alpha: 0.92), // Deep Royal Blue
+                const Color(0xFF230E4E).withValues(alpha: 0.88), // Royal Deep Blue / Navy / Deep Purple
+                const Color(0xFF38106A).withValues(alpha: 0.92), // Rich Midnight Navy
+                const Color(0xFF4C1D95).withValues(alpha: 0.95), // Vibrant Royal Indigo Blue
               ],
               borderGradientColors: const [
-                Color(0xFF2563EB), // Vibrant Blue
-                Color(0xFF0F172A), // Dark Navy
-                Color(0xFF3B82F6), // Bright Blue
-                Color(0xFF1E3A8A), // Deep Navy
-                Color(0xFF2563EB), // Vibrant Blue
+                Color(0xFF7C3AED), // vibrant violet-blue
+                Color(0xFF230E4E), // deep royal indigo
+                Color(0xFF8B5CF6), // bright violet
+                Color(0xFF38106A), // rich midnight
+                Color(0xFF7C3AED), // vibrant violet-blue
               ],
             ),
           ),
@@ -2093,7 +2093,7 @@ class _CupertinoAnimatedTabButtonState extends State<CupertinoAnimatedTabButton>
               boxShadow: widget.isSelected
                   ? [
                       BoxShadow(
-                        color: widget.selectedGradientColors.first.withValues(alpha: 0.4),
+                        color: widget.selectedGradientColors.last.withValues(alpha: 0.40),
                         blurRadius: 10,
                         offset: const Offset(0, 3),
                       ),
