@@ -14,6 +14,7 @@ import '../widgets/promo_banner.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/shahi_dish_card.dart';
 import 'admin_dashboard_screen.dart';
+import 'all_places_foods_screen.dart';
 import 'auth_screen.dart';
 import 'cart_screen.dart';
 import 'orders_screen.dart';
@@ -1063,30 +1064,63 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // 3. Conditional Content based on Selected Tab
             if (_activeListingTab == 'restaurant') ...[
-              // Cuisines for you
+              // Restaurant Items Header with dynamic title and View All
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    appContent['cuisinesSectionTitle'] ?? 'Cuisines for you',
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
+                  Expanded(
+                    child: Text(
+                      _selectedVendorId != 'all' && _selectedVendorName.isNotEmpty
+                          ? '$_selectedVendorName Food Items'
+                          : 'All Places Food Items',
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (_selectedCategory != 'All')
-                    InkWell(
-                      onTap: () => setState(() => _selectedCategory = 'All'),
-                      child: const Text(
-                        'Reset',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primary,
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AllPlacesFoodsScreen(
+                            isPakwan: false,
+                            cartState: widget.cartState,
+                            selectedVendorId: _selectedVendorId,
+                            selectedVendorName: _selectedVendorName,
+                            selectedVendorLocation: _selectedVendorLocation,
+                          ),
                         ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'View All',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                          SizedBox(width: 3),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 11,
+                            color: AppTheme.primary,
+                          ),
+                        ],
                       ),
                     ),
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -1109,30 +1143,63 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 18),
 
-              // Pakwan Categories
+              // Pakwan Items Header with dynamic title and View All
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Pakwan Categories',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
+                  Expanded(
+                    child: Text(
+                      _selectedVendorId != 'all' && _selectedVendorName.isNotEmpty
+                          ? '$_selectedVendorName Food Items'
+                          : 'All Places Food Items',
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (_selectedCategory != 'All')
-                    InkWell(
-                      onTap: () => setState(() => _selectedCategory = 'All'),
-                      child: const Text(
-                        'Reset',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primary,
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AllPlacesFoodsScreen(
+                            isPakwan: true,
+                            cartState: widget.cartState,
+                            selectedVendorId: _selectedVendorId,
+                            selectedVendorName: _selectedVendorName,
+                            selectedVendorLocation: _selectedVendorLocation,
+                          ),
                         ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'View All',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                          SizedBox(width: 3),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 11,
+                            color: AppTheme.primary,
+                          ),
+                        ],
                       ),
                     ),
+                  ),
                 ],
               ),
               const SizedBox(height: 10),

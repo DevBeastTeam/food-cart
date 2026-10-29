@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/daig_item.dart';
+import '../screens/food_detail_screen.dart';
 import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
@@ -720,9 +721,24 @@ class _DaigCardState extends State<DaigCard> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => FoodDetailScreen(
+                  daigItem: widget.daig,
+                  cartState: widget.cartState,
+                ),
+              ),
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // Image with Badges
           Stack(
             children: [
@@ -1003,6 +1019,8 @@ class _DaigCardState extends State<DaigCard> {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

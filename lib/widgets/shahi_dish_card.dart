@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/food_item.dart';
+import '../screens/food_detail_screen.dart';
 import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
@@ -19,7 +20,7 @@ class ShahiDishCard extends StatelessWidget {
     this.onOrderNow,
   });
 
-  void _openDetailModal(BuildContext context) {
+  void openDetailModal(BuildContext context) {
     int quantity = 1;
     String selectedBadge = item.badges.isNotEmpty ? item.badges.first : 'Standard Portion';
     final notesController = TextEditingController();
@@ -504,7 +505,16 @@ class ShahiDishCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _openDetailModal(context),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => FoodDetailScreen(
+                  foodItem: item,
+                  cartState: cartState,
+                ),
+              ),
+            );
+          },
           borderRadius: BorderRadius.circular(18),
           child: Padding(
             padding: const EdgeInsets.all(14),
