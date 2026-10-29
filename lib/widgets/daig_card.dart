@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/daig_item.dart';
 import '../screens/food_detail_screen.dart';
+import '../screens/cart_screen.dart';
 import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
@@ -597,16 +598,17 @@ class _DaigCardState extends State<DaigCard> {
                               );
                             }
                             Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Added $degQuantity x ${foodItem.name} to Cart!',
-                                  style: const TextStyle(fontWeight: FontWeight.w700),
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                                backgroundColor: const Color(0xFF4C1D95),
-                                duration: const Duration(seconds: 3),
-                              ),
+                            AppTheme.showAddToCartToast(
+                              context,
+                              itemName: foodItem.name,
+                              quantity: degQuantity,
+                              onViewCart: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => CartScreen(cartState: widget.cartState),
+                                  ),
+                                );
+                              },
                             );
                           },
                           style: ElevatedButton.styleFrom(

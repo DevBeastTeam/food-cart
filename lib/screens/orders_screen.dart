@@ -427,12 +427,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         children: [
                           const Icon(Icons.schedule_rounded, size: 11, color: Color(0xFF94A3B8)),
                           const SizedBox(width: 3),
-                          Text(
-                            '${_formatOrderTime(order.orderDate)} • #${order.id}',
-                            style: const TextStyle(
-                              fontSize: 10.5,
-                              color: Color(0xFF94A3B8),
-                              fontWeight: FontWeight.w600,
+                          Expanded(
+                            child: Text(
+                              '${_formatOrderTime(order.orderDate)} • #${order.id}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 10.5,
+                                color: Color(0xFF94A3B8),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],

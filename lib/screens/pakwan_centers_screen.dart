@@ -479,16 +479,17 @@ class _PakwanCentersScreenState extends State<PakwanCentersScreen>
                             );
 
                             Navigator.pop(ctx);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Catering Package booked for $guestCount guests! Added to Cart.',
-                                  style: const TextStyle(fontWeight: FontWeight.w700),
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                                backgroundColor: const Color(0xFF4C1D95),
-                                duration: const Duration(seconds: 3),
-                              ),
+                            AppTheme.showAddToCartToast(
+                              context,
+                              itemName: 'Catering Package ($guestCount guests)',
+                              subtitle: 'Catering Package Booked! 🎉',
+                              onViewCart: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => CartScreen(cartState: widget.cartState),
+                                  ),
+                                );
+                              },
                             );
                           },
                           style: ElevatedButton.styleFrom(

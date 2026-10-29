@@ -105,4 +105,130 @@ class AppTheme {
       ),
     );
   }
+
+  /// High-visibility, prominent Toast / SnackBar for Add to Cart actions
+  /// with dark transparent emerald background, bright green border, and glowing shadow
+  static void showAddToCartToast(
+    BuildContext context, {
+    required String itemName,
+    int quantity = 1,
+    String? subtitle,
+    VoidCallback? onViewCart,
+  }) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        padding: EdgeInsets.zero,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+        duration: const Duration(milliseconds: 2400),
+        content: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xE8082619), // Dark transparent emerald green (~91% opacity)
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: const Color(0xFF22C55E), // Bright green border
+              width: 1.6,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF22C55E).withAlpha(110), // Ambient green glow
+                blurRadius: 16,
+                spreadRadius: 1,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withAlpha(140), // Strong drop shadow
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF22C55E).withAlpha(45),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF4ADE80), width: 1.4),
+                ),
+                child: const Icon(
+                  Icons.check_circle_rounded,
+                  color: Color(0xFF4ADE80),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      subtitle ?? (quantity > 1 ? 'Added $quantity items to Cart!' : 'Added to Cart! 🛍️'),
+                      style: const TextStyle(
+                        color: Color(0xFF86EFAC),
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      itemName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              if (onViewCart != null) ...[
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
+                    messenger.hideCurrentSnackBar();
+                    onViewCart();
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF22C55E),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF22C55E).withAlpha(100),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      'VIEW CART',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

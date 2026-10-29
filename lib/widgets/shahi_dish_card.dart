@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/food_item.dart';
 import '../models/daig_item.dart';
 import '../screens/food_detail_screen.dart';
+import '../screens/cart_screen.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
 import 'custom_image.dart';
@@ -97,20 +98,16 @@ class ShahiDishCard extends StatelessWidget {
       );
     } else if (item != null) {
       cartState.addItem(item!, item!.restaurantId, restaurantName);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
-              Expanded(child: Text('Added "$_title" to Cart! 🛍️')),
-            ],
-          ),
-          backgroundColor: const Color(0xFF1E293B),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
+      AppTheme.showAddToCartToast(
+        context,
+        itemName: _title,
+        onViewCart: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => CartScreen(cartState: cartState),
+            ),
+          );
+        },
       );
     }
   }

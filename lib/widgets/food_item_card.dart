@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/food_item.dart';
+import '../screens/cart_screen.dart';
 import '../state/cart_state.dart';
 import '../theme/app_theme.dart';
 import 'custom_image.dart';
@@ -49,23 +50,16 @@ class FoodItemCard extends StatelessWidget {
     if (!success) {
       _showConflictDialog(context);
     } else {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text('Added "${item.name}" to cart!'),
-              ),
-            ],
-          ),
-          duration: const Duration(seconds: 1),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: const Color(0xFF2D3142),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      AppTheme.showAddToCartToast(
+        context,
+        itemName: item.name,
+        onViewCart: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => CartScreen(cartState: cartState),
+            ),
+          );
+        },
       );
     }
   }

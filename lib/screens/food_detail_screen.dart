@@ -142,37 +142,17 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       widget.cartState.addItem(itemToAdd, restId, restName);
     }
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Added $_quantity x "$name" to your cart! 🛍️',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-        action: SnackBarAction(
-          label: 'VIEW CART',
-          textColor: Colors.amberAccent,
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => CartScreen(cartState: widget.cartState),
-              ),
-            );
-          },
-        ),
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    AppTheme.showAddToCartToast(
+      context,
+      itemName: name,
+      quantity: _quantity,
+      onViewCart: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => CartScreen(cartState: widget.cartState),
+          ),
+        );
+      },
     );
   }
 
