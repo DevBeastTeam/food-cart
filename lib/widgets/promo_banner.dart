@@ -440,32 +440,41 @@ class _PromoBannerState extends State<PromoBanner> {
 
             // 3. Card Content
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title
-                  Text(
-                    effectiveTitle,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.3,
-                      height: 1.15,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  // Row 1: Title (reduced font size) + 60% Smaller Outlined Percentage Tag with Shimmer
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          effectiveTitle,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.5, // reduced font size as requested
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (offerText.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        ShimmerOutlinedOfferTag(text: offerText),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 3),
 
-                  // Description
+                  // Row 2: Description
                   Expanded(
                     child: Text(
                       effectiveDishes,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.90),
-                        fontSize: 11.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.w500,
                         height: 1.25,
                       ),
@@ -474,78 +483,62 @@ class _PromoBannerState extends State<PromoBanner> {
                     ),
                   ),
 
-                  // Bottom Row:
-                  // Left: Shop Name (without badge, ellipsis) + tiny location address with pin icon
-                  // Right: Percentage Off outlined tag (flutter_animate silver shimmer) + Order Now button (clean solid)
+                  // Row 3: Shop Name on Left + Order Now Button on Right
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Shop Name & Location Address (Left)
                       Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              shopName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.1,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.location_on_rounded,
-                                  size: 11,
-                                  color: Colors.white70,
-                                ),
-                                const SizedBox(width: 3),
-                                Expanded(
-                                  child: Text(
-                                    shopLocation,
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.82),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                        child: Text(
+                          shopName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.1,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
+                      CleanOrderButton(
+                        text: 'Order Now',
+                        onTap: () {
+                          if (widget.onOrderBanner != null) {
+                            widget.onOrderBanner!(banner);
+                          } else if (widget.onOrderNow != null) {
+                            widget.onOrderNow!();
+                          } else if (widget.onApplyPromo != null) {
+                            widget.onApplyPromo!();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
 
-                      // Right: Offer Tag + Order Now Button
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (offerText.isNotEmpty) ...[
-                            ShimmerOutlinedOfferTag(text: offerText),
-                            const SizedBox(width: 6),
-                          ],
-                          CleanOrderButton(
-                            text: 'Order Now',
-                            onTap: () {
-                              if (widget.onOrderBanner != null) {
-                                widget.onOrderBanner!(banner);
-                              } else if (widget.onOrderNow != null) {
-                                widget.onOrderNow!();
-                              } else if (widget.onApplyPromo != null) {
-                                widget.onApplyPromo!();
-                              }
-                            },
+                  const SizedBox(height: 5),
+
+                  // Row 4: Full Bottom Line for Shop Address so full address shows!
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_rounded,
+                        size: 11.5,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(width: 3.5),
+                      Expanded(
+                        child: Text(
+                          shopLocation,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
                           ),
-                        ],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -559,7 +552,7 @@ class _PromoBannerState extends State<PromoBanner> {
   }
 }
 
-/// Outlined discount percentage tag with clean silver shimmer using flutter_animate
+/// Outlined discount percentage tag (compact 60% smaller) with silver shimmer using flutter_animate
 class ShimmerOutlinedOfferTag extends StatelessWidget {
   final String text;
 
@@ -568,19 +561,19 @@ class ShimmerOutlinedOfferTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 5.5),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.38),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.black.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.80),
-          width: 1.1,
+          width: 0.9,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.20),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -590,16 +583,16 @@ class ShimmerOutlinedOfferTag extends StatelessWidget {
           const Icon(
             Icons.local_offer_rounded,
             color: Colors.white,
-            size: 11,
+            size: 9.5,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 3),
           Text(
             text,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 11,
+              fontSize: 9.5,
               fontWeight: FontWeight.w900,
-              letterSpacing: 0.4,
+              letterSpacing: 0.3,
             ),
           ),
         ],
