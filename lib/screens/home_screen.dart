@@ -162,6 +162,18 @@ class _HomeScreenState extends State<HomeScreen> {
     return list;
   }
 
+  String _resolveLocationHeaderTitle() {
+    if (_selectedVendorId != 'all' && _selectedVendorName.isNotEmpty) {
+      if (_selectedVendorLocation.isNotEmpty &&
+          _selectedVendorLocation != 'All' &&
+          _selectedVendorLocation != 'Central Delivery Hub') {
+        return '$_selectedVendorName • $_selectedVendorLocation Food Items';
+      }
+      return '$_selectedVendorName Food Items';
+    }
+    return 'All Places Food Items';
+  }
+
   void _onSearchChanged(String query) {
     setState(() {
       _homeSearchQuery = query;
@@ -1061,64 +1073,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // 3. Conditional Content based on Selected Tab
             if (_activeListingTab == 'restaurant') ...[
-              // Restaurant Items Header with dynamic title and View All
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      _selectedVendorId != 'all' && _selectedVendorName.isNotEmpty
-                          ? '$_selectedVendorName Food Items'
-                          : 'All Places Food Items',
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => AllPlacesFoodsScreen(
-                            isPakwan: false,
-                            cartState: widget.cartState,
-                            selectedVendorId: _selectedVendorId,
-                            selectedVendorName: _selectedVendorName,
-                            selectedVendorLocation: _selectedVendorLocation,
-                          ),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(6),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'View All',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primary,
-                            ),
-                          ),
-                          SizedBox(width: 3),
-                          Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 11,
-                            color: AppTheme.primary,
-                          ),
-                        ],
+              // Restaurant Items Header with bouncing location pin, marquee title, and View All
+              _BouncingMarqueeLocationHeader(
+                text: _resolveLocationHeaderTitle(),
+                onViewAll: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AllPlacesFoodsScreen(
+                        isPakwan: false,
+                        cartState: widget.cartState,
+                        selectedVendorId: _selectedVendorId,
+                        selectedVendorName: _selectedVendorName,
+                        selectedVendorLocation: _selectedVendorLocation,
                       ),
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
               const SizedBox(height: 10),
 
@@ -1130,64 +1100,22 @@ class _HomeScreenState extends State<HomeScreen> {
               // Category Menu Dishes
               _buildCategoryDishesSection(),
             ] else ...[
-              // Pakwan Items Header with dynamic title and View All
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      _selectedVendorId != 'all' && _selectedVendorName.isNotEmpty
-                          ? '$_selectedVendorName Food Items'
-                          : 'All Places Food Items',
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => AllPlacesFoodsScreen(
-                            isPakwan: true,
-                            cartState: widget.cartState,
-                            selectedVendorId: _selectedVendorId,
-                            selectedVendorName: _selectedVendorName,
-                            selectedVendorLocation: _selectedVendorLocation,
-                          ),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(6),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'View All',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primary,
-                            ),
-                          ),
-                          SizedBox(width: 3),
-                          Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 11,
-                            color: AppTheme.primary,
-                          ),
-                        ],
+              // Pakwan Items Header with bouncing location pin, marquee title, and View All
+              _BouncingMarqueeLocationHeader(
+                text: _resolveLocationHeaderTitle(),
+                onViewAll: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AllPlacesFoodsScreen(
+                        isPakwan: true,
+                        cartState: widget.cartState,
+                        selectedVendorId: _selectedVendorId,
+                        selectedVendorName: _selectedVendorName,
+                        selectedVendorLocation: _selectedVendorLocation,
                       ),
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
               const SizedBox(height: 10),
 
@@ -2266,6 +2194,171 @@ class _ShimmerTabTextState extends State<ShimmerTabText>
           ),
         );
       },
+    );
+  }
+}
+
+/// Header with subtle bouncing location pin, auto-scrolling marquee text in grey, and View All button
+class _BouncingMarqueeLocationHeader extends StatefulWidget {
+  final String text;
+  final VoidCallback onViewAll;
+
+  const _BouncingMarqueeLocationHeader({
+    required this.text,
+    required this.onViewAll,
+  });
+
+  @override
+  State<_BouncingMarqueeLocationHeader> createState() => _BouncingMarqueeLocationHeaderState();
+}
+
+class _BouncingMarqueeLocationHeaderState extends State<_BouncingMarqueeLocationHeader>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
+  final ScrollController _scrollController = ScrollController();
+  bool _isDisposed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
+    _bounceAnimation = CurvedAnimation(
+      parent: _bounceController,
+      curve: Curves.easeInOutSine,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _startMarqueeLoop();
+      }
+    });
+  }
+
+  Future<void> _startMarqueeLoop() async {
+    while (mounted && !_isDisposed) {
+      await Future.delayed(const Duration(milliseconds: 1600));
+      if (!mounted || !_scrollController.hasClients || _isDisposed) return;
+      final maxExtent = _scrollController.position.maxScrollExtent;
+      if (maxExtent > 2) {
+        final durationMs = (maxExtent * 45).toInt().clamp(2000, 7500);
+        await _scrollController.animateTo(
+          maxExtent,
+          duration: Duration(milliseconds: durationMs),
+          curve: Curves.linear,
+        );
+        await Future.delayed(const Duration(milliseconds: 1400));
+        if (!mounted || !_scrollController.hasClients || _isDisposed) return;
+        await _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _BouncingMarqueeLocationHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _startMarqueeLoop();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _bounceController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // 1. Subtle Bouncing Location Pin
+        AnimatedBuilder(
+          animation: _bounceAnimation,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, -3.5 * _bounceAnimation.value),
+              child: child,
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.location_on_rounded,
+              size: 15,
+              color: Color(0xFFEF4444),
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+
+        // 2. Smaller Grey Marquee Text
+        Expanded(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            child: Text(
+              widget.text,
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF64748B), // elegant slate grey
+                letterSpacing: 0.15,
+              ),
+              maxLines: 1,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+
+        // 3. View All Button
+        InkWell(
+          onTap: widget.onViewAll,
+          borderRadius: BorderRadius.circular(6),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'View All',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
+                ),
+                SizedBox(width: 3),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 10.5,
+                  color: AppTheme.primary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
