@@ -1494,10 +1494,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildListingTabSwitcher() {
-    return const SizedBox.shrink();
-  }
-
   Widget _buildPaginationBar({
     required int currentPage,
     required int totalPages,
@@ -1633,68 +1629,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final currentPage = _restaurantPage.clamp(1, totalPages);
       final displayedDishes = allDishes.skip((currentPage - 1) * _itemsPerPage).take(_itemsPerPage).toList();
 
-      final String title = _selectedVendorId != 'all'
-          ? '🍽️ $_selectedVendorName Restaurant Dishes'
-          : (_selectedCategory == 'All'
-              ? '🍽️ Restaurant Dishes (تمام ریسٹورنٹ پکوان)'
-              : '🍽️ $_selectedCategory Dishes');
-      final String subtitle = _selectedVendorId != 'all'
-          ? 'Fresh restaurant dishes from $_selectedVendorLocation'
-          : 'Live menu dishes from all partnered vendors & kitchens';
-
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildListingTabSwitcher(),
-
-          // Section Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16.5,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: AppTheme.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$totalDishes Dishes',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
           // TOP PAGINATION BAR
           _buildPaginationBar(
             currentPage: currentPage,
