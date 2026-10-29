@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/api_service.dart';
-import '../services/map_launcher_service.dart';
-import '../services/notification_service.dart';
 import '../state/cart_state.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
@@ -57,14 +55,35 @@ class _OrdersScreenState extends State<OrdersScreen> {
       listenable: widget.userState,
       builder: (context, _) {
         final allOrders = widget.userState.orders;
+        final pendingCount = allOrders.where((o) => o.status.trim().toLowerCase() == 'pending').length;
+        final preparingCount = allOrders.where((o) {
+          final s = o.status.trim().toLowerCase();
+          return s == 'preparing' || s == 'accepted';
+        }).length;
+        final onTheWayCount = allOrders.where((o) {
+          final s = o.status.trim().toLowerCase();
+          return s == 'on the way' || s == 'arrived';
+        }).length;
+        final deliveredCount = allOrders.where((o) => o.status.trim().toLowerCase() == 'delivered').length;
+        final cancelledCount = allOrders.where((o) => o.status.trim().toLowerCase() == 'cancelled').length;
+
         final filteredOrders = allOrders.where((order) {
-          if (_activeFilter == 'Active') {
-            return order.status != 'Delivered' && order.status != 'Cancelled';
+          final s = order.status.trim().toLowerCase();
+          switch (_activeFilter) {
+            case 'Pending':
+              return s == 'pending';
+            case 'Preparing':
+              return s == 'preparing' || s == 'accepted';
+            case 'On the Way':
+              return s == 'on the way' || s == 'arrived';
+            case 'Delivered':
+              return s == 'delivered';
+            case 'Cancelled':
+              return s == 'cancelled';
+            case 'All':
+            default:
+              return true;
           }
-          if (_activeFilter == 'Delivered') {
-            return order.status == 'Delivered';
-          }
-          return true;
         }).toList();
 
         final content = RefreshIndicator(
@@ -75,193 +94,88 @@ class _OrdersScreenState extends State<OrdersScreen> {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
                       children: [
-                        const Text(
-                          'My Orders',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.textPrimary,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF0FDF4),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF86EFAC)),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.sync_rounded, size: 12, color: Color(0xFF16A34A)),
-                              SizedBox(width: 4),
-                              Text(
-                                'Live Auto-Sync 🟢',
-                                style: TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF16A34A),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        _buildFilterChip('All', 'All (${allOrders.length})'),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('Pending', 'Pending ($pendingCount)'),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('Preparing', 'Preparing ($preparingCount)'),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('On the Way', 'On the Way ($onTheWayCount)'),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('Delivered', 'Delivered ($deliveredCount)'),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('Cancelled', 'Cancelled ($cancelledCount)'),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildFilterChip('All', 'All (${allOrders.length})'),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            'Active',
-                            'Active (${allOrders.where((o) => o.status != "Delivered").length})',
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            'Delivered',
-                            'Delivered (${allOrders.where((o) => o.status == "Delivered").length})',
-                          ),
-                          const SizedBox(width: 12),
-                          // Notification Test Buttons
-                          InkWell(
-                            onTap: () async {
-                              await NotificationService.instance.showDemoArrivalTestNotification();
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('🔔 Local Notification Triggered: "Rider Arrived at Your Location!"'),
-                                    backgroundColor: Color(0xFF7E22CE),
-                                    duration: Duration(seconds: 3),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF3E8FF),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0xFFC084FC)),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.notifications_active_rounded, size: 14, color: Color(0xFF7E22CE)),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Test Arrival Alert 🔔',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF7E22CE),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: () async {
-                              await NotificationService.instance.scheduleDemoMealReminderInSeconds(seconds: 10);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('⏰ Scheduled Notification set for 10 seconds from now! (Check notification tray)'),
-                                    backgroundColor: Colors.teal,
-                                    duration: Duration(seconds: 4),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.teal.shade50,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.teal.shade300),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.timer_outlined, size: 14, color: Colors.teal.shade800),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Schedule 10s Alert ⏰',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.teal.shade800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (filteredOrders.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: _buildEmptyState(),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 6, 16, 30),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return _buildOrderCard(filteredOrders[index]);
-                    },
-                    childCount: filteredOrders.length,
                   ),
                 ),
               ),
+              if (filteredOrders.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _buildEmptyState(),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 30),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        return _buildOrderCard(filteredOrders[index]);
+                      },
+                      childCount: filteredOrders.length,
+                    ),
+                  ),
+                ),
             ],
           ),
         );
-
-
-
-        if (widget.isEmbedded) {
-          return Scaffold(
-            backgroundColor: AppTheme.background,
-            body: SafeArea(child: content),
-            floatingActionButton: _buildSupportFab(context),
-          );
-        }
 
         return Scaffold(
           backgroundColor: AppTheme.background,
           appBar: AppBar(
             backgroundColor: Colors.white,
             elevation: 0.5,
-            title: const Text('My Orders & Tracking'),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
+            automaticallyImplyLeading: !widget.isEmbedded,
+            leading: widget.isEmbedded
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+            title: const Text(
+              'My Orders',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.textPrimary,
+                letterSpacing: -0.4,
+              ),
             ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Center(
+                  child: Text(
+                    'Total: ${allOrders.length}',
+                    style: const TextStyle(
+                      color: Color(0xFF94A3B8), // Grey color as requested
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           body: content,
-          floatingActionButton: _buildSupportFab(context),
         );
       },
     );
@@ -274,12 +188,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
       borderRadius: BorderRadius.circular(8),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primary : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected ? AppTheme.primary : AppTheme.border,
+            width: 1.2,
           ),
           boxShadow: isSelected
               ? [
@@ -305,20 +220,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Widget _buildOrderCard(UserOrder order) {
     final isDelivered = order.status == 'Delivered';
-    final isPreparing = order.status == 'Preparing';
-    final isAccepted = order.status == 'Accepted';
-    final isOnTheWay = order.status == 'On the Way';
-    final isArrived = order.status == 'Arrived';
     final isPending = order.status == 'Pending';
+    final isAccepted = order.status == 'Accepted';
+    final isPreparing = order.status == 'Preparing';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDelivered ? AppTheme.border : AppTheme.primary.withAlpha(90),
-          width: isDelivered ? 1 : 1.5,
+          color: isDelivered ? AppTheme.border : AppTheme.primary.withAlpha(80),
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
@@ -331,7 +244,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Restaurant Name, Order ID, Date & Category
+          // Header: Restaurant Name, Badge, Order ID, Date & Status
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
             child: Row(
@@ -344,7 +257,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
-                    order.isPakwan ? Icons.outdoor_grill_rounded : Icons.restaurant_rounded,
+                    order.isPakwan ? Icons.outdoor_grill_rounded : Icons.storefront_rounded,
                     color: order.isPakwan ? Colors.amber.shade900 : AppTheme.primary,
                     size: 16,
                   ),
@@ -405,7 +318,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getStatusBadgeColor(order.status).withAlpha(30),
+                    color: _getStatusBadgeColor(order.status).withAlpha(25),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: _getStatusBadgeColor(order.status).withAlpha(80)),
                   ),
@@ -505,58 +418,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Wrap(
-                                    crossAxisAlignment: WrapCrossAlignment.center,
-                                    spacing: 6,
-                                    children: [
-                                      Text(
-                                        'Total: Rs. ${order.totalAmount.toInt()}',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w900,
-                                          color: AppTheme.primary,
-                                        ),
-                                      ),
-                                      if (order.originalAmount != null && order.originalAmount! > order.totalAmount)
-                                        Text(
-                                          'Rs. ${order.originalAmount!.toInt()}',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: AppTheme.textSecondary,
-                                            decoration: TextDecoration.lineThrough,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  if (order.discountInfo != null) ...[
-                                    const SizedBox(height: 3),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green.shade50,
-                                        borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(color: Colors.green.shade300),
-                                      ),
-                                      child: Text(
-                                        order.discountInfo!,
-                                        style: TextStyle(
-                                          color: Colors.green.shade800,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ],
+                              child: Text(
+                                'Total: Rs. ${order.totalAmount.toInt()}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.primary,
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 6),
                             const Text(
                               'View details ›',
                               style: TextStyle(
@@ -581,14 +451,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
             color: const Color(0xFFF9FAFB),
             child: Row(
               children: [
-                const Icon(Icons.location_on_rounded, size: 15, color: AppTheme.primary),
+                const Icon(Icons.location_on_rounded, size: 14, color: Color(0xFF94A3B8)),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     'Deliver to: ${order.deliveryAddress}',
                     style: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
                       color: AppTheme.textSecondary,
                     ),
                     maxLines: 1,
@@ -601,460 +471,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
           const Divider(height: 1, color: AppTheme.border),
 
-          // Status Tracker Timeline (4 Steps)
+          // Progress Timeline & Action Buttons
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildTimelineStepper(order),
-                const SizedBox(height: 10),
-                // Additional Status Detail Bar
-                if (isPending)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFFDE68A)),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.hourglass_top_rounded, size: 16, color: Color(0xFFD97706)),
-                        SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            'آرڈر موصول ہو گیا ہے • کچن کی تصدیق کا انتظار ہے (Awaiting Confirmation)',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF92400E),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else if (isPreparing)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF8E1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFFFD54F)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.soup_kitchen_rounded, size: 16, color: Color(0xFFE65100)),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            order.isDaigBooking
-                                ? 'Daig preparation underway • Est: ${order.prepTime}'
-                                : 'Kitchen is preparing your fresh meal • Est: ${order.prepTime}',
-                            style: const TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFE65100),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else if (isArrived)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFAF5FF),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFC084FC), width: 1.5),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF7E22CE),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.pin_drop_rounded, size: 18, color: Colors.white),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Rider Has Arrived at Your Location! 📍',
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF581C87),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    order.riderName != null
-                                        ? '${order.riderName} is outside your address (${order.deliveryAddress}). Please collect your order!'
-                                        : 'Rider is waiting outside at your doorstep. Please collect your food!',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF6B21A8),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            if (order.riderPhone != null && order.riderPhone!.isNotEmpty)
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Calling Rider: ${order.riderPhone}'),
-                                      backgroundColor: const Color(0xFF7E22CE),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.call, size: 14, color: Color(0xFF7E22CE)),
-                                label: Text(
-                                  'Call ${order.riderName ?? "Rider"}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF7E22CE),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Color(0xFFC084FC)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                              ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF3E8FF),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.notifications_active_rounded, size: 13, color: Color(0xFF7E22CE)),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Arrived Notification Sent',
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF7E22CE),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
-                else if (isOnTheWay)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0F7FF),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF90CAF9)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF1976D2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.two_wheeler_rounded, size: 18, color: Colors.white),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Rider is Arriving at Your Location!',
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF0D47A1),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    order.riderName != null
-                                        ? 'Rider: ${order.riderName} • ${order.riderPhone ?? "Active"}'
-                                        : 'Delivery partner has started navigation towards your destination',
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF1565C0),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFBBDEFB)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.pin_drop_rounded, size: 15, color: Colors.redAccent),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'Delivery Pin: ${order.deliveryAddress}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.textSecondary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () => MapLauncherService.launchLocationPin(
-                                  lat: order.latitude,
-                                  lng: order.longitude,
-                                  fallbackAddress: order.deliveryAddress,
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.map_rounded, size: 13, color: Color(0xFF1A73E8)),
-                                    SizedBox(width: 3),
-                                    Text(
-                                      'View Pin',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF1A73E8),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else if (isDelivered)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFA5D6A7)),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF2E7D32)),
-                        SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            'Delivered successfully! Enjoy your authentic meal.',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF2E7D32),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else if (order.status == 'Cancelled')
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFEBEE),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFEF9A9A)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.cancel_rounded, size: 16, color: Color(0xFFC62828)),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            order.rejectionReason != null && order.rejectionReason!.trim().isNotEmpty
-                                ? 'Order Cancelled: ${order.rejectionReason}'
-                                : 'Order cancelled / declined by store manager',
-                            style: const TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFC62828),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                // Assigned Rider Contact Bar (with JUST 2 Icons Button)
-                if (order.riderPhone != null &&
-                    order.riderPhone!.trim().isNotEmpty &&
-                    !isDelivered &&
-                    order.status != 'Cancelled')
-                  Container(
-                    margin: const EdgeInsets.only(top: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFF0FDF4), Color(0xFFDCFCE7)],
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF86EFAC)),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF16A34A),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.two_wheeler_rounded, size: 15, color: Colors.white),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      'Rider: ${order.riderName ?? "Assigned"}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF14532D),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFBBF7D0),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: const Text(
-                                      'ACTIVE',
-                                      style: TextStyle(
-                                        fontSize: 8.5,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF166534),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 1),
-                              Text(
-                                order.riderPhone!,
-                                style: const TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF15803D),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // Just 2 Icons Button:
-                        // 1. 📞 Call Button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => _launchRiderCall(order.riderPhone!),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              padding: const EdgeInsets.all(7),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF2563EB),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.phone_in_talk_rounded, size: 14, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-
-                        // 2. 💬 WhatsApp Button
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => _launchRiderWhatsApp(order.riderPhone!, order.riderName ?? 'Rider', order.id),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              padding: const EdgeInsets.all(7),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF25D366),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.chat_bubble_rounded, size: 14, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                // Action buttons row
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     if (isPending) ...[
                       OutlinedButton.icon(
                         onPressed: () => _confirmCancelOrder(order),
-                        icon: const Icon(Icons.cancel_outlined, size: 15, color: Colors.red),
+                        icon: const Icon(Icons.cancel_outlined, size: 14, color: Colors.red),
                         label: const Text('Cancel Order (کینسل کریں)'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red.shade700,
                           side: BorderSide(color: Colors.red.shade300),
                           visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -1062,24 +500,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     if (isAccepted || isPreparing) ...[
                       OutlinedButton.icon(
                         onPressed: () => _showUpdateNotesDialog(order),
-                        icon: const Icon(Icons.edit_note_rounded, size: 16),
+                        icon: const Icon(Icons.edit_note_rounded, size: 15),
                         label: const Text('Add Note'),
                         style: OutlinedButton.styleFrom(
                           visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
                         ),
                       ),
                       const SizedBox(width: 8),
                     ],
                     ElevatedButton.icon(
                       onPressed: () => _showItemDetailsSheet(order),
-                      icon: const Icon(Icons.visibility_outlined, size: 15),
-                      label: const Text('View Item'),
+                      icon: const Icon(Icons.visibility_outlined, size: 14),
+                      label: const Text('View Details'),
                       style: ElevatedButton.styleFrom(
                         visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
                       ),
                     ),
                   ],
@@ -2081,327 +1519,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
     } else {
       return '${diff.inDays} days ago';
     }
-  }
-
-  // Floating Action Button for Assigned Rider WhatsApp & Direct Call (with JUST 2 icon buttons)
-  Widget _buildSupportFab(BuildContext context) {
-    final activeRiderOrders = widget.userState.orders.where((o) =>
-      o.status != 'Delivered' &&
-      o.status != 'Cancelled' &&
-      o.riderPhone != null &&
-      o.riderPhone!.trim().isNotEmpty
-    ).toList();
-
-    if (activeRiderOrders.isNotEmpty) {
-      final activeOrder = activeRiderOrders.first;
-      final riderName = activeOrder.riderName ?? 'Rider';
-      final riderPhone = activeOrder.riderPhone!;
-
-      return Container(
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F172A),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(70),
-              blurRadius: 16,
-              offset: const Offset(0, 5),
-            ),
-          ],
-          border: Border.all(color: const Color(0xFF22C55E).withAlpha(150), width: 1.5),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Rider Avatar / Bike Icon
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: const BoxDecoration(
-                color: Color(0xFF22C55E),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.two_wheeler_rounded, size: 16, color: Colors.white),
-            ),
-            const SizedBox(width: 8),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 125),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    riderName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    'Order #${activeOrder.id}',
-                    style: const TextStyle(
-                      color: Color(0xFF86EFAC),
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            // Just 2 Icons Button:
-            // 1. 📞 Call Rider Icon Button
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _launchRiderCall(riderPhone),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF2563EB),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.phone_in_talk_rounded, size: 16, color: Colors.white),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-
-            // 2. 💬 WhatsApp Rider Icon Button
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _launchRiderWhatsApp(riderPhone, riderName, activeOrder.id),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF25D366),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.chat_bubble_rounded, size: 16, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return FloatingActionButton(
-      onPressed: () => _showSupportModal(context),
-      backgroundColor: const Color(0xFF25D366),
-      foregroundColor: Colors.white,
-      elevation: 4,
-      shape: const CircleBorder(),
-      tooltip: 'WhatsApp Live Support',
-      child: const Icon(Icons.chat_bubble_rounded, size: 26),
-    );
-  }
-
-  void _showSupportModal(BuildContext context) {
-    final messageController = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withAlpha(30),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.support_agent_rounded, color: Color(0xFF25D366), size: 22),
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '24/7 FoodCourt Customer Care',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                      ),
-                      Text(
-                        'Direct kitchen contact & order help',
-                        style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(ctx),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(height: 1, color: AppTheme.border),
-            const SizedBox(height: 14),
-
-            // WhatsApp Direct Row
-            InkWell(
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Starting WhatsApp chat with +92 300 8472910...'),
-                    backgroundColor: Color(0xFF25D366),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF25D366).withAlpha(15),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF25D366).withAlpha(60)),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.chat_rounded, color: Color(0xFF25D366), size: 22),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'WhatsApp Call & Chat',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1E7E34)),
-                          ),
-                          Text(
-                            '+92 300 8472910 • Instant Response',
-                            style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF25D366)),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // UAN Phone Row
-            InkWell(
-              onTap: () {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Calling FoodCourt Helpline +92 42 111-CRAVEE...'),
-                    backgroundColor: AppTheme.primary,
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.primary.withAlpha(60)),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.phone_in_talk_rounded, color: AppTheme.primary, size: 22),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Call UAN Helpline',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.primary),
-                          ),
-                          Text(
-                            '+92 42 111-CRAVEE (111-272-833)',
-                            style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.primary),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-
-            // Quick message form
-            const Text(
-              'Send Quick Message / Query:',
-              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 6),
-            TextField(
-              controller: messageController,
-              decoration: InputDecoration(
-                hintText: 'e.g. Please add extra raita and mint chutney to order...',
-                hintStyle: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  final text = messageController.text.trim();
-                  if (text.isNotEmpty) {
-                    widget.userState.sendSupportMessage(
-                      subject: 'Customer Query',
-                      message: text,
-                      customerName: widget.userState.isLoggedIn ? widget.userState.userName : 'Guest Customer',
-                      phone: widget.userState.userPhone,
-                    );
-                    Navigator.pop(ctx);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Message sent to Central Kitchen team! We will reply promptly.'),
-                        backgroundColor: AppTheme.primary,
-                      ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.send_rounded, size: 16),
-                label: const Text('Send Message to Kitchen'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 11),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
 }
