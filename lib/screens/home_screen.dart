@@ -773,172 +773,219 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (!isLoggedIn) ...[
-                      Row(
+              if (_isSearchFieldOpen) ...[
+                // Search Input Field in AppBar with ONLY Bottom Border and NO background or outline
+                Expanded(
+                  child: TextField(
+                    controller: _homeSearchController,
+                    autofocus: true,
+                    onChanged: _onSearchChanged,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Search biryani, karahi, daig, dishes...',
+                      hintStyle: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade400,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      isDense: true,
+                      filled: false,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                      prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppTheme.primary),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 30, minHeight: 20),
+                      border: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: AppTheme.primary, width: 1.8),
+                      ),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey.shade400, width: 1.2),
+                      ),
+                      focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: AppTheme.primary, width: 2.0),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Close Icon Button on right side
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _homeSearchController.clear();
+                      _onSearchChanged('');
+                      _isSearchFieldOpen = false;
+                    });
+                  },
+                  icon: const Icon(Icons.close_rounded, size: 22, color: AppTheme.textPrimary),
+                  tooltip: 'Close search',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                ),
+              ] else ...[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!isLoggedIn) ...[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              appContent['heroTitle'] ?? 'Food Court',
+                              style: const TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.primary,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF3C7),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFF59E0B)),
+                              ),
+                              child: const Text(
+                                'Guest (گیسٹ)',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFFB45309),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 1),
+                        const Text(
+                          'Browse food dishes, restaurants & Shahi Daigs',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ] else ...[
+                        Text(
+                          appContent['heroTitle'] ?? 'Food Court',
+                          style: const TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.primary,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          'Welcome back, ${user?.name.split(' ').first ?? 'Foodie'}! 👋',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // Search Icon Button
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isSearchFieldOpen = true;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(7.5),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceMuted,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.border),
+                    ),
+                    child: const Icon(
+                      Icons.search_rounded,
+                      size: 19,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                if (isLoggedIn && user != null)
+                  InkWell(
+                    onTap: () => setState(() => _currentNavIndex = 3),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryLight,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25)),
+                      ),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            appContent['heroTitle'] ?? 'Food Court',
-                            style: const TextStyle(
-                              fontSize: 19,
-                              fontWeight: FontWeight.w900,
-                              color: AppTheme.primary,
-                              letterSpacing: -0.5,
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundColor: AppTheme.primary,
+                            child: Text(
+                              user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF3C7),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFF59E0B)),
-                            ),
-                            child: const Text(
-                              'Guest (گیسٹ)',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFFB45309),
-                              ),
+                          Text(
+                            user.name.split(' ').first,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primary,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 1),
-                      const Text(
-                        'Browse food dishes, restaurants & Shahi Daigs',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ] else ...[
-                      Text(
-                        appContent['heroTitle'] ?? 'Food Court',
-                        style: const TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.primary,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        'Welcome back, ${user?.name.split(' ').first ?? 'Foodie'}! 👋',
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          color: AppTheme.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 8),
-
-              // Search Icon Button (Turns into Cross 'X' Button when Search is Open)
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    _isSearchFieldOpen = !_isSearchFieldOpen;
-                    if (!_isSearchFieldOpen) {
-                      _homeSearchController.clear();
-                      _onSearchChanged('');
-                    }
-                  });
-                },
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(7.5),
-                  decoration: BoxDecoration(
-                    color: _isSearchFieldOpen ? const Color(0xFFDC2626) : AppTheme.surfaceMuted,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _isSearchFieldOpen ? const Color(0xFFDC2626) : AppTheme.border,
                     ),
-                  ),
-                  child: Icon(
-                    _isSearchFieldOpen ? Icons.close_rounded : Icons.search_rounded,
-                    size: 19,
-                    color: _isSearchFieldOpen ? Colors.white : AppTheme.textPrimary,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 8),
-
-              if (isLoggedIn && user != null)
-                InkWell(
-                  onTap: () => setState(() => _currentNavIndex = 3),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryLight,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppTheme.primary.withValues(alpha: 0.25)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundColor: AppTheme.primary,
-                          child: Text(
-                            user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                  )
+                else
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AuthScreen(
+                            userState: widget.userState,
+                            initialIsSignUp: false,
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          user.name.split(' ').first,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primary,
-                          ),
-                        ),
-                      ],
+                      );
+                    },
+                    icon: const Icon(Icons.login_rounded, size: 15),
+                    label: const Text('Login'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      minimumSize: Size.zero,
+                      textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                   ),
-                )
-              else
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => AuthScreen(
-                          userState: widget.userState,
-                          initialIsSignUp: false,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.login_rounded, size: 15),
-                  label: const Text('Login'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    minimumSize: Size.zero,
-                    textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                ),
+              ],
             ],
           ),
 
@@ -984,48 +1031,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // 2. Expandable Real-Time Live Search Bar
-          if (_isSearchFieldOpen || _homeSearchQuery.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primary, width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primary.withAlpha(20),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _homeSearchController,
-                autofocus: _isSearchFieldOpen && _homeSearchQuery.isEmpty,
-                onChanged: _onSearchChanged,
-                decoration: InputDecoration(
-                  hintText: 'Search Pulao, Biryani, Mutton, Beef, Karahi, Daig...',
-                  prefixIcon: const Icon(Icons.search, color: AppTheme.primary, size: 20),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20, color: AppTheme.textPrimary),
-                    tooltip: 'Close search',
-                    onPressed: () {
-                      setState(() {
-                        _homeSearchController.clear();
-                        _onSearchChanged('');
-                        _isSearchFieldOpen = false;
-                      });
-                    },
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                ),
-              ),
-            ),
-          ],
+
 
           const SizedBox(height: 16),
 
