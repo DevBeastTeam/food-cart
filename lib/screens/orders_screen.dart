@@ -9,6 +9,7 @@ import '../state/user_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_image.dart';
 import 'food_detail_screen.dart';
+import 'auth_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -58,6 +59,37 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return ListenableBuilder(
       listenable: widget.userState,
       builder: (context, _) {
+        final isLoggedIn = widget.userState.isLoggedIn;
+        final user = widget.userState.user;
+
+        // If not logged in, show login prompt matching profile view design
+        if (!isLoggedIn || user == null) {
+          return Scaffold(
+            backgroundColor: AppTheme.background,
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0.5,
+              automaticallyImplyLeading: !widget.isEmbedded,
+              leading: widget.isEmbedded
+                  ? null
+                  : IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+              title: const Text(
+                'My Orders',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.textPrimary,
+                  letterSpacing: -0.4,
+                ),
+              ),
+            ),
+            body: _buildLoggedOutView(),
+          );
+        }
+
         final allOrders = widget.userState.orders;
         final pendingCount = allOrders.where((o) => o.status.trim().toLowerCase() == 'pending').length;
         final preparingCount = allOrders.where((o) {
@@ -710,66 +742,56 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
                           const SizedBox(width: 6),
 
-                          // Action Buttons: Call & WhatsApp
+                          // Action Buttons: Just Call Icon & Just WhatsApp Icon
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Call Action Button
+                              // Call Action Button (Just Call Icon)
                               InkWell(
                                 onTap: () => _callPhone(rPhone),
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: BorderRadius.circular(18),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                  width: 34,
+                                  height: 34,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEFF6FF),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: const Color(0xFFBFDBFE)),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.call, size: 11.5, color: Color(0xFF2563EB)),
-                                      SizedBox(width: 2.5),
-                                      Text(
-                                        'Call',
-                                        style: TextStyle(
-                                          fontSize: 9.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFF2563EB),
-                                        ),
+                                    color: const Color(0xFF2563EB),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
                                       ),
                                     ],
                                   ),
+                                  child: const Icon(Icons.call_rounded, size: 17, color: Colors.white),
                                 ),
                               ),
-                              const SizedBox(width: 5),
+                              const SizedBox(width: 8),
 
-                              // WhatsApp Action Button
+                              // WhatsApp Action Button (Just WhatsApp Icon)
                               InkWell(
-                                onTap: () => _openWhatsApp(rPhone, rName, order.id),
-                                borderRadius: BorderRadius.circular(6),
+                                onTap: () => _openWhatsApp(
+                                  phone: rPhone,
+                                  riderName: rName,
+                                  order: order,
+                                ),
+                                borderRadius: BorderRadius.circular(18),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                                  width: 34,
+                                  height: 34,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF0FDF4),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: const Color(0xFFBBF7D0)),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.chat_bubble_rounded, size: 11, color: Color(0xFF16A34A)),
-                                      SizedBox(width: 2.5),
-                                      Text(
-                                        'Chat',
-                                        style: TextStyle(
-                                          fontSize: 9.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFF16A34A),
-                                        ),
+                                    color: const Color(0xFF25D366),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF25D366).withValues(alpha: 0.38),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
                                       ),
                                     ],
                                   ),
+                                  child: const Icon(Icons.chat_bubble_rounded, size: 17, color: Colors.white),
                                 ),
                               ),
                             ],
@@ -1213,11 +1235,63 @@ class _OrdersScreenState extends State<OrdersScreen> {
     return clean;
   }
 
+  Widget _buildLoggedOutView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 90,
+              height: 90,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF3E8FF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.receipt_long_rounded, color: AppTheme.primary, size: 46),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Log In to Your Account',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Sign in to view your orders, live track active deliveries, and contact riders.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 22),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AuthScreen(userState: widget.userState),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.login_rounded, size: 18),
+              label: const Text('Log In / Register', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _callPhone(String phone) async {
     try {
-      final uri = Uri.parse('tel:$phone');
+      final clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
+      final uri = Uri.parse('tel:$clean');
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1234,15 +1308,46 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
-  Future<void> _openWhatsApp(String phone, String riderName, String orderId) async {
+  Future<void> _openWhatsApp({
+    required String phone,
+    required String riderName,
+    required UserOrder order,
+  }) async {
     try {
       final clean = _formatWhatsAppPhone(phone);
-      final text = Uri.encodeComponent(
-        'Assalam-o-Alaikum $riderName bhai, main FoodCourt order #$orderId ke hawalay se rabta kar raha hoon.',
-      );
-      final uri = Uri.parse('https://wa.me/$clean?text=$text');
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+      // Customer Name resolution
+      String customerName = 'Customer';
+      if (widget.userState.user?.name != null && widget.userState.user!.name.trim().isNotEmpty) {
+        customerName = widget.userState.user!.name.trim();
+      } else if (order.customerName.trim().isNotEmpty) {
+        customerName = order.customerName.trim();
+      }
+
+      // Customer Delivery Address resolution
+      String deliveryAddress = order.deliveryAddress.trim();
+      if (deliveryAddress.isEmpty && widget.cartState?.deliveryAddress != null) {
+        deliveryAddress = widget.cartState!.deliveryAddress.trim();
+      }
+      if (deliveryAddress.isEmpty) {
+        deliveryAddress = 'Location on Order';
+      }
+
+      final message = 'Assalam-o-Alaikum $riderName bhai!\n\n'
+          'Main *$customerName* bol raha/rahi hoon FoodCourt se.\n'
+          '📦 *Order ID:* #${order.id}\n'
+          '📍 *Delivery Address:* $deliveryAddress\n\n'
+          'Main order ka wait kar raha/rahi hoon. Kindly apna update de dein ke kab tak deliver ho jayega? Shukriya!';
+
+      final encoded = Uri.encodeComponent(message);
+
+      final whatsappNativeUri = Uri.parse('whatsapp://send?phone=$clean&text=$encoded');
+      final whatsappWebUri = Uri.parse('https://wa.me/$clean?text=$encoded');
+
+      if (await canLaunchUrl(whatsappNativeUri)) {
+        await launchUrl(whatsappNativeUri, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(whatsappWebUri)) {
+        await launchUrl(whatsappWebUri, mode: LaunchMode.externalApplication);
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

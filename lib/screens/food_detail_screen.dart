@@ -243,635 +243,360 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
               isDaig: _isDaig,
             ),
 
-            // 1. Big Image Header with Badges
-            Stack(
-              children: [
-                Hero(
-                  tag: 'food_img_${_isDaig ? widget.daigItem!.id : widget.foodItem!.id}',
-                  child: CustomImage(
-                    imageUrl: imageUrl,
-                    height: 250,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.1),
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.65),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                // Top floating badges
-                Positioned(
-                  top: 14,
-                  left: 14,
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.65),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
-                            const SizedBox(width: 4),
-                            Text(
-                              '$rating',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF16A34A).withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.verified_rounded, color: Colors.white, size: 14),
-                            SizedBox(width: 4),
-                            Text(
-                              '100% Halal',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Bottom image overlay info
-                Positioned(
-                  bottom: 14,
-                  left: 16,
-                  right: 16,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          _isDaig ? 'Authentic Shahi Cauldrons' : 'Fresh Kitchen Prep',
-                          style: const TextStyle(
-                            color: Colors.amberAccent,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      if (!isAvailable)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade700,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'OUT OF STOCK',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+            if (!_isDaig && widget.foodItem != null)
+              _buildRestaurantItemView(context, isAvailable)
+            else
+              _buildDaigItemView(
+                title: title,
+                urduName: urduName,
+                imageUrl: imageUrl,
+                description: description,
+                rating: rating,
+                address: address,
+                isAvailable: isAvailable,
+                activeOffer: activeOffer,
+              ),
+
+            const SizedBox(height: 24),
+
+            // Bottom Quantity & Order Floating Action Bar
+            _buildBottomActionBar(isAvailable),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Restaurant Food Item View with generous gap, smooth gradient fade, rounded top thumbnail,
+  /// type & category badges, and vendor-only details.
+  Widget _buildRestaurantItemView(BuildContext context, bool isAvailable) {
+    final food = widget.foodItem!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Generous Gap with Subtle Smooth Gradient Blend (Grey fading into White)
+        Container(
+          height: 26,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white,
+                Color(0x60F1F5F9),
+                Color(0xFFF1F5F9),
+              ],
+            ),
+          ),
+        ),
+
+        // 2. Main Restaurant Food Card
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(8),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-
-            // 2. Dish Details Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x08000000),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title & Urdu name
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.textPrimary,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  if (urduName.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      urduName,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFFB45309),
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 12),
-
-                  // Pricing and Unit Price with Discount & Cut Price
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Thumbnail with Top-Left and Top-Right Rounded Corners & Badges
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  child: Stack(
                     children: [
-                      Text(
-                        'Rs. ${_unitPrice.toInt()}',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.primary,
+                      Hero(
+                        tag: 'food_img_${food.id}',
+                        child: CustomImage(
+                          imageUrl: food.imageUrl,
+                          height: 220,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      if (!_isDaig && widget.foodItem != null && widget.foodItem!.showCutPrice && widget.foodItem!.cutPrice > widget.foodItem!.effectivePrice) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          'Rs. ${widget.foodItem!.cutPrice.toInt()}',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF94A3B8),
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(width: 8),
-                      Text(
-                        _isDaig ? '/ Cauldron' : '/ Serving',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                      if (!_isDaig && widget.foodItem != null && widget.foodItem!.isDiscounted && widget.foodItem!.discountPercent > 0) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      // Soft gradient overlay on image for readability
+                      Positioned.fill(
+                        child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            widget.foodItem!.promoBadge.isNotEmpty
-                                ? widget.foodItem!.promoBadge
-                                : '${widget.foodItem!.discountPercent}% OFF',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-
-                  // Actual Vendor Tags (Category, Calories, Badges)
-                  if (!_isDaig && widget.foodItem != null) ...[
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        if (widget.foodItem!.category.isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 3.5),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFCBD5E1)),
-                            ),
-                            child: Text(
-                              widget.foodItem!.category,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary,
-                              ),
-                            ),
-                          ),
-                        if (widget.foodItem!.calories > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 3.5),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF3C7),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFFDE68A)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text('🔥 ', style: TextStyle(fontSize: 10)),
-                                Text(
-                                  '${widget.foodItem!.calories} kcal',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF92400E),
-                                  ),
-                                ),
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withAlpha(90),
+                                Colors.transparent,
+                                Colors.black.withAlpha(60),
                               ],
                             ),
                           ),
-                        ...widget.foodItem!.badges.map(
-                          (b) => Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 3.5),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
-                            ),
-                            child: Text(
-                              b,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.textSecondary,
-                              ),
-                            ),
-                          ),
                         ),
-                      ],
-                    ),
-                  ],
-
-                  const SizedBox(height: 14),
-
-                  // Preparation Location
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.location_on_rounded, color: AppTheme.primary, size: 20),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'PREPARATION & DISPATCH SOURCE',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.primary,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                address,
-                                style: const TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Active Offer Banner if any
-                  if (activeOffer != null) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFF59E0B)),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.local_offer_rounded, color: Color(0xFFB45309), size: 18),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'Special Offer: ${activeOffer['title'] ?? ''} (${activeOffer['discountPercent']}% OFF)',
-                              style: const TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF92400E),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 16),
-
-                  // Description
-                  const Text(
-                    'About this dish',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    description,
-                    style: const TextStyle(
-                      fontSize: 13.5,
-                      height: 1.5,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-
-                  // Daig Includes list if Daig
-                  if (_isDaig && widget.daigItem!.includes.isNotEmpty) ...[
-                    const SizedBox(height: 14),
-                    const Text(
-                      'Includes with this Daig cauldron:',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    ...widget.daigItem!.includes.map(
-                      (inc) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
+                      // Badges on Thumbnail: Type & Category
+                      Positioned(
+                        top: 12,
+                        left: 12,
+                        right: 12,
                         child: Row(
                           children: [
-                            const Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 16),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                inc,
-                                style: const TextStyle(
-                                  fontSize: 12.5,
-                                  color: AppTheme.textPrimary,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                            // Type Badge: Grey background with Type: 🍽️ ریسٹورنٹ
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xE61E293B),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.white.withAlpha(50), width: 0.8),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Type: ',
+                                    style: TextStyle(
+                                      color: Color(0xFF94A3B8),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    '🍽️ ریسٹورنٹ (Restaurant)',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
+                            const Spacer(),
+                            // Category Badge (e.g. Biryani, Pulao, Zarda, etc.)
+                            if (food.category.isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withAlpha(160),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.white.withAlpha(60), width: 0.8),
+                                ),
+                                child: Text(
+                                  food.category,
+                                  style: const TextStyle(
+                                    color: Color(0xFFFDE68A),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // 3. Selection / Customization Options
-            if (_isDaig) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Select Cauldron Size',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildDaigPortionOption(
-                        title: 'Small Deg (6 KG)',
-                        subtitle: widget.daigItem!.halfDaigWeight,
-                        price: widget.daigItem!.halfDaigPrice,
-                        portionKey: 'Small (6 KG)',
-                      ),
-                      const SizedBox(height: 8),
-                      _buildDaigPortionOption(
-                        title: 'Medium Deg (10 KG)',
-                        subtitle: widget.daigItem!.mediumDaigWeight,
-                        price: widget.daigItem!.mediumDaigPrice,
-                        portionKey: 'Medium (10 KG)',
-                      ),
-                      const SizedBox(height: 8),
-                      _buildDaigPortionOption(
-                        title: 'Large Deg (12-14 KG)',
-                        subtitle: widget.daigItem!.fullDaigWeight,
-                        price: widget.daigItem!.fullDaigPrice,
-                        portionKey: 'Large (12-14 KG)',
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Spice Level',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: ['Mild (ہلکی مرچ)', 'Medium (مناسب)', 'Extra Spicy (تیز چٹپٹی)'].map((spice) {
-                          final isSel = _selectedSpiceLevel == spice;
-                          return Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: InkWell(
-                                onTap: () => setState(() => _selectedSpiceLevel = spice),
-                                borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: isSel ? const Color(0xFFDC2626) : const Color(0xFFF1F5F9),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: isSel ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    spice.split(' ').first,
-                                    style: TextStyle(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: isSel ? Colors.white : AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                ),
+                      // Out of stock or Discount badge
+                      if (!isAvailable)
+                        Positioned(
+                          bottom: 12,
+                          left: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade700,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'OUT OF STOCK 🔴',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Occasion / Gathering',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: ['Family Gathering', 'Dawat / Party', 'Wedding / Valima', 'Khatam / Niaz', 'Charity / Sadqa'].map((occ) {
-                          final isSel = _selectedOccasion == occ;
-                          return InkWell(
-                            onTap: () => setState(() => _selectedOccasion = occ),
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                              decoration: BoxDecoration(
-                                color: isSel ? const Color(0xFFB45309) : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isSel ? const Color(0xFFB45309) : const Color(0xFFCBD5E1),
-                                ),
-                              ),
-                              child: Text(
-                                occ,
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSel ? Colors.white : AppTheme.textPrimary,
-                                ),
+                          ),
+                        )
+                      else if (food.isDiscounted && food.discountPercent > 0)
+                        Positioned(
+                          bottom: 12,
+                          left: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEF4444),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              food.promoBadge.isNotEmpty
+                                  ? food.promoBadge
+                                  : '${food.discountPercent}% OFF',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Special Instructions (Optional)',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _notesController,
-                        maxLines: 2,
-                        decoration: InputDecoration(
-                          hintText: 'e.g. Less oil, extra raita, mild spices, specific delivery time...',
-                          hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                          filled: true,
-                          fillColor: const Color(0xFFF8FAFC),
-                          contentPadding: const EdgeInsets.all(12),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
-              ),
-            ] else ...[
-              // For Restaurant Dish: ONLY vendor-provided portion options (if multiple) & kitchen notes
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
+
+                // Details Content Below Image
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (widget.foodItem != null && widget.foodItem!.badges.length > 1) ...[
+                      // Title on Left, Price on Right
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              food.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.textPrimary,
+                                letterSpacing: -0.3,
+                                height: 1.25,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                'Rs. ${_unitPrice.toInt()}',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                              if (food.showCutPrice && food.cutPrice > food.effectivePrice) ...[
+                                const SizedBox(height: 1),
+                                Text(
+                                  'Rs. ${food.cutPrice.toInt()}',
+                                  style: const TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF94A3B8),
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Vendor Description
+                      if (food.description.trim().isNotEmpty) ...[
+                        Text(
+                          food.description,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            height: 1.5,
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+
+                      // Vendor Specific Fields (Calories / Vegetarian if set)
+                      if (food.calories > 0 || food.isVegetarian) ...[
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            if (food.calories > 0)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFFFDE68A)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text('🔥 ', style: TextStyle(fontSize: 10)),
+                                    Text(
+                                      '${food.calories} kcal',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF92400E),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (food.isVegetarian)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDCFCE7),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFF86EFAC)),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.eco_rounded, size: 12, color: Color(0xFF16A34A)),
+                                    SizedBox(width: 3),
+                                    Text(
+                                      'Vegetarian',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF166534),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+
+                      // Portion Variations (if vendor created multiple portion badges, e.g. Single / Family)
+                      if (food.badges.length > 1) ...[
+                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                        const SizedBox(height: 12),
                         const Text(
                           'Available Portions / Variations',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: AppTheme.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: widget.foodItem!.badges.map((p) {
+                          children: food.badges.map((p) {
                             final isSel = _selectedPortion == p;
                             return InkWell(
                               onTap: () => setState(() => _selectedPortion = p),
-                              borderRadius: BorderRadius.circular(10),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8.5),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                                 decoration: BoxDecoration(
                                   color: isSel ? AppTheme.primary : const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: isSel ? AppTheme.primary : const Color(0xFFCBD5E1),
                                   ),
@@ -879,7 +604,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                                 child: Text(
                                   p,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w700,
                                     color: isSel ? Colors.white : AppTheme.textPrimary,
                                   ),
@@ -888,26 +613,30 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                             );
                           }).toList(),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                       ],
+
+                      // Kitchen Notes / Special Instructions
+                      const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      const SizedBox(height: 12),
                       const Text(
                         'Special Instructions (Optional)',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w800,
                           color: AppTheme.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       TextField(
                         controller: _notesController,
                         maxLines: 2,
                         decoration: InputDecoration(
                           hintText: 'e.g. Less oil, extra raita, mild spices, cutlery needed...',
-                          hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                          hintStyle: const TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
                           filled: true,
                           fillColor: const Color(0xFFF8FAFC),
-                          contentPadding: const EdgeInsets.all(12),
+                          contentPadding: const EdgeInsets.all(10),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -925,138 +654,647 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                     ],
                   ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Daig Item View (Shahi Cauldrons Booking)
+  Widget _buildDaigItemView({
+    required String title,
+    required String urduName,
+    required String imageUrl,
+    required String description,
+    required double rating,
+    required String address,
+    required bool isAvailable,
+    required Map<String, dynamic>? activeOffer,
+  }) {
+    final daig = widget.daigItem!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Big Image Header with Badges
+        Stack(
+          children: [
+            Hero(
+              tag: 'food_img_${daig.id}',
+              child: CustomImage(
+                imageUrl: imageUrl,
+                height: 250,
+                width: double.infinity,
+                fit: BoxFit.cover,
               ),
-            ],
-
-            const SizedBox(height: 24),
-
-            // 4. Quantity and Order Floating Sticky Bar
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x14000000),
-                    blurRadius: 16,
-                    offset: Offset(0, -4),
+            ),
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.1),
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.65),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Top floating badges
+            Positioned(
+              top: 14,
+              left: 14,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$rating',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF16A34A).withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.verified_rounded, color: Colors.white, size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          '100% Halal',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              child: SafeArea(
-                top: false,
+            ),
+            // Bottom image overlay info
+            Positioned(
+              bottom: 14,
+              left: 16,
+              right: 16,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Authentic Shahi Cauldrons',
+                      style: TextStyle(
+                        color: Colors.amberAccent,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (!isAvailable)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade700,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'OUT OF STOCK',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+
+        // 2. Dish Details Card
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x08000000),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title & Urdu name
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.textPrimary,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              if (urduName.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  urduName,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFB45309),
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 12),
+
+              // Pricing and Unit Price
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    'Rs. ${_unitPrice.toInt()}',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '/ Cauldron',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 14),
+
+              // Preparation Location
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
                 child: Row(
                   children: [
-                    // Quantity Counter
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFCBD5E1)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    const Icon(Icons.location_on_rounded, color: AppTheme.primary, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove_rounded, size: 18),
-                            color: AppTheme.textPrimary,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () {
-                              if (_quantity > 1) {
-                                setState(() => _quantity--);
-                              }
-                            },
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
-                            child: Text(
-                              '$_quantity',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.textPrimary,
-                              ),
+                          const Text(
+                            'PREPARATION & DISPATCH SOURCE',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.primary,
+                              letterSpacing: 0.5,
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.add_rounded, size: 18),
-                            color: AppTheme.textPrimary,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () => setState(() => _quantity++),
+                          const SizedBox(height: 2),
+                          Text(
+                            address,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
                           ),
                         ],
                       ),
                     ),
+                  ],
+                ),
+              ),
 
-                    const SizedBox(width: 14),
-
-                    // Order Button with Price
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: isAvailable ? _handleAddToCart : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isAvailable ? AppTheme.primary : Colors.grey,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+              // Active Offer Banner if any
+              if (activeOffer != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFEF3C7), Color(0xFFFDE68A)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFF59E0B)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.local_offer_rounded, color: Color(0xFFB45309), size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Special Offer: ${activeOffer["title"] ?? ""} (${activeOffer["discountPercent"]} % OFF)',
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF92400E),
                           ),
-                          elevation: 2,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    'TOTAL',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.5,
-                                      color: Colors.white70,
-                                    ),
-                                  ),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      'Rs. ${_totalPrice.toInt()}',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Add to Cart',
-                                  style: TextStyle(
-                                    fontSize: 13.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Icon(Icons.arrow_forward_rounded, size: 16),
-                              ],
-                            ),
-                          ],
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 16),
+
+              // Description
+              const Text(
+                'About this dish',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                description,
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  height: 1.5,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+
+              // Daig Includes list
+              if (daig.includes.isNotEmpty) ...[
+                const SizedBox(height: 14),
+                const Text(
+                  'Includes with this Daig cauldron:',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                ...daig.includes.map(
+                  (inc) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            inc,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: AppTheme.textPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // 3. Selection / Customization Options for Daig
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Select Cauldron Size',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildDaigPortionOption(
+                  title: 'Small Deg (6 KG)',
+                  subtitle: daig.halfDaigWeight,
+                  price: daig.halfDaigPrice,
+                  portionKey: 'Small (6 KG)',
+                ),
+                const SizedBox(height: 8),
+                _buildDaigPortionOption(
+                  title: 'Medium Deg (10 KG)',
+                  subtitle: daig.mediumDaigWeight,
+                  price: daig.mediumDaigPrice,
+                  portionKey: 'Medium (10 KG)',
+                ),
+                const SizedBox(height: 8),
+                _buildDaigPortionOption(
+                  title: 'Large Deg (12-14 KG)',
+                  subtitle: daig.fullDaigWeight,
+                  price: daig.fullDaigPrice,
+                  portionKey: 'Large (12-14 KG)',
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Spice Level',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: ['Mild (ہلکی مرچ)', 'Medium (مناسب)', 'Extra Spicy (تیز چٹپٹی)'].map((spice) {
+                    final isSel = _selectedSpiceLevel == spice;
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: InkWell(
+                          onTap: () => setState(() => _selectedSpiceLevel = spice),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: isSel ? const Color(0xFFDC2626) : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSel ? const Color(0xFFDC2626) : const Color(0xFFCBD5E1),
+                              ),
+                            ),
+                            child: Text(
+                              spice.split(' ').first,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: isSel ? Colors.white : AppTheme.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Occasion / Gathering',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: ['Family Gathering', 'Dawat / Party', 'Wedding / Valima', 'Khatam / Niaz', 'Charity / Sadqa'].map((occ) {
+                    final isSel = _selectedOccasion == occ;
+                    return InkWell(
+                      onTap: () => setState(() => _selectedOccasion = occ),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: isSel ? const Color(0xFFB45309) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isSel ? const Color(0xFFB45309) : const Color(0xFFCBD5E1),
+                          ),
+                        ),
+                        child: Text(
+                          occ,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: isSel ? Colors.white : AppTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Special Instructions (Optional)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _notesController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Less oil, extra raita, mild spices, specific delivery time...',
+                    hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    contentPadding: const EdgeInsets.all(12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Sticky Bottom Action Bar with Quantity Counter and Add to Cart Button
+  Widget _buildBottomActionBar(bool isAvailable) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 16,
+            offset: Offset(0, -4),
+          ),
+        ],
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            // Quantity Counter
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove_rounded, size: 18),
+                    color: AppTheme.textPrimary,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      if (_quantity > 1) {
+                        setState(() => _quantity--);
+                      }
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      '$_quantity',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    color: AppTheme.textPrimary,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => setState(() => _quantity++),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(width: 14),
+
+            // Order Button with Price
+            Expanded(
+              child: ElevatedButton(
+                onPressed: isAvailable ? _handleAddToCart : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isAvailable ? AppTheme.primary : Colors.grey,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 2,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'TOTAL',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Rs. ${_totalPrice.toInt()}',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Add to Cart',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_rounded, size: 16),
+                      ],
                     ),
                   ],
                 ),
@@ -1067,6 +1305,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       ),
     );
   }
+
 
   Widget _buildDaigPortionOption({
     required String title,
