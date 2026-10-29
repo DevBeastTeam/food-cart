@@ -1246,23 +1246,26 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
       }
     }
 
-    // 1. COLLAPSED STATE
+    // 1. COLLAPSED STATE (Full-width, zero-gap flush header)
     if (_isCollapsed) {
       return Container(
-        margin: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7.5),
+        width: double.infinity,
+        margin: EdgeInsets.zero,
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
           gradient: const LinearGradient(
             colors: [Color(0xFF230E4E), Color(0xFF38106A), Color(0xFF4C1D95)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          border: Border.all(color: Colors.white.withAlpha(35)),
+          border: Border(
+            bottom: BorderSide(color: Colors.white.withAlpha(35), width: 1.5),
+          ),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF230E4E).withAlpha(80),
-              blurRadius: 8,
+              blurRadius: 6,
               offset: const Offset(0, 2),
             ),
           ],
@@ -1270,7 +1273,7 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(5),
+              padding: const EdgeInsets.all(5.5),
               decoration: BoxDecoration(
                 color: Colors.amber.withAlpha(40),
                 shape: BoxShape.circle,
@@ -1287,27 +1290,28 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
                     shopName,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 12.5,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 1.5),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
                       const Icon(
                         Icons.location_on_rounded,
-                        color: Colors.white70,
-                        size: 11,
+                        color: Color(0xFF94A3B8), // Grey location icon
+                        size: 11.5,
                       ),
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
                           shopLocation,
                           style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 10,
+                            color: Color(0xFF94A3B8), // Grey text as requested
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
@@ -1319,15 +1323,16 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
                 ],
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             InkWell(
               onTap: () => setState(() => _isCollapsed = false),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(20),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(35),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withAlpha(50)),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1336,7 +1341,7 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
                     SizedBox(width: 3),
                     Text(
                       'Show Shop',
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                      style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
@@ -1347,11 +1352,15 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
       );
     }
 
-    // 2. EXPANDED STATE (Luxury Dark Purple Gradient Card matching Orders Screen HQ)
+    // 2. EXPANDED STATE (Full-width, zero-gap luxury gradient card)
+    final bool hasValidShopImage = shopImage.isNotEmpty && !shopImage.contains('null');
+
     return Container(
-      margin: const EdgeInsets.fromLTRB(14, 10, 14, 8),
+      width: double.infinity,
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
         gradient: const LinearGradient(
           colors: [
             Color(0xFF230E4E),
@@ -1362,82 +1371,81 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        border: Border.all(
-          color: Colors.white.withAlpha(40),
-          width: 1.5,
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withAlpha(40), width: 1.5),
         ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF230E4E).withAlpha(120),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top bar: Shop Badge, Open Status, and Collapse Button
+          // Top Header Row: Shop Icon + Shop Name + Grey Location + Hide Button
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Row(
+              Container(
+                padding: const EdgeInsets.all(5.5),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withAlpha(40),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.storefront_rounded, color: Color(0xFFFBBF24), size: 16),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFBBF24).withAlpha(35),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFFFBBF24).withAlpha(80)),
+                    Text(
+                      shopName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.storefront_rounded, color: Color(0xFFFBBF24), size: 12),
-                          SizedBox(width: 4),
-                          Text(
-                            'SHOP',
-                            style: TextStyle(
-                              color: Color(0xFFFBBF24),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_rounded,
+                          color: Color(0xFF94A3B8), // Grey location icon
+                          size: 11.5,
+                        ),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            shopLocation,
+                            style: const TextStyle(
+                              color: Color(0xFF94A3B8), // Grey text as requested
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w500,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF22C55E),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Flexible(
-                      child: Text(
-                        'Open Daily',
-                        style: TextStyle(color: Color(0xFF22C55E), fontSize: 10.5, fontWeight: FontWeight.w700),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 6),
-              // Collapse Button
+              const SizedBox(width: 8),
+              // Hide Button
               InkWell(
                 onTap: () => setState(() => _isCollapsed = true),
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
                   decoration: BoxDecoration(
                     color: Colors.white.withAlpha(35),
                     borderRadius: BorderRadius.circular(20),
@@ -1446,8 +1454,8 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white, size: 15),
-                      SizedBox(width: 2),
+                      Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white, size: 16),
+                      SizedBox(width: 3),
                       Text(
                         'Hide',
                         style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w700),
@@ -1459,25 +1467,46 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
             ],
           ),
 
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
-          // Carousel (Shop Image & Offer Banner)
+          // 1. Carousel (Shop Image & Offer Banner)
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: SizedBox(
-              height: 125,
+              height: 130,
               child: PageView(
                 controller: _carouselController,
                 onPageChanged: (idx) => setState(() => _carouselIndex = idx),
                 children: [
-                  // Slide 1: Shop Image with dark gradient and shimmering badge
+                  // Slide 1: Shop Image (or fallback "No Shop Image Available" if empty)
                   Stack(
                     fit: StackFit.expand,
                     children: [
-                      CustomImage(
-                        imageUrl: shopImage,
-                        fit: BoxFit.cover,
-                      ),
+                      if (hasValidShopImage)
+                        CustomImage(
+                          imageUrl: shopImage,
+                          fit: BoxFit.cover,
+                        )
+                      else
+                        Container(
+                          color: const Color(0xFF1E1B4B),
+                          alignment: Alignment.center,
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.storefront_rounded, size: 36, color: Colors.white38),
+                              SizedBox(height: 6),
+                              Text(
+                                'No Shop Image',
+                                style: TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
@@ -1651,47 +1680,14 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
 
           const SizedBox(height: 10),
 
-          // Shop Title
-          Text(
-            shopName,
-            style: const TextStyle(
-              fontSize: 15.5,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -0.2,
-            ),
-          ),
-          const SizedBox(height: 3),
-
-          // Location
-          Row(
-            children: [
-              const Icon(Icons.location_on_rounded, color: Color(0xFFFBBF24), size: 13),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  shopLocation,
-                  style: const TextStyle(
-                    fontSize: 11.5,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // Supported Types Row
+          // 2. Supported Types Row
           Row(
             children: [
               const Text(
                 'Supported: ',
                 style: TextStyle(
                   color: Color(0xFF94A3B8), // Grey text
-                  fontSize: 11,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1700,7 +1696,7 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
                   supportedText,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 11,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -1709,11 +1705,11 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
             ],
           ),
 
-          // Contact Number Row (if provided)
+          // 3. Contact / WhatsApp Row (if phone provided)
           if (shopPhone.isNotEmpty) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white.withAlpha(20),
                 borderRadius: BorderRadius.circular(8),
@@ -1721,18 +1717,18 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF22C55E), size: 13),
-                  const SizedBox(width: 5),
+                  const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF22C55E), size: 14),
+                  const SizedBox(width: 6),
                   const Text(
                     'Contact: ',
-                    style: TextStyle(color: Colors.white60, fontSize: 10.5, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.w600),
                   ),
                   Expanded(
                     child: Text(
                       shopPhone,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 11,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.3,
                       ),
@@ -1746,7 +1742,7 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
 
           const SizedBox(height: 12),
 
-          // Action Button Row: "View Shop Location"
+          // 4. View Shop Location Button
           Row(
             children: [
               Expanded(
@@ -1765,7 +1761,7 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF59E0B),
                     foregroundColor: Colors.black87,
-                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
