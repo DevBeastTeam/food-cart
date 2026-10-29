@@ -43,7 +43,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       _selectedPortion = 'Large (12-14 KG)';
     } else {
       final badges = widget.foodItem?.badges ?? [];
-      _selectedPortion = badges.isNotEmpty ? badges.first : 'Standard Portion';
+      _selectedPortion = badges.isNotEmpty ? badges.first : '';
     }
   }
 
@@ -108,10 +108,11 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
       restName = daig.centerName;
     } else {
       final f = widget.foodItem!;
+      final portionSuffix = _selectedPortion.isNotEmpty && _selectedPortion != 'Standard Portion' ? ' ($_selectedPortion)' : '';
       itemToAdd = FoodItem(
         id: '${f.id}_${DateTime.now().millisecondsSinceEpoch}',
         restaurantId: f.restaurantId,
-        name: '${f.name} ($_selectedPortion)',
+        name: '${f.name}$portionSuffix',
         description: _notesController.text.trim().isNotEmpty
             ? '${f.description} • Note: ${_notesController.text.trim()}'
             : f.description,
@@ -438,7 +439,7 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
                   const SizedBox(height: 12),
 
-                  // Pricing and Unit Price
+                  // Pricing and Unit Price with Discount & Cut Price
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
@@ -451,6 +452,18 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                           color: AppTheme.primary,
                         ),
                       ),
+                      if (!_isDaig && widget.foodItem != null && widget.foodItem!.showCutPrice && widget.foodItem!.cutPrice > widget.foodItem!.effectivePrice) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          'Rs. ${widget.foodItem!.cutPrice.toInt()}',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF94A3B8),
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                      ],
                       const SizedBox(width: 8),
                       Text(
                         _isDaig ? '/ Cauldron' : '/ Serving',
@@ -460,8 +473,97 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                           color: AppTheme.textSecondary,
                         ),
                       ),
+                      if (!_isDaig && widget.foodItem != null && widget.foodItem!.isDiscounted && widget.foodItem!.discountPercent > 0) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            widget.foodItem!.promoBadge.isNotEmpty
+                                ? widget.foodItem!.promoBadge
+                                : '${widget.foodItem!.discountPercent}% OFF',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
+
+                  // Actual Vendor Tags (Category, Calories, Badges)
+                  if (!_isDaig && widget.foodItem != null) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        if (widget.foodItem!.category.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 3.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                            ),
+                            child: Text(
+                              widget.foodItem!.category,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                          ),
+                        if (widget.foodItem!.calories > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 3.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFFDE68A)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('🔥 ', style: TextStyle(fontSize: 10)),
+                                Text(
+                                  '${widget.foodItem!.calories} kcal',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF92400E),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ...widget.foodItem!.badges.map(
+                          (b) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 3.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            child: Text(
+                              b,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
 
                   const SizedBox(height: 14),
 
@@ -598,29 +700,29 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
             const SizedBox(height: 16),
 
-            // 3. Portion / Size Selection
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _isDaig ? 'Select Cauldron Size' : 'Select Portion Option',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
+            // 3. Selection / Customization Options
+            if (_isDaig) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Select Cauldron Size',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_isDaig) ...[
+                      const SizedBox(height: 12),
                       _buildDaigPortionOption(
                         title: 'Small Deg (6 KG)',
                         subtitle: widget.daigItem!.halfDaigWeight,
@@ -641,84 +743,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                         price: widget.daigItem!.fullDaigPrice,
                         portionKey: 'Large (12-14 KG)',
                       ),
-                    ] else ...[
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: (widget.foodItem?.badges.isNotEmpty == true
-                                ? widget.foodItem!.badges
-                                : ['Single Platter (1kg)', 'Family Pack (3kg)', 'Desi Ghee Regular'])
-                            .map((p) {
-                          final isSel = _selectedPortion == p;
-                          return InkWell(
-                            onTap: () => setState(() => _selectedPortion = p),
-                            borderRadius: BorderRadius.circular(10),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                              decoration: BoxDecoration(
-                                color: isSel ? AppTheme.primary : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: isSel ? AppTheme.primary : const Color(0xFFCBD5E1),
-                                ),
-                              ),
-                              child: Text(
-                                p,
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSel ? Colors.white : AppTheme.textPrimary,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Occasion / Gathering',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: ['Family Gathering', 'Dawat / Party', 'Wedding / Valima', 'Khatam / Niaz', 'Charity / Sadqa'].map((occ) {
-                          final isSel = _selectedOccasion == occ;
-                          return InkWell(
-                            onTap: () => setState(() => _selectedOccasion = occ),
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                              decoration: BoxDecoration(
-                                color: isSel ? const Color(0xFFB45309) : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isSel ? const Color(0xFFB45309) : const Color(0xFFCBD5E1),
-                                ),
-                              ),
-                              child: Text(
-                                occ,
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: isSel ? Colors.white : AppTheme.textPrimary,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-
-                    // Spice Level if Daig
-                    if (_isDaig) ...[
                       const SizedBox(height: 16),
                       const Text(
                         'Spice Level',
@@ -762,7 +786,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                           );
                         }).toList(),
                       ),
-
                       const SizedBox(height: 16),
                       const Text(
                         'Occasion / Gathering',
@@ -802,47 +825,136 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                           );
                         }).toList(),
                       ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Special Instructions (Optional)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _notesController,
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          hintText: 'e.g. Less oil, extra raita, mild spices, specific delivery time...',
+                          hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          contentPadding: const EdgeInsets.all(12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
+                          ),
+                        ),
+                      ),
                     ],
-
-                    const SizedBox(height: 16),
-
-                    // Cooking Instructions
-                    const Text(
-                      'Special Instructions (Optional)',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _notesController,
-                      maxLines: 2,
-                      decoration: InputDecoration(
-                        hintText: 'e.g. Less oil, extra raita, mild spices, specific delivery time...',
-                        hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        contentPadding: const EdgeInsets.all(12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+            ] else ...[
+              // For Restaurant Dish: ONLY vendor-provided portion options (if multiple) & kitchen notes
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (widget.foodItem != null && widget.foodItem!.badges.length > 1) ...[
+                        const Text(
+                          'Available Portions / Variations',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: widget.foodItem!.badges.map((p) {
+                            final isSel = _selectedPortion == p;
+                            return InkWell(
+                              onTap: () => setState(() => _selectedPortion = p),
+                              borderRadius: BorderRadius.circular(10),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8.5),
+                                decoration: BoxDecoration(
+                                  color: isSel ? AppTheme.primary : const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSel ? AppTheme.primary : const Color(0xFFCBD5E1),
+                                  ),
+                                ),
+                                child: Text(
+                                  p,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: isSel ? Colors.white : AppTheme.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      const Text(
+                        'Special Instructions (Optional)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _notesController,
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          hintText: 'e.g. Less oil, extra raita, mild spices, cutlery needed...',
+                          hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          contentPadding: const EdgeInsets.all(12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
 
             const SizedBox(height: 24),
 
@@ -1168,34 +1280,34 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
       if (shopName.isEmpty) {
         switch (sid) {
           case 'sub_admin_1':
-            shopName = 'Bannu Beef Pulao';
-            shopLocation = 'Tariq Road, PECHS, Karachi';
+            shopName = 'Bannu Beef Pulao & Nalli Nihari';
+            shopLocation = 'Shop 12, Block K, Gulberg III, Lahore';
             shopImage = 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80';
-            shopPhone = '+92 300 1234567';
+            shopPhone = '+92 300 1122334';
             break;
           case 'sub_admin_2':
             shopName = 'Shahi Pakwan Center';
-            shopLocation = 'Burns Road, Saddar, Karachi';
+            shopLocation = 'Bungalow 18-C, Model Town, Lahore';
             shopImage = 'https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80';
-            shopPhone = '+92 300 8472910';
+            shopPhone = '+92 301 4455667';
             break;
           case 'sub_admin_3':
-            shopName = 'Shinwari Karahi';
-            shopLocation = 'Gulshan-e-Iqbal, Block 4, Karachi';
+            shopName = 'Dawat Khana Desi Heritage';
+            shopLocation = 'Main Boulevard, Phase 5, DHA, Lahore';
             shopImage = 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=700&q=80';
-            shopPhone = '+92 301 7654321';
+            shopPhone = '+92 322 1122334';
             break;
           case 'sub_admin_4':
-            shopName = 'Madina Pakwan';
-            shopLocation = 'Nazimabad No. 2, Karachi';
-            shopImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=700&q=80';
-            shopPhone = '+92 301 5551234';
+            shopName = 'Madina Pakwan & Catering Service';
+            shopLocation = 'Commercial Plaza 8, Block G, Johar Town, Lahore';
+            shopImage = 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=700&q=80';
+            shopPhone = '+92 333 4455667';
             break;
           default:
             shopName = 'FoodCourt Special Kitchen';
-            shopLocation = f.locationAddress.isNotEmpty ? f.locationAddress : 'Central Delivery Hub, Karachi';
+            shopLocation = f.locationAddress.isNotEmpty ? f.locationAddress : '14-C Gulberg III, Lahore';
             shopImage = 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=700&q=80';
-            shopPhone = '+92 300 9876543';
+            shopPhone = '+92 300 8472910';
             break;
         }
       }
