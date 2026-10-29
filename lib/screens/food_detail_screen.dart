@@ -1254,14 +1254,13 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
       }
     }
 
-    // 1. COLLAPSED STATE (Full-width, zero-gap flush header)
+    // 1. COLLAPSED STATE (Full-width, zero-gap flush header, without rounded bottom)
     if (_isCollapsed) {
       return Container(
         width: double.infinity,
         margin: EdgeInsets.zero,
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
         decoration: BoxDecoration(
-          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
           gradient: const LinearGradient(
             colors: [Color(0xFF230E4E), Color(0xFF38106A), Color(0xFF4C1D95)],
             begin: Alignment.topLeft,
@@ -1360,7 +1359,7 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
       );
     }
 
-    // 2. EXPANDED STATE (Full-width, zero-gap luxury gradient card)
+    // 2. EXPANDED STATE (Full-width, zero-gap luxury gradient card, without rounded bottom)
     final bool hasValidShopImage = shopImage.isNotEmpty && !shopImage.contains('null');
 
     return Container(
@@ -1368,7 +1367,6 @@ class _ShopInfoCollapsibleCardState extends State<_ShopInfoCollapsibleCard>
       margin: EdgeInsets.zero,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
       decoration: BoxDecoration(
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
         gradient: const LinearGradient(
           colors: [
             Color(0xFF230E4E),
