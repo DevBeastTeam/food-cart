@@ -32,7 +32,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
   final TextEditingController _notesController = TextEditingController();
   String _selectedSpiceLevel = 'Medium';
   String _selectedOccasion = 'Family Gathering';
-  bool _isFavorite = false;
 
   bool get _isDaig => widget.daigItem != null;
 
@@ -209,13 +208,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: _isFavorite ? Colors.red : AppTheme.textSecondary,
-            ),
-            onPressed: () => setState(() => _isFavorite = !_isFavorite),
-          ),
           ListenableBuilder(
             listenable: widget.cartState,
             builder: (context, _) {

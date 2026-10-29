@@ -8,7 +8,6 @@ import '../state/cart_state.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_image.dart';
-import 'head_office_detail_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   final UserState userState;
@@ -28,25 +27,13 @@ class OrdersScreen extends StatefulWidget {
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen>
-    with SingleTickerProviderStateMixin {
+class _OrdersScreenState extends State<OrdersScreen> {
   String _activeFilter = 'All'; // 'All', 'Active', 'Delivered'
-  bool _isHeadOfficeCollapsed = false;
-  late final AnimationController _textShimmerController;
-  late final Animation<double> _textShimmer;
   Timer? _autoRefreshTimer;
 
   @override
   void initState() {
     super.initState();
-    _textShimmerController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
-    )..repeat();
-    _textShimmer = Tween<double>(begin: -1, end: 2).animate(
-      CurvedAnimation(parent: _textShimmerController, curve: Curves.easeInOut),
-    );
-
     // Initial sync
     ApiService.instance.syncOrdersOnly(userState: widget.userState);
 
@@ -61,7 +48,6 @@ class _OrdersScreenState extends State<OrdersScreen>
   @override
   void dispose() {
     _autoRefreshTimer?.cancel();
-    _textShimmerController.dispose();
     super.dispose();
   }
 
@@ -89,9 +75,6 @@ class _OrdersScreenState extends State<OrdersScreen>
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-            SliverToBoxAdapter(
-              child: _buildHeadOfficeCard(context),
-            ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
@@ -2098,362 +2081,6 @@ class _OrdersScreenState extends State<OrdersScreen>
     } else {
       return '${diff.inDays} days ago';
     }
-  }
-
-  Widget _buildHeadOfficeCard(BuildContext context) {
-    if (_isHeadOfficeCollapsed) {
-      // Collapsed state: Compact pill allowing full scroll of orders
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF230E4E), Color(0xFF38106A), Color(0xFF4C1D95)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          border: Border.all(color: Colors.white.withAlpha(35)),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF230E4E).withAlpha(80),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: Colors.amber.withAlpha(40),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.soup_kitchen_rounded, color: Color(0xFFFBBF24), size: 16),
-            ),
-            const SizedBox(width: 8),
-            const Expanded(
-              child: Text(
-                'FoodCourt Central Kitchen & HQ (Gulberg III)',
-                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            InkWell(
-              onTap: () => setState(() => _isHeadOfficeCollapsed = false),
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(35),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 16),
-                    SizedBox(width: 3),
-                    Text(
-                      'Show HQ',
-                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Expanded state: Big luxury card with dark purple gradient and shimmer effect
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF230E4E),
-            Color(0xFF38106A),
-            Color(0xFF4C1D95),
-            Color(0xFF5B21B6),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(
-          color: Colors.white.withAlpha(40),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF230E4E).withAlpha(120),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Top bar: HQ Badge, Open Status, and Collapse Button
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFBBF24).withAlpha(35),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFFFBBF24).withAlpha(80)),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.workspace_premium_rounded, color: Color(0xFFFBBF24), size: 12),
-                          SizedBox(width: 3),
-                          Text(
-                            'HQ',
-                            style: TextStyle(
-                              color: Color(0xFFFBBF24),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF22C55E),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Flexible(
-                      child: Text(
-                        'Open 24/7',
-                        style: TextStyle(color: Color(0xFF22C55E), fontSize: 10.5, fontWeight: FontWeight.w700),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 6),
-              // Collapse Button
-              InkWell(
-                onTap: () => setState(() => _isHeadOfficeCollapsed = true),
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(35),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withAlpha(50)),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white, size: 15),
-                      SizedBox(width: 2),
-                      Text(
-                        'Hide',
-                        style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w700),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Big Hero Image with rounded corners and glossy border
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: Stack(
-              children: [
-                const CustomImage(
-                  imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=700&q=80',
-                  width: double.infinity,
-                  height: 130,
-                  fit: BoxFit.cover,
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withAlpha(140),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 8,
-                  left: 10,
-                  right: 10,
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withAlpha(180),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.restaurant_rounded, color: Color(0xFFFBBF24), size: 13),
-                              SizedBox(width: 4),
-                              Flexible(
-                                child: AnimatedBuilder(
-                                  animation: _textShimmer,
-                                  builder: (context, child) {
-                                    return ShaderMask(
-                                      shaderCallback: (bounds) {
-                                        final relativeX = _textShimmer.value;
-                                        return LinearGradient(
-                                          colors: const [
-                                            Colors.white,
-                                            Color(0xFFFBBF24),
-                                            Colors.white,
-                                          ],
-                                          end: Alignment(relativeX, 0),
-                                        ).createShader(bounds);
-                                      },
-                                      child: const Text(
-                                        'FoodCourt Cooking Center',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Title & Route Row
-          const Text(
-            'FoodCourt Central Kitchen & Headquarters',
-            style: TextStyle(
-              fontSize: 16.5,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 4),
-          const Row(
-            children: [
-              Icon(Icons.location_on_rounded, color: Color(0xFFFBBF24), size: 14),
-              SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  '14-C Main Boulevard, Gulberg III, Lahore, Pakistan',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // Highlight Tags
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              _buildHeadOfficeBadge('⏱️ 20-30m Dispatch'),
-              _buildHeadOfficeBadge('🍲 Shahi Daigs Available'),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // Action Button Row
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HeadOfficeDetailScreen()),
-                    );
-                  },
-                  icon: const Icon(Icons.explore_rounded, size: 16),
-                  label: const Text(
-                    'View Details & GPS Map',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF59E0B),
-                    foregroundColor: Colors.black87,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeadOfficeBadge(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(25),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.white.withAlpha(45)),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 10.5,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
   }
 
   // Floating Action Button for Assigned Rider WhatsApp & Direct Call (with JUST 2 icon buttons)

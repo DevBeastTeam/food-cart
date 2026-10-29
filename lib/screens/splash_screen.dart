@@ -27,8 +27,8 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    // Auto-proceed to Home Screen after 2.6 seconds if user doesn't press Get Started
-    _autoNavTimer = Timer(const Duration(milliseconds: 2600), () {
+    // Auto-proceed to Home Screen after 7 seconds
+    _autoNavTimer = Timer(const Duration(seconds: 7), () {
       if (mounted) {
         _goToHome();
       }
@@ -65,183 +65,244 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background subtle aura matching Navy Blue / Royal Purple theme
+          // ── LAYER 1: Girl image perfectly centered & uncropped with bottom fade ──
           Positioned(
-            top: -60,
-            left: -60,
-            right: -60,
-            height: size.height * 0.45,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.topCenter,
-                  radius: 1.2,
-                  colors: [
-                    const Color(0xFF6C3CE9).withValues(alpha: 0.10),
-                    const Color(0xFF1E1B4B).withValues(alpha: 0.05),
-                    Colors.transparent,
-                  ],
+            top: 0,
+            left: 0,
+            right: 0,
+            height: size.height * 0.60,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  'assets/images/delivery_courier.jpg',
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
+                  errorBuilder: (_, __, ___) => Image.network(
+                    'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=800&q=80',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  ),
                 ),
-              ),
+                // Smooth gradient overlay: 100% clear at top, dissolves to white at bottom
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.transparent,
+                        Colors.white.withValues(alpha: 0.35),
+                        Colors.white.withValues(alpha: 0.85),
+                        Colors.white,
+                      ],
+                      stops: const [0.0, 0.45, 0.70, 0.88, 1.0],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
 
+          // ── LAYER 3: Side characters + floating overlays ─────────────────
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
+            child: Stack(
+              children: [
 
-                  // TOP HERO SECTION: Female Delivery Courier with Cap, Bags & Parcel
-                  Expanded(
-                    flex: 6,
-                    child: Center(
-                      child: Stack(
-                        alignment: Alignment.center,
-                        clipBehavior: Clip.none,
+                // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                // TOP LEFT — Pakwan Chef (piche se kaam kar raha hai, fades at bottom)
+                // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.white, Colors.white.withValues(alpha: 0.5), Colors.transparent],
+                      stops: const [0.0, 0.6, 1.0],
+                    ).createShader(bounds),
+                    blendMode: BlendMode.dstIn,
+                    child: Opacity(
+                      opacity: 0.85,
+                      child: Column(
                         children: [
-                          // Soft background backdrop card
+                          // Chef hat icon header
                           Container(
-                            width: size.width * 0.86,
-                            height: size.height * 0.42,
+                            margin: const EdgeInsets.only(left: 10, top: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFF1F5F9), Color(0xFFE2E8F0)],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
-                              borderRadius: BorderRadius.circular(32),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF0F172A).withValues(alpha: 0.08),
-                                  blurRadius: 24,
-                                  offset: const Offset(0, 10),
+                              color: const Color(0xFF1E293B).withValues(alpha: 0.75),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('👨‍🍳', style: TextStyle(fontSize: 18)),
+                                SizedBox(width: 5),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Shahi Pakwan', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
+                                    Text('Kitchen', style: TextStyle(color: Color(0xFFFBBF24), fontSize: 9, fontWeight: FontWeight.w600)),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-
-                          // Main Delivery Courier Character Image (Female rider holding parcels & bags)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(32),
-                            child: SizedBox(
-                              width: size.width * 0.86,
-                              height: size.height * 0.42,
-                              child: Image.asset(
-                                'assets/images/delivery_courier.jpg',
+                          const SizedBox(height: 6),
+                          // Daig cooking visual
+                          Container(
+                            margin: const EdgeInsets.only(left: 6),
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.55),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=200&q=80',
+                                width: 70,
+                                height: 72,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Image.network(
-                                  'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=800&q=80',
-                                  fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const SizedBox(
+                                  width: 70, height: 72,
+                                  child: Center(child: Text('🫕', style: TextStyle(fontSize: 36))),
                                 ),
                               ),
                             ),
                           ),
-
-                          // Floating Pill #Fresh on Top-Right with Sparkle (Shimmer Effect)
-                          Positioned(
-                            top: 18,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0F172A),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.35),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '#Fresh',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 12.5,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text('✨', style: TextStyle(fontSize: 11)),
-                                ],
-                              ),
-                            )
-                                .animate(onPlay: (controller) => controller.repeat(period: const Duration(seconds: 3)))
-                                .shimmer(duration: const Duration(milliseconds: 1400), color: Colors.amberAccent.withValues(alpha: 0.6)),
+                          const SizedBox(height: 4),
+                          // Steam / cooking indicator
+                          Container(
+                            margin: const EdgeInsets.only(left: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEF4444).withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text('🔥 Cooking Now', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
                           ),
+                        ],
+                      ),
+                    ),
+                  ).animate(onPlay: (c) => c.repeat(period: const Duration(seconds: 3)))
+                      .shimmer(duration: const Duration(milliseconds: 1800), color: Colors.amber.withValues(alpha: 0.3)),
+                ),
 
-                          // Floating Pill #Delicious on Mid-Left with Sparkle (Shimmer Effect)
-                          Positioned(
-                            bottom: 60,
-                            left: -8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFFEA580C), Color(0xFFF97316)],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white, width: 1.5),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFFEA580C).withValues(alpha: 0.4),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                // TOP RIGHT — Delivery Rider + Shahi Pakwan Daig cards (fades at bottom)
+                // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.white, Colors.white.withValues(alpha: 0.4), Colors.transparent],
+                      stops: const [0.0, 0.55, 1.0],
+                    ).createShader(bounds),
+                    blendMode: BlendMode.dstIn,
+                    child: Opacity(
+                      opacity: 0.88,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          // Rider pill (Theme Deep Purple / Royal Violet matching Get Started button)
+                          Container(
+                            margin: const EdgeInsets.only(right: 10, top: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF31105E), Color(0xFF6C3CE9)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '#Delicious',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 12.5,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text('🔥', style: TextStyle(fontSize: 11)),
-                                ],
-                              ),
-                            )
-                                .animate(onPlay: (controller) => controller.repeat(period: const Duration(seconds: 3)))
-                                .shimmer(duration: const Duration(milliseconds: 1400), color: Colors.white.withValues(alpha: 0.7)),
-                          ),
-
-                          // 3 Floating Food Dish Cards Layered at Bottom (Matching Image Mockup)
-                          Positioned(
-                            bottom: -24,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1),
+                              boxShadow: [
+                                BoxShadow(color: const Color(0xFF6C3CE9).withValues(alpha: 0.45), blurRadius: 8, offset: const Offset(0, 3)),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                _buildFoodDishThumb(
-                                  imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&q=80',
-                                  label: 'Biryani',
+                                Text('🏍️', style: TextStyle(fontSize: 16)),
+                                SizedBox(width: 5),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Rider On Way', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
+                                    Text('Home Delivery', style: TextStyle(color: Color(0xFFE9D5FF), fontSize: 9, fontWeight: FontWeight.w600)),
+                                  ],
                                 ),
-                                const SizedBox(width: 12),
-                                _buildFoodDishThumb(
-                                  imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&q=80',
-                                  label: 'BBQ',
-                                  isElevated: true,
+                              ],
+                            ),
+                          )
+                              .animate(onPlay: (c) => c.repeat(period: const Duration(seconds: 2)))
+                              .shimmer(duration: const Duration(milliseconds: 1200), color: Colors.white.withValues(alpha: 0.5)),
+                          const SizedBox(height: 6),
+                          // Daig / Pakwan card
+                          Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.55),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFFBBF24).withValues(alpha: 0.5), width: 1),
+                            ),
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    'https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?w=200&q=80',
+                                    width: 68,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const SizedBox(
+                                      width: 68, height: 60,
+                                      child: Center(child: Text('🍛', style: TextStyle(fontSize: 30))),
+                                    ),
+                                  ),
                                 ),
-                                const SizedBox(width: 12),
-                                _buildFoodDishThumb(
-                                  imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
-                                  label: 'Fast Food',
+                                const SizedBox(height: 4),
+                                const Text('Shahi Daig', style: TextStyle(color: Color(0xFFFBBF24), fontSize: 9, fontWeight: FontWeight.w800)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          // Second daig card
+                          Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.45),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
+                            ),
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80',
+                                    width: 60,
+                                    height: 52,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const SizedBox(
+                                      width: 60, height: 52,
+                                      child: Center(child: Text('🍚', style: TextStyle(fontSize: 26))),
+                                    ),
+                                  ),
                                 ),
+                                const SizedBox(height: 3),
+                                const Text('Degi Biryani', style: TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w700)),
                               ],
                             ),
                           ),
@@ -249,155 +310,186 @@ class _SplashScreenState extends State<SplashScreen> {
                       ),
                     ),
                   ),
+                ),
+              ],
+            ),
+          ),
 
-                  const SizedBox(height: 42),
+          // ── LAYER 4: Bottom content floating over gradient ────────────────
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Food Dish Thumb Row — Pulao, Pizza, Parcel themed
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildFoodDishThumb(
+                          imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&q=80',
+                          label: 'Pulao 🍚',
+                        ),
+                        const SizedBox(width: 12),
+                        _buildFoodDishThumb(
+                          imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&q=80',
+                          label: 'Pizza 🍕',
+                          isElevated: true,
+                        ),
+                        const SizedBox(width: 12),
+                        _buildFoodDishThumb(
+                          imageUrl: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&q=80',
+                          label: 'Parcel 📦',
+                        ),
+                      ],
+                    ),
 
-                  // BOTTOM BRANDING SECTION: Food Court + Multi Vendor (with Shimmer)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Food Court & Multi Vendor Title Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Food Court',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF0F172A),
-                              letterSpacing: -0.6,
+                    const SizedBox(height: 20),
+
+                    // Food Court + Multi Vendor Title Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Food Court',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0F172A),
+                            letterSpacing: -0.6,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Multi Vendor Outlined Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6C3CE9).withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF6C3CE9),
+                              width: 1.5,
                             ),
                           ),
-                          const SizedBox(width: 8),
-
-                          // Multi Vendor Badge with continuous shimmer effect
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF4C1D95), Color(0xFF6C3CE9), Color(0xFF8B5CF6)],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF6C3CE9).withValues(alpha: 0.35),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.storefront_rounded, color: Color(0xFF6C3CE9), size: 13),
+                              SizedBox(width: 4),
+                              Text(
+                                'Multi Vendor',
+                                style: TextStyle(
+                                  color: Color(0xFF6C3CE9),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.4,
                                 ),
-                              ],
+                              ),
+                            ],
+                          ),
+                        )
+                            .animate(onPlay: (c) => c.repeat(period: const Duration(seconds: 2)))
+                            .shimmer(duration: const Duration(milliseconds: 1300), color: const Color(0xFF8B5CF6).withValues(alpha: 0.4)),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Description with Grey & Black Shimmer
+                    Text(
+                      'Availability: All nearby cities restaurant foods • Desi Foods\nShahi Pakwan • Riders • Home Delivery',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1E293B),
+                        letterSpacing: 0.2,
+                      ),
+                    )
+                        .animate(onPlay: (c) => c.repeat(period: const Duration(seconds: 2)))
+                        .shimmer(
+                          duration: const Duration(milliseconds: 1400),
+                          color: const Color(0xFF94A3B8),
+                        ),
+
+                    const SizedBox(height: 20),
+
+                    // GET STARTED BUTTON
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: _goToHome,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF1E1B4B), Color(0xFF31105E), Color(0xFF6C3CE9)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
                             ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF6C3CE9).withValues(alpha: 0.4),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.storefront_rounded, color: Colors.amberAccent, size: 13),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Multi Vendor',
+                                const Text(
+                                  'Get Started',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 11,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.3,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    color: Colors.white,
+                                    size: 16,
                                   ),
                                 ),
                               ],
                             ),
-                          )
-                              .animate(onPlay: (controller) => controller.repeat(period: const Duration(seconds: 2)))
-                              .shimmer(duration: const Duration(milliseconds: 1300), color: Colors.amberAccent.withValues(alpha: 0.8)),
-                        ],
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      // Platform Description (Customer, Multi-Vendor, Rider)
-                      const Text(
-                        'Rider, Customer & Multi-Vendor Food & Shahi Pakwan Platform.\nOrder fresh food, groceries & authentic catering daigs instantly.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          height: 1.45,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // GET STARTED BUTTON (with Shimmer Effect)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 54,
-                        child: ElevatedButton(
-                          onPressed: _goToHome,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            padding: EdgeInsets.zero,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: Ink(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF1E1B4B), Color(0xFF31105E), Color(0xFF6C3CE9)],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF6C3CE9).withValues(alpha: 0.4),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Container(
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Get Started',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.2,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.2),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.arrow_forward_rounded,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ),
                         ),
-                      )
-                          .animate(onPlay: (controller) => controller.repeat(period: const Duration(seconds: 2)))
-                          .shimmer(duration: const Duration(milliseconds: 1400), color: Colors.white.withValues(alpha: 0.4)),
-
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ],
+                      ),
+                    )
+                        .animate(onPlay: (c) => c.repeat(period: const Duration(seconds: 2)))
+                        .shimmer(duration: const Duration(milliseconds: 1400), color: Colors.white.withValues(alpha: 0.4)),
+                  ],
+                ),
               ),
             ),
           ),

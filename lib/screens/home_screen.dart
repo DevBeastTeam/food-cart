@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _homeSearchController = TextEditingController();
   String _homeSearchQuery = '';
   Timer? _searchDebounce;
+  Timer? _orderSyncTimer;
   bool _isSearching = false;
   List<FoodItem> _searchResults = [];
   List<DaigItem> _searchDaigResults = [];
@@ -229,7 +230,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Background order polling every 25 seconds for live status updates & local notifications
+    _orderSyncTimer = Timer.periodic(const Duration(seconds: 25), (_) {
+      if (mounted) {
+        ApiService.instance.syncOrdersOnly(userState: widget.userState);
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _orderSyncTimer?.cancel();
     _searchDebounce?.cancel();
     _homeSearchController.dispose();
     super.dispose();
