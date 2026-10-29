@@ -414,57 +414,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: ListView(
                         children: [
-                          // 1. ALL OPTION (Top Priority)
-                          ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: _selectedVendorId == 'all'
-                                    ? AppTheme.primary
-                                    : AppTheme.border,
-                              ),
-                            ),
-                            tileColor: _selectedVendorId == 'all'
-                                ? AppTheme.primaryLight.withAlpha(80)
-                                : Colors.transparent,
-                            leading: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: _selectedVendorId == 'all' ? AppTheme.primary : AppTheme.surfaceMuted,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.public_rounded,
-                                color: _selectedVendorId == 'all' ? Colors.white : AppTheme.primary,
-                                size: 22,
-                              ),
-                            ),
-                            title: const Row(
-                              children: [
-                                Text(
-                                  'All Locations (تمام لوکیشنز)',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                                ),
-                                SizedBox(width: 6),
-                                Text(
-                                  'All Vendors',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            subtitle: const Text(
-                              'Show all food dishes, Shahi daigs & offers from every kitchen',
-                              style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                            ),
-                            trailing: _selectedVendorId == 'all'
-                                ? const Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 22)
-                                : null,
+                          // 1. ALL OPTION (Cupertino iOS Style, Compact & Zero Overflow)
+                          InkWell(
                             onTap: () {
                               setState(() {
                                 _selectedVendorId = 'all';
@@ -475,104 +426,261 @@ class _HomeScreenState extends State<HomeScreen> {
                               });
                               Navigator.pop(sheetContext);
                             },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: _selectedVendorId == 'all'
+                                    ? AppTheme.primaryLight.withAlpha(90)
+                                    : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _selectedVendorId == 'all'
+                                      ? AppTheme.primary
+                                      : const Color(0xFFE2E8F0),
+                                  width: _selectedVendorId == 'all' ? 1.4 : 1.0,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  // iOS Style Leading Icon
+                                  Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: _selectedVendorId == 'all'
+                                          ? AppTheme.primary
+                                          : const Color(0xFFE2E8F0),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(
+                                      Icons.explore_rounded,
+                                      color: _selectedVendorId == 'all' ? Colors.white : AppTheme.primary,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+
+                                  // Title and Subtitle Column (Cupertino iOS style)
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                'All Locations',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: _selectedVendorId == 'all'
+                                                      ? AppTheme.primary
+                                                      : AppTheme.textPrimary,
+                                                  letterSpacing: -0.2,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                              decoration: BoxDecoration(
+                                                color: _selectedVendorId == 'all'
+                                                    ? AppTheme.primary
+                                                    : const Color(0xFFE2E8F0),
+                                                borderRadius: BorderRadius.circular(5),
+                                              ),
+                                              child: Text(
+                                                'All Vendors',
+                                                style: TextStyle(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: _selectedVendorId == 'all'
+                                                      ? Colors.white
+                                                      : AppTheme.textSecondary,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        const Text(
+                                          'تمام لوکیشنز • All dishes & kitchens',
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            color: AppTheme.textSecondary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 8),
+
+                                  // iOS Checkmark / Indicator
+                                  if (_selectedVendorId == 'all')
+                                    const Icon(
+                                      Icons.check_circle_rounded,
+                                      color: AppTheme.primary,
+                                      size: 20,
+                                    )
+                                  else
+                                    const Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: Color(0xFF94A3B8),
+                                      size: 18,
+                                    ),
+                                ],
+                              ),
+                            ),
                           ),
 
                           const SizedBox(height: 8),
-                          const Divider(height: 1, color: AppTheme.border),
+                          const Divider(height: 1, color: Color(0xFFE2E8F0)),
                           const SizedBox(height: 8),
 
-                          // 2. Individual Vendors / Restaurants
+                          // 2. Individual Vendors / Restaurants (Cupertino iOS Style)
                           ...filtered.map((v) {
                             final isSel = _selectedVendorId == v['id'] ||
                                 (_selectedVendorId != 'all' && _selectedVendorName == v['name']);
                             final isPakwan = v['type'] == 'Pakwan Center';
 
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isSel ? AppTheme.primary : AppTheme.border.withAlpha(120),
-                                ),
-                                color: isSel ? AppTheme.primaryLight.withAlpha(50) : Colors.white,
-                              ),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                                leading: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.network(
-                                    v['imageUrl']!,
-                                    width: 44,
-                                    height: 44,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      width: 44,
-                                      height: 44,
-                                      color: AppTheme.surfaceMuted,
-                                      child: Icon(
-                                        isPakwan ? Icons.soup_kitchen : Icons.restaurant,
-                                        color: AppTheme.primary,
-                                        size: 20,
-                                      ),
-                                    ),
+                            return InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _selectedVendorId = v['id']!;
+                                  _selectedVendorName = v['name']!;
+                                  _selectedVendorLocation = v['address']!;
+                                  _restaurantPage = 1;
+                                  _pakwanPage = 1;
+                                });
+                                Navigator.pop(sheetContext);
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: isSel ? AppTheme.primaryLight.withAlpha(70) : Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSel ? AppTheme.primary : const Color(0xFFE2E8F0),
+                                    width: isSel ? 1.4 : 1.0,
                                   ),
                                 ),
-                                title: Row(
+                                child: Row(
                                   children: [
-                                    Expanded(
-                                      child: Text(
-                                        v['name']!,
-                                        style: TextStyle(
-                                          fontSize: 13.5,
-                                          fontWeight: isSel ? FontWeight.w800 : FontWeight.w700,
-                                          color: isSel ? AppTheme.primary : AppTheme.textPrimary,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: isPakwan ? const Color(0xFFFEF3C7) : const Color(0xFFF3E8FF),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        isPakwan ? 'Pakwan' : 'Restaurant',
-                                        style: TextStyle(
-                                          fontSize: 9.5,
-                                          fontWeight: FontWeight.w800,
-                                          color: isPakwan ? const Color(0xFFB45309) : const Color(0xFF7E22CE),
+                                    // iOS Style Rounded Image
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(
+                                        v['imageUrl']!,
+                                        width: 36,
+                                        height: 36,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          width: 36,
+                                          height: 36,
+                                          color: AppTheme.surfaceMuted,
+                                          child: Icon(
+                                            isPakwan ? Icons.outdoor_grill_rounded : Icons.restaurant_rounded,
+                                            color: AppTheme.primary,
+                                            size: 18,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
-                                subtitle: Row(
-                                  children: [
-                                    const Icon(Icons.location_on_outlined, size: 12, color: AppTheme.textSecondary),
-                                    const SizedBox(width: 4),
+                                    const SizedBox(width: 10),
+
+                                    // Vendor Info
                                     Expanded(
-                                      child: Text(
-                                        v['address']!,
-                                        style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                                        overflow: TextOverflow.ellipsis,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  v['name']!,
+                                                  style: TextStyle(
+                                                    fontSize: 12.5,
+                                                    fontWeight: isSel ? FontWeight.w800 : FontWeight.w700,
+                                                    color: isSel ? AppTheme.primary : AppTheme.textPrimary,
+                                                    letterSpacing: -0.2,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                decoration: BoxDecoration(
+                                                  color: isPakwan ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(
+                                                    color: isPakwan ? const Color(0xFFFDE68A) : const Color(0xFFBFDBFE),
+                                                    width: 0.8,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  isPakwan ? 'Pakwan' : 'Restaurant',
+                                                  style: TextStyle(
+                                                    fontSize: 8.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: isPakwan ? const Color(0xFF92400E) : const Color(0xFF1E40AF),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.location_on_rounded, size: 11, color: Color(0xFF94A3B8)),
+                                              const SizedBox(width: 2),
+                                              Expanded(
+                                                child: Text(
+                                                  v['address']!,
+                                                  style: const TextStyle(
+                                                    fontSize: 10.5,
+                                                    color: Color(0xFF94A3B8),
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ),
+
+                                    const SizedBox(width: 6),
+
+                                    // iOS Checkmark / Chevron
+                                    if (isSel)
+                                      const Icon(
+                                        Icons.check_circle_rounded,
+                                        color: AppTheme.primary,
+                                        size: 20,
+                                      )
+                                    else
+                                      const Icon(
+                                        Icons.chevron_right_rounded,
+                                        color: Color(0xFF94A3B8),
+                                        size: 18,
+                                      ),
                                   ],
                                 ),
-                                trailing: isSel
-                                    ? const Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 22)
-                                    : const Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary, size: 18),
-                                onTap: () {
-                                  setState(() {
-                                    _selectedVendorId = v['id']!;
-                                    _selectedVendorName = v['name']!;
-                                    _selectedVendorLocation = v['address']!;
-                                    _restaurantPage = 1;
-                                    _pakwanPage = 1;
-                                  });
-                                  Navigator.pop(sheetContext);
-                                },
                               ),
                             );
                           }),
