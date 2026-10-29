@@ -76,7 +76,13 @@ if (preg_match('#^/super(/.*)?$#', $uri, $matches)) {
     exit;
 }
 
-// 5. Root URL / Portal Hub Switcher
+// 6. Root Base URL redirects to Vendor Login
+if ($uri === '/' || $uri === '' || $uri === '/index.php') {
+    header('Location: /vendor/login.php', true, 302);
+    exit;
+}
+
+// 7. Portal Hub Fallback (if specifically requested via ?hub=1)
 ?>
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-[#09090b] text-zinc-100 dark" style="color-scheme: dark;">

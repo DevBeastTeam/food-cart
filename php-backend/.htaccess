@@ -30,8 +30,8 @@ RewriteRule ^seeding/?$ seeding/index.php [L]
 # 4. Backward Compatibility: /super redirects to /admin
 RewriteRule ^super(/.*)?$ /admin$1 [R=301,L]
 
-# 5. Root redirect to /admin
-RewriteRule ^$ admin/index.php [R=302,L]
+# 5. Root redirect to /vendor/login.php
+RewriteRule ^$ vendor/login.php [R=302,L]
 
 # 6. Security: Prevent access to SQLite file, backups and sensitive files
 <FilesMatch "\.(sqlite|sqlite3|db|env|json|log)$">
