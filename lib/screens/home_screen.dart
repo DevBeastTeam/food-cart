@@ -1719,15 +1719,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               },
               selectedGradientColors: [
-                Colors.black.withValues(alpha: 0.35),
-                const Color(0xFFC2410C).withValues(alpha: 0.88),
+                Colors.black.withValues(alpha: 0.30),
+                const Color(0xFF1E3A8A).withValues(alpha: 0.90), // Rich Navy Blue
+                const Color(0xFF1E40AF).withValues(alpha: 0.92), // Deep Royal Blue
               ],
               borderGradientColors: const [
-                Color(0xFFEA580C),
-                Color(0xFF431407), // dark rich tone
-                Color(0xFFFF9500),
-                Color(0xFF7C2D12), // dark rich tone
-                Color(0xFFEA580C),
+                Color(0xFF2563EB), // Vibrant Blue
+                Color(0xFF0F172A), // Dark Navy
+                Color(0xFF3B82F6), // Bright Blue
+                Color(0xFF1E3A8A), // Deep Navy
+                Color(0xFF2563EB), // Vibrant Blue
               ],
             ),
           ),
