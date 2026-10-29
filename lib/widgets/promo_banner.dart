@@ -42,6 +42,15 @@ class _PromoBannerState extends State<PromoBanner> {
   int _currentPage = 0;
   Timer? _autoScrollTimer;
 
+  static const List<Color> _tagOutlineColors = [
+    Color(0xFFFBBF24), // Vibrant Amber / Yellow
+    Color(0xFF60A5FA), // Vibrant Electric Blue
+    Color(0xFFF87171), // Vibrant Coral Red
+    Color(0xFF34D399), // Vibrant Emerald Green
+    Color(0xFFA78BFA), // Vibrant Lavender Violet
+    Colors.white,      // Pure White
+  ];
+
   static Color _parseHex(dynamic hex, Color fallback) {
     if (hex == null || hex is! String) return fallback;
     try {
@@ -294,7 +303,7 @@ class _PromoBannerState extends State<PromoBanner> {
             },
             itemBuilder: (context, index) {
               final banner = banners[index];
-              return _buildBannerCard(banner);
+              return _buildBannerCard(banner, index);
             },
           ),
         ),
@@ -321,10 +330,11 @@ class _PromoBannerState extends State<PromoBanner> {
     );
   }
 
-  Widget _buildBannerCard(Map<String, dynamic> banner) {
+  Widget _buildBannerCard(Map<String, dynamic> banner, int index) {
     final shopName = _resolveShopName(banner);
     final shopLocation = _resolveShopLocation(banner);
     final offerText = _resolveOfferText(banner);
+    final tagColor = _tagOutlineColors[index % _tagOutlineColors.length];
     final effectiveTitle = widget.title ?? banner['title'] ?? 'Special Feast';
     final effectiveDishes = widget.dishesText ??
         banner['dishesText'] ??
@@ -462,7 +472,10 @@ class _PromoBannerState extends State<PromoBanner> {
                       ),
                       if (offerText.isNotEmpty) ...[
                         const SizedBox(width: 8),
-                        ShimmerOutlinedOfferTag(text: offerText),
+                        ShimmerOutlinedOfferTag(
+                          text: offerText,
+                          color: tagColor,
+                        ),
                       ],
                     ],
                   ),
@@ -483,22 +496,50 @@ class _PromoBannerState extends State<PromoBanner> {
                     ),
                   ),
 
-                  // Row 3: Shop Name on Left + Order Now Button on Right
+                  // Row 3: Shop Name & Location (minimal gap) on Left + Compact Order Now Button on Right
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Expanded(
-                        child: Text(
-                          shopName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.1,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              shopName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 1.5), // Minimal vertical gap as requested!
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on_rounded,
+                                  size: 11,
+                                  color: Colors.white70,
+                                ),
+                                const SizedBox(width: 3),
+                                Expanded(
+                                  child: Text(
+                                    shopLocation,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.85),
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -516,32 +557,6 @@ class _PromoBannerState extends State<PromoBanner> {
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 5),
-
-                  // Row 4: Full Bottom Line for Shop Address so full address shows!
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_rounded,
-                        size: 11.5,
-                        color: Colors.white70,
-                      ),
-                      const SizedBox(width: 3.5),
-                      Expanded(
-                        child: Text(
-                          shopLocation,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.85),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -552,44 +567,42 @@ class _PromoBannerState extends State<PromoBanner> {
   }
 }
 
-/// Outlined discount percentage tag (compact 60% smaller) with silver shimmer using flutter_animate
+/// Outlined discount percentage tag with dynamic outline color and shimmer using flutter_animate
 class ShimmerOutlinedOfferTag extends StatelessWidget {
   final String text;
+  final Color color;
 
-  const ShimmerOutlinedOfferTag({super.key, required this.text});
+  const ShimmerOutlinedOfferTag({
+    super.key,
+    required this.text,
+    this.color = Colors.white,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+      padding: const EdgeInsets.symmetric(horizontal: 6.5, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.transparent, // STRICTLY NO BLACK - pure outline!
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.80),
-          width: 0.9,
+          color: color,
+          width: 1.1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
+          Icon(
             Icons.local_offer_rounded,
-            color: Colors.white,
+            color: color,
             size: 9.5,
           ),
           const SizedBox(width: 3),
           Text(
             text,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: color,
               fontSize: 9.5,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.3,
@@ -600,11 +613,11 @@ class ShimmerOutlinedOfferTag extends StatelessWidget {
           .animate(onPlay: (controller) => controller.repeat())
           .shimmer(
             duration: 2200.ms,
-            delay: 400.ms,
-            colors: const [
-              Color(0xFFCBD5E1), // soft silver
-              Colors.white,      // brilliant silver white
-              Color(0xFFCBD5E1), // soft silver
+            delay: 300.ms,
+            colors: [
+              color.withValues(alpha: 0.40),
+              Colors.white,
+              color.withValues(alpha: 0.40),
             ],
             blendMode: BlendMode.srcIn,
           ),
@@ -612,7 +625,7 @@ class ShimmerOutlinedOfferTag extends StatelessWidget {
   }
 }
 
-/// Clean Order Now Button without shimmer
+/// Clean Compact Order Now Button without shimmer
 class CleanOrderButton extends StatelessWidget {
   final VoidCallback? onTap;
   final String text;
@@ -629,17 +642,17 @@ class CleanOrderButton extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7.5),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.28),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -650,15 +663,15 @@ class CleanOrderButton extends StatelessWidget {
                 text,
                 style: const TextStyle(
                   color: AppTheme.primary,
-                  fontSize: 12.5,
+                  fontSize: 11,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 0.2,
+                  letterSpacing: 0.1,
                 ),
               ),
-              const SizedBox(width: 4.5),
+              const SizedBox(width: 3.5),
               const Icon(
                 Icons.arrow_forward_rounded,
-                size: 14,
+                size: 12,
                 color: AppTheme.primary,
               ),
             ],
