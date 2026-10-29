@@ -114,15 +114,26 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
   }) {
     if (totalPages <= 1) return const SizedBox.shrink();
 
-    final startItem = (currentPage - 1) * _itemsPerPage + 1;
-    final endItem = (currentPage * _itemsPerPage).clamp(1, totalItems);
+    final canGoBack = currentPage > 1;
+    final canGoForward = currentPage < totalPages;
+
+    // Calculate visible page buttons (up to 5 buttons, sliding window)
+    List<int> visiblePages = [];
+    if (totalPages <= 5) {
+      visiblePages = List.generate(totalPages, (i) => i + 1);
+    } else {
+      int start = (currentPage - 2).clamp(1, totalPages - 4);
+      int end = (start + 4).clamp(5, totalPages);
+      if (end - start < 4) start = (end - 4).clamp(1, totalPages);
+      visiblePages = [for (int i = start; i <= end; i++) i];
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppTheme.border),
         boxShadow: [
           BoxShadow(
@@ -133,51 +144,150 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'Showing $startItem-$endItem of $totalItems items',
-            style: const TextStyle(
-              fontSize: 11.5,
-              color: AppTheme.textSecondary,
-              fontWeight: FontWeight.w600,
+          // 1. Double Arrow Left (Full back to First Page)
+          InkWell(
+            onTap: canGoBack ? () => onPageChanged(1) : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: canGoBack ? AppTheme.primaryLight : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: canGoBack ? AppTheme.primary.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                Icons.first_page_rounded,
+                size: 20,
+                color: canGoBack ? AppTheme.primary : const Color(0xFF94A3B8),
+              ),
             ),
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left_rounded),
-                iconSize: 20,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                color: currentPage > 1 ? AppTheme.primary : AppTheme.textLight,
-                onPressed: currentPage > 1 ? () => onPageChanged(currentPage - 1) : null,
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(8),
+          const SizedBox(width: 5),
+
+          // 2. Single Arrow Left (Previous Page)
+          InkWell(
+            onTap: canGoBack ? () => onPageChanged(currentPage - 1) : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: canGoBack ? AppTheme.primaryLight : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: canGoBack ? AppTheme.primary.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
+                  width: 1,
                 ),
-                child: Text(
-                  '$currentPage / $totalPages',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.primary,
+              ),
+              child: Icon(
+                Icons.chevron_left_rounded,
+                size: 20,
+                color: canGoBack ? AppTheme.primary : const Color(0xFF94A3B8),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // 3. Middle Page Numbers (1, 2, 3, etc.)
+          ...visiblePages.map((page) {
+            final isCurrent = page == currentPage;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2.5),
+              child: InkWell(
+                onTap: isCurrent ? null : () => onPageChanged(page),
+                borderRadius: BorderRadius.circular(8),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 32,
+                  height: 32,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isCurrent ? AppTheme.primary : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isCurrent ? AppTheme.primary : const Color(0xFFCBD5E1),
+                      width: 1.2,
+                    ),
+                    boxShadow: isCurrent
+                        ? [
+                            BoxShadow(
+                              color: AppTheme.primary.withValues(alpha: 0.35),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Text(
+                    '$page',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w700,
+                      color: isCurrent ? Colors.white : const Color(0xFF334155),
+                    ),
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right_rounded),
-                iconSize: 20,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                color: currentPage < totalPages ? AppTheme.primary : AppTheme.textLight,
-                onPressed: currentPage < totalPages ? () => onPageChanged(currentPage + 1) : null,
+            );
+          }),
+
+          const SizedBox(width: 8),
+
+          // 4. Single Arrow Right (Next Page)
+          InkWell(
+            onTap: canGoForward ? () => onPageChanged(currentPage + 1) : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: canGoForward ? AppTheme.primaryLight : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: canGoForward ? AppTheme.primary.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
+                  width: 1,
+                ),
               ),
-            ],
+              child: Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: canGoForward ? AppTheme.primary : const Color(0xFF94A3B8),
+              ),
+            ),
+          ),
+          const SizedBox(width: 5),
+
+          // 5. Double Arrow Right (Full forward to Last Page)
+          InkWell(
+            onTap: canGoForward ? () => onPageChanged(totalPages) : null,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: canGoForward ? AppTheme.primaryLight : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: canGoForward ? AppTheme.primary.withValues(alpha: 0.3) : const Color(0xFFE2E8F0),
+                  width: 1,
+                ),
+              ),
+              child: Icon(
+                Icons.last_page_rounded,
+                size: 20,
+                color: canGoForward ? AppTheme.primary : const Color(0xFF94A3B8),
+              ),
+            ),
           ),
         ],
       ),
