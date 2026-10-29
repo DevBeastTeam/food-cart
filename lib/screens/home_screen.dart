@@ -1784,9 +1784,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               },
               selectedGradientColors: [
-                const Color(0xFF230E4E).withValues(alpha: 0.88), // Royal Deep Blue / Navy / Deep Purple
-                const Color(0xFF38106A).withValues(alpha: 0.92), // Rich Midnight Navy
-                const Color(0xFF4C1D95).withValues(alpha: 0.95), // Vibrant Royal Indigo Blue
+                const Color(0xFF230E4E).withValues(alpha: 0.44), // Royal Deep Blue / Navy / Deep Purple (50% opacity for visible background)
+                const Color(0xFF38106A).withValues(alpha: 0.46), // Rich Midnight Navy
+                const Color(0xFF4C1D95).withValues(alpha: 0.48), // Vibrant Royal Indigo Blue
               ],
               borderGradientColors: const [
                 Color(0xFF7C3AED), // vibrant violet-blue
@@ -1794,6 +1794,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Color(0xFF8B5CF6), // bright violet
                 Color(0xFF38106A), // rich midnight
                 Color(0xFF7C3AED), // vibrant violet-blue
+              ],
+              shimmerColors: const [
+                Colors.white,
+                Color(0xFF8B5CF6),
+                Color(0xFF4C1D95), // Same deep purple
+                Color(0xFF8B5CF6),
+                Colors.white,
               ],
             ),
           ),
@@ -2023,6 +2030,7 @@ class CupertinoAnimatedTabButton extends StatefulWidget {
   final String imageUrl;
   final List<Color> selectedGradientColors;
   final List<Color> borderGradientColors;
+  final List<Color>? shimmerColors;
 
   const CupertinoAnimatedTabButton({
     super.key,
@@ -2033,6 +2041,7 @@ class CupertinoAnimatedTabButton extends StatefulWidget {
     required this.imageUrl,
     required this.selectedGradientColors,
     required this.borderGradientColors,
+    this.shimmerColors,
   });
 
   @override
@@ -2149,6 +2158,7 @@ class _CupertinoAnimatedTabButtonState extends State<CupertinoAnimatedTabButton>
                           child: ShimmerTabText(
                             text: widget.title,
                             isSelected: widget.isSelected,
+                            shimmerColors: widget.shimmerColors,
                             style: TextStyle(
                               fontSize: 14.5,
                               fontWeight: widget.isSelected ? FontWeight.w900 : FontWeight.w700,
@@ -2175,12 +2185,14 @@ class ShimmerTabText extends StatefulWidget {
   final String text;
   final bool isSelected;
   final TextStyle style;
+  final List<Color>? shimmerColors;
 
   const ShimmerTabText({
     super.key,
     required this.text,
     required this.isSelected,
     required this.style,
+    this.shimmerColors,
   });
 
   @override
@@ -2237,19 +2249,22 @@ class _ShimmerTabTextState extends State<ShimmerTabText>
           blendMode: BlendMode.srcIn,
           shaderCallback: (bounds) {
             final val = _controller.value;
+            final colors = widget.shimmerColors ??
+                const [
+                  Colors.white,
+                  Color(0xFFFFD54F),
+                  Colors.white,
+                ];
+            final n = colors.length;
+            final stops = List.generate(n, (i) {
+              final step = (i - (n - 1) / 2) * (0.7 / (n - 1));
+              return (val + step).clamp(0.0, 1.0);
+            });
             return LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              stops: [
-                (val - 0.35).clamp(0.0, 1.0),
-                val.clamp(0.0, 1.0),
-                (val + 0.35).clamp(0.0, 1.0),
-              ],
-              colors: const [
-                Colors.white,
-                Color(0xFFFFD54F),
-                Colors.white,
-              ],
+              stops: stops,
+              colors: colors,
             ).createShader(bounds);
           },
           child: Text(
