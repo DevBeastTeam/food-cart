@@ -630,6 +630,12 @@ $adminUser = $_SESSION['admin_user'];
                                         <!-- Quick Action -->
                                         <td class="py-2.5 px-3 text-right whitespace-nowrap">
                                             <div class="inline-flex items-center gap-1">
+                                                <template x-if="ord.status === 'Pending'">
+                                                    <button type="button" @click="updateOrderStatus(ord.id, 'Accepted')"
+                                                        class="px-2 py-1 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg text-[10px] transition-all">
+                                                        Accept ✅
+                                                    </button>
+                                                </template>
                                                 <template x-if="ord.status === 'Accepted'">
                                                     <button type="button" @click="updateOrderStatus(ord.id, 'Preparing')"
                                                         class="px-2 py-1 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg text-[10px] transition-all">
@@ -1138,6 +1144,12 @@ $adminUser = $_SESSION['admin_user'];
                                         <td class="py-2.5 px-3 text-right whitespace-nowrap">
                                             <div class="inline-flex items-center gap-1">
                                                 <!-- Next Status Progress Button -->
+                                                <template x-if="ord.status === 'Pending'">
+                                                    <button type="button" @click="updateOrderStatus(ord.id, 'Accepted')"
+                                                        class="px-2 py-1 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg text-[10px]">
+                                                        Accept ✅
+                                                    </button>
+                                                </template>
                                                 <template x-if="ord.status === 'Accepted'">
                                                     <button type="button" @click="updateOrderStatus(ord.id, 'Preparing')"
                                                         class="px-2 py-1 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg text-[10px]">
@@ -3497,7 +3509,7 @@ $adminUser = $_SESSION['admin_user'];
                 },
 
                 get activeOrdersCount() {
-                    return this.orders.filter(o => ['Accepted', 'Preparing', 'On the Way', 'Arrived'].includes(o.status)).length;
+                    return this.orders.filter(o => ['Pending', 'Accepted', 'Preparing', 'On the Way', 'Arrived'].includes(o.status)).length;
                 },
 
                 get todayRecentOrders() {
@@ -3656,6 +3668,7 @@ $adminUser = $_SESSION['admin_user'];
 
                 getStatusBadgeClass(status) {
                     switch (status) {
+                        case 'Pending': return 'bg-amber-500/15 text-amber-400 border border-amber-500/25';
                         case 'Accepted': return 'bg-sky-500/15 text-sky-400 border border-sky-500/25';
                         case 'Preparing': return 'bg-amber-500/15 text-amber-400 border border-amber-500/25';
                         case 'On the Way': return 'bg-orange-500/15 text-[#FF9500] border border-orange-500/25';

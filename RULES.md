@@ -276,6 +276,18 @@ This document specifies the complete functional architecture, workflows, operati
 
 ---
 
+## 18. ❌ Customer Order Cancellation Architecture (Pending Only)
+- **Strict Pending-Only Cancellation Rule**:
+  - From the Flutter customer app (`OrdersScreen` and Order Details bottom sheet), customers can cancel their order **exclusively while its status is `Pending` (منظوری کے انتظار میں)**.
+  - The moment the kitchen manager clicks "Accept" (`Accepted`), "Start Prep" (`Preparing`), or assigns a rider (`On the Way`), the cancellation button is immediately hidden from the customer card and detail views.
+- **Backend Atomic Guard**:
+  - Endpoint `POST /api/orders/{id}/cancel` validates database status before allowing cancellation: if status is anything other than `Pending`, it rejects the request with HTTP 400 (*"Order cannot be cancelled because kitchen has already started processing it"*).
+- **Cancellation Reason & Real-Time Sync**:
+  - Customer is presented with standard cancellation reasons (*Ordered by mistake*, *Changed mind*, *Duplicate order*, or *Custom note*).
+  - Saved to `rejectionReason`, status set to `Cancelled`, local notification triggered, and synced across Vendor & Super Admin dashboards.
+
+---
+
 ## 15. 🚀 Mandatory Deployment Rules
 - **Automatic Deployment Command**:
   Whenever code changes are made:

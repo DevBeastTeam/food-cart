@@ -326,6 +326,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     final isAccepted = order.status == 'Accepted';
     final isOnTheWay = order.status == 'On the Way';
     final isArrived = order.status == 'Arrived';
+    final isPending = order.status == 'Pending';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -626,7 +627,32 @@ class _OrdersScreenState extends State<OrdersScreen>
                 _buildTimelineStepper(order),
                 const SizedBox(height: 10),
                 // Additional Status Detail Bar
-                if (isPreparing)
+                if (isPending)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.hourglass_top_rounded, size: 16, color: Color(0xFFD97706)),
+                        SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'آرڈر موصول ہو گیا ہے • کچن کی تصدیق کا انتظار ہے (Awaiting Confirmation)',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF92400E),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (isPreparing)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
@@ -920,6 +946,21 @@ class _OrdersScreenState extends State<OrdersScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    if (isPending) ...[
+                      OutlinedButton.icon(
+                        onPressed: () => _confirmCancelOrder(order),
+                        icon: const Icon(Icons.cancel_outlined, size: 15, color: Colors.red),
+                        label: const Text('Cancel Order (کینسل کریں)'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red.shade700,
+                          side: BorderSide(color: Colors.red.shade300),
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     if (isAccepted || isPreparing) ...[
                       OutlinedButton.icon(
                         onPressed: () => _showUpdateNotesDialog(order),
@@ -954,6 +995,36 @@ class _OrdersScreenState extends State<OrdersScreen>
   }
 
   Widget _buildTimelineStepper(UserOrder order) {
+    if (order.status == 'Pending') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF3C7),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFFDE68A)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 13,
+              height: 13,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFD97706)),
+            ),
+            SizedBox(width: 7),
+            Text(
+              'Awaiting Kitchen Acceptance (تصدیق کا انتظار ہے)',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF92400E),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (order.status == 'Cancelled') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1535,6 +1606,29 @@ class _OrdersScreenState extends State<OrdersScreen>
 
                   const SizedBox(height: 20),
 
+                  if (order.status == 'Pending') ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _confirmCancelOrder(order);
+                        },
+                        icon: const Icon(Icons.cancel_rounded, color: Colors.red),
+                        label: const Text(
+                          'آرڈر کینسل کریں (Cancel Order)',
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.red),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.red.shade400, width: 1.5),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -1607,6 +1701,145 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
+  void _confirmCancelOrder(UserOrder order) {
+    final reasons = [
+      'Ordered by mistake (غلطی سے آرڈر ہو گیا)',
+      'Changed my mind (ارادہ بدل گیا)',
+      'Want to change food items or address',
+      'Placed duplicate order',
+      'Other reason'
+    ];
+    String selectedReason = reasons.first;
+    final customController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.cancel_outlined, color: Colors.red.shade700, size: 22),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Cancel Order?',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Are you sure you want to cancel order #${order.id}? This action cannot be undone once confirmed.',
+                    style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary, height: 1.4),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Reason for cancellation (وجہ بتائیں):',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
+                  ),
+                  const SizedBox(height: 8),
+                  ...reasons.map((r) => InkWell(
+                    onTap: () => setDialogState(() => selectedReason = r),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Icon(
+                            selectedReason == r ? Icons.radio_button_checked : Icons.radio_button_off,
+                            size: 18,
+                            color: selectedReason == r ? Colors.red.shade700 : Colors.grey,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(r, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )),
+                  if (selectedReason == 'Other reason') ...[
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: customController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter reason here...',
+                        hintStyle: const TextStyle(fontSize: 12),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx),
+                child: const Text('Back / واپس', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.grey)),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final reason = selectedReason == 'Other reason' && customController.text.trim().isNotEmpty
+                      ? customController.text.trim()
+                      : selectedReason;
+                  Navigator.pop(dialogCtx);
+
+                  final messenger = ScaffoldMessenger.of(context);
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                          SizedBox(width: 12),
+                          Text('Cancelling order...'),
+                        ],
+                      ),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+
+                  final res = await widget.userState.cancelOrderAsCustomer(order.id, reason: reason);
+                  if (mounted) {
+                    messenger.hideCurrentSnackBar();
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(res['message'] ?? (res['success'] == true ? 'Order cancelled successfully' : 'Could not cancel order')),
+                        backgroundColor: res['success'] == true ? Colors.red.shade700 : Colors.orange.shade800,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade700,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+                child: const Text('Yes, Cancel Order', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -1656,6 +1889,8 @@ class _OrdersScreenState extends State<OrdersScreen>
 
   Color _getStatusBadgeColor(String status) {
     switch (status) {
+      case 'Pending':
+        return const Color(0xFFD97706);
       case 'Accepted':
         return Colors.blueAccent;
       case 'Preparing':
@@ -1666,6 +1901,8 @@ class _OrdersScreenState extends State<OrdersScreen>
         return const Color(0xFF7E22CE);
       case 'Delivered':
         return const Color(0xFF28A745);
+      case 'Cancelled':
+        return const Color(0xFFDC2626);
       default:
         return AppTheme.textSecondary;
     }

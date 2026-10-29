@@ -328,6 +328,36 @@ class ApiService {
     }
   }
 
+  // Cancel order by customer (Strictly allowed only when status is Pending)
+  Future<Map<String, dynamic>> cancelCustomerOrder(String orderId, {String? reason}) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/orders/$orderId/cancel'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'reason': reason ?? 'Cancelled by customer'}),
+      ).timeout(const Duration(seconds: 8));
+
+      final data = _safeJsonDecode(res.body);
+      if (res.statusCode == 200 && data != null && data['success'] == true) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Order cancelled successfully.',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data?['message'] ?? 'Could not cancel order. Kitchen may have already accepted it.',
+        };
+      }
+    } catch (e) {
+      debugPrint('[ApiService] Cancel order error: $e');
+      return {
+        'success': false,
+        'message': 'Failed to reach server. Please check your internet connection.',
+      };
+    }
+  }
+
   dynamic _safeJsonDecode(String body) {
     try {
       final trimmed = body.trim();

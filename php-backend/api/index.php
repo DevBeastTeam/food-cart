@@ -624,6 +624,37 @@ switch ($resource) {
     // 9. ORDERS
     // -------------------------------------------------------------------------
     case 'orders':
+        // Check for /orders/{id}/cancel (Customer cancellation - only allowed when status is Pending)
+        if ($subId !== '' && $action === 'cancel' && ($method === 'POST' || $method === 'PATCH' || $method === 'PUT')) {
+            $b = getJsonInput();
+            $reason = !empty($b['reason']) ? trim($b['reason']) : 'Cancelled by customer';
+
+            $checkStmt = $pdo->prepare("SELECT status FROM orders WHERE id = ?");
+            $checkStmt->execute([$subId]);
+            $current = $checkStmt->fetchColumn();
+
+            if (!$current) {
+                jsonResponse(['success' => false, 'message' => 'Order not found'], 404);
+            }
+
+            $currLower = strtolower(trim((string)$current));
+            if ($currLower !== 'pending') {
+                jsonResponse([
+                    'success' => false,
+                    'message' => 'Order cannot be cancelled because kitchen is already preparing or delivering it (' . $current . ').'
+                ], 400);
+            }
+
+            $stmt = $pdo->prepare("UPDATE orders SET status = 'Cancelled', rejectionReason = ? WHERE id = ?");
+            $stmt->execute([$reason, $subId]);
+
+            jsonResponse([
+                'success' => true,
+                'message' => 'Order #' . $subId . ' successfully cancelled.',
+                'status' => 'Cancelled'
+            ]);
+        }
+
         // Check for /orders/{id}/status
         if ($subId !== '' && $action === 'status' && ($method === 'PATCH' || $method === 'PUT' || $method === 'POST')) {
             $b = getJsonInput();
@@ -769,7 +800,7 @@ switch ($resource) {
                 $b['originalAmount'] ?? $b['totalAmount'] ?? 0,
                 $b['discountInfo'] ?? null,
                 $b['orderDate'] ?? date('c'),
-                $b['status'] ?? 'Accepted',
+                $b['status'] ?? 'Pending',
                 $b['prepTime'] ?? '25-35 mins',
                 $b['customerName'] ?? 'Hassan Raza',
                 $b['customerPhone'] ?? '+92 300 8472910',

@@ -512,7 +512,7 @@ class UserState extends ChangeNotifier {
       originalAmount: originalAmount,
       discountInfo: discountInfo,
       orderDate: DateTime.now(),
-      status: 'Accepted',
+      status: 'Pending',
       isDaigBooking: isDaigBooking,
       occasion: occasion,
       eventDate: eventDate,
@@ -525,13 +525,13 @@ class UserState extends ChangeNotifier {
       longitude: orderLng,
     );
     _orders.insert(0, newOrder);
-    _lastKnownOrderStatuses[newId] = 'Accepted';
+    _lastKnownOrderStatuses[newId] = 'Pending';
     notifyListeners();
 
     // Trigger instant local notification for order confirmation
     NotificationService.instance.showStatusUpdateNotification(
       orderId: newId,
-      newStatus: 'Accepted',
+      newStatus: 'Pending',
       restaurantName: restaurantName,
       address: deliveryAddress,
     );
@@ -548,6 +548,7 @@ class UserState extends ChangeNotifier {
     // Persist new order to PHP SQLite backend
     ApiService.instance.sendOrderToBackend({
       'id': newId,
+      'status': 'Pending',
       'restaurantName': restaurantName,
       'restaurantId': restaurantId ?? '',
       'restaurantImage': restaurantImage,
@@ -669,6 +670,30 @@ class UserState extends ChangeNotifier {
         rejectionReason: rejectReason,
       );
     }
+  }
+
+  // Customer Order Cancellation (Only permitted while status is Pending)
+  Future<Map<String, dynamic>> cancelOrderAsCustomer(String orderId, {String? reason}) async {
+    final result = await ApiService.instance.cancelCustomerOrder(orderId, reason: reason);
+    if (result['success'] == true) {
+      final idx = _orders.indexWhere((o) => o.id == orderId);
+      if (idx >= 0) {
+        final cancelReason = reason ?? 'Cancelled by customer';
+        _orders[idx] = _orders[idx].copyWith(
+          status: 'Cancelled',
+          rejectionReason: cancelReason,
+        );
+        _lastKnownOrderStatuses[orderId] = 'Cancelled';
+        NotificationService.instance.showStatusUpdateNotification(
+          orderId: orderId,
+          newStatus: 'Cancelled',
+          restaurantName: _orders[idx].restaurantName,
+          address: _orders[idx].deliveryAddress,
+        );
+        notifyListeners();
+      }
+    }
+    return result;
   }
 
   // Live Login with PHP SQLite Backend Authentication
