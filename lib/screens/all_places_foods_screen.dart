@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../data/sample_data.dart';
 import '../models/food_item.dart';
 import '../models/daig_item.dart';
@@ -297,71 +299,194 @@ class _AllPlacesFoodsScreenState extends State<AllPlacesFoodsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.selectedVendorId != 'all' && widget.selectedVendorName.isNotEmpty
-        ? '${widget.selectedVendorName} Foods'
-        : 'All Places Foods';
+    final isSpecificVendor = widget.selectedVendorId != 'all' &&
+        widget.selectedVendorName.isNotEmpty &&
+        widget.selectedVendorName.toLowerCase() != 'all';
+
+    final shopTitle = isSpecificVendor ? widget.selectedVendorName : 'All Places';
+
+    String locationSubtitle = 'From all locations';
+    if (isSpecificVendor) {
+      if (widget.selectedVendorLocation.isNotEmpty &&
+          widget.selectedVendorLocation.toLowerCase() != 'all locations' &&
+          widget.selectedVendorLocation.toLowerCase() != 'all') {
+        locationSubtitle = widget.selectedVendorLocation;
+      } else {
+        // Fallback resolution from SampleData
+        for (final r in SampleData.restaurants) {
+          if (r.id == widget.selectedVendorId ||
+              r.name.toLowerCase().trim() == widget.selectedVendorName.toLowerCase().trim()) {
+            locationSubtitle = r.address;
+            break;
+          }
+        }
+        if (locationSubtitle == 'From all locations') {
+          for (final p in SampleData.pakwanCenters) {
+            if (p.id == widget.selectedVendorId ||
+                p.name.toLowerCase().trim() == widget.selectedVendorName.toLowerCase().trim()) {
+              locationSubtitle = p.address;
+              break;
+            }
+          }
+        }
+      }
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
+        leadingWidth: 42,
+        titleSpacing: 4, // Minimized gap next to Cupertino back arrow
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.textPrimary),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          icon: const Icon(
+            CupertinoIcons.chevron_back, // Cupertino icon back arrow
+            color: AppTheme.textPrimary,
+            size: 24,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: AppTheme.textPrimary,
-          ),
-        ),
-        actions: [
-          ListenableBuilder(
-            listenable: widget.cartState,
-            builder: (context, _) {
-              final count = widget.cartState.totalItemCount;
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.shopping_bag_outlined, color: AppTheme.textPrimary),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => CartScreen(cartState: widget.cartState),
-                        ),
-                      );
-                    },
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Row 1: Shop Icon + Shop Name with shimmer effect
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.storefront_rounded,
+                  size: 16.5,
+                  color: AppTheme.primary,
+                ),
+                const SizedBox(width: 5),
+                Flexible(
+                  child: Text(
+                    shopTitle,
+                    style: const TextStyle(
+                      fontSize: 14.5, // Reduced font size as requested
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.textPrimary,
+                      letterSpacing: -0.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                      .animate(onPlay: (controller) => controller.repeat())
+                      .shimmer(
+                        duration: 2500.ms,
+                        delay: 400.ms,
+                        colors: const [
+                          AppTheme.textPrimary,
+                          AppTheme.primary,
+                          AppTheme.textPrimary,
+                        ],
+                        blendMode: BlendMode.srcIn,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 1.5),
+            // Row 2: Location Subtitle (Full location with pin or 'From all locations')
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSpecificVendor) ...[
+                  const Icon(
+                    Icons.location_on_rounded,
+                    size: 11,
+                    color: Color(0xFF64748B),
                   ),
-                  if (count > 0)
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppTheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '$count',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                  const SizedBox(width: 3),
+                ] else ...[
+                  const Icon(
+                    Icons.explore_outlined,
+                    size: 10.5,
+                    color: Color(0xFF94A3B8),
+                  ),
+                  const SizedBox(width: 3),
+                ],
+                Flexible(
+                  child: Text(
+                    locationSubtitle,
+                    style: const TextStyle(
+                      fontSize: 10, // Very small subtitle grey text
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF64748B),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: ListenableBuilder(
+        listenable: widget.cartState,
+        builder: (context, _) {
+          final count = widget.cartState.totalItemCount;
+          return FloatingActionButton(
+            heroTag: 'all_places_cart_fab',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => CartScreen(cartState: widget.cartState),
+                ),
+              );
+            },
+            backgroundColor: AppTheme.primary,
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                const Icon(
+                  Icons.shopping_bag_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                if (count > 0)
+                  Positioned(
+                    top: -7,
+                    right: -7,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade700,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.25),
+                            blurRadius: 3,
+                            offset: const Offset(0, 1),
                           ),
+                        ],
+                      ),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      child: Text(
+                        '$count',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
+                  ),
+              ],
+            ),
+          );
+        },
       ),
       body: Column(
         children: [
