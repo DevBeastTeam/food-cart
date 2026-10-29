@@ -8,7 +8,6 @@ import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
-import '../widgets/category_chip.dart';
 import '../widgets/custom_image.dart';
 import '../widgets/daig_card.dart';
 import '../widgets/promo_banner.dart';
@@ -1064,7 +1063,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // 3. Conditional Content based on Selected Tab
             if (_activeListingTab == 'restaurant') ...[
-              // Cuisines for you (Horizontal Carousel)
+              // Cuisines for you
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1091,48 +1090,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              SizedBox(
-                height: 42,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: SampleData.categories.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) {
-                    final cat = SampleData.categories[index];
-                    final name = cat['name'] as String;
-                    final icon = cat['icon'] as String;
-                    return CategoryChip(
-                      label: name,
-                      icon: icon,
-                      isSelected: _selectedCategory == name,
-                      onTap: () {
-                        setState(() {
-                          _selectedCategory = name;
-                        });
-                      },
-                    );
-                  },
-                ),
-              ),
 
-              const SizedBox(height: 16),
-
-              // Quick Filter Pills (Horizontal)
-              SizedBox(
-                height: 28,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    _buildQuickFilterPill('All'),
-                    const SizedBox(width: 6),
-                    _buildQuickFilterPill('Top Rated', icon: Icons.star_rounded),
-                    const SizedBox(width: 6),
-                    _buildQuickFilterPill('Fast Delivery', icon: Icons.electric_bolt_rounded),
-                    const SizedBox(width: 6),
-                    _buildQuickFilterPill('Free Delivery', icon: Icons.delivery_dining_rounded),
-                  ],
-                ),
-              ),
+              // Single Row of Category Pills (Rectangular subcategory pill style, non-rounded)
+              _buildCategoryPillsRow(isPakwan: false),
 
               const SizedBox(height: 20),
 
@@ -1146,6 +1106,39 @@ class _HomeScreenState extends State<HomeScreen> {
             ] else ...[
               // Shahi Daig Catering Spotlight (Pakwan Center)
               _buildDaigSpotlightCard(),
+
+              const SizedBox(height: 18),
+
+              // Pakwan Categories
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Pakwan Categories',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  if (_selectedCategory != 'All')
+                    InkWell(
+                      onTap: () => setState(() => _selectedCategory = 'All'),
+                      child: const Text(
+                        'Reset',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Single Row of Pakwan Category Pills
+              _buildCategoryPillsRow(isPakwan: true),
 
               const SizedBox(height: 22),
 
@@ -1852,6 +1845,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (_activeListingTab != 'restaurant') {
                   setState(() {
                     _activeListingTab = 'restaurant';
+                    _selectedCategory = 'All';
                     _restaurantPage = 1;
                   });
                 }
@@ -1992,6 +1986,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (_activeListingTab != 'pakwan') {
                   setState(() {
                     _activeListingTab = 'pakwan';
+                    _selectedCategory = 'All';
                     _pakwanPage = 1;
                   });
                 }
@@ -2123,6 +2118,100 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryPillsRow({required bool isPakwan}) {
+    final liveCats = ApiService.instance.categories;
+    List<Map<String, dynamic>> effectiveCats = [];
+
+    if (liveCats.isNotEmpty) {
+      effectiveCats = liveCats.where((c) {
+        final t = (c['type'] ?? 'restaurant').toString();
+        if (isPakwan) {
+          return t == 'pakwan' || t == 'both';
+        } else {
+          return t == 'restaurant' || t == 'both';
+        }
+      }).map((c) => Map<String, dynamic>.from(c)).toList();
+    }
+
+    if (effectiveCats.isEmpty) {
+      if (isPakwan) {
+        effectiveCats = [
+          {'name': 'All', 'icon': '🍽️'},
+          {'name': 'Biryani & Pulao', 'icon': '🍲'},
+          {'name': 'Qorma & Karahi', 'icon': '🥘'},
+          {'name': 'Haleem & Nihari', 'icon': '🥣'},
+          {'name': 'Sweet & Desserts', 'icon': '🍮'},
+          {'name': 'Shahi Daig Catering', 'icon': '👑'},
+        ];
+      } else {
+        effectiveCats = SampleData.categories.map((c) => Map<String, dynamic>.from(c)).toList();
+      }
+    }
+
+    if (effectiveCats.isEmpty || effectiveCats.first['name'] != 'All') {
+      effectiveCats.insert(0, {'name': 'All', 'icon': '🍽️'});
+    }
+
+    return SizedBox(
+      height: 32,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: effectiveCats.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final cat = effectiveCats[index];
+          final name = (cat['name'] ?? '').toString();
+          final icon = (cat['icon'] ?? '').toString();
+          final isSelected = _selectedCategory == name;
+
+          return InkWell(
+            onTap: () {
+              setState(() {
+                _selectedCategory = name;
+              });
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.primary : Colors.white,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: isSelected ? AppTheme.primary : AppTheme.border,
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isSelected ? AppTheme.primary.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1.5),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon.isNotEmpty) ...[
+                    Text(icon, style: const TextStyle(fontSize: 13)),
+                    const SizedBox(width: 5),
+                  ],
+                  Text(
+                    name,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : AppTheme.textPrimary,
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

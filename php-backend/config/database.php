@@ -62,7 +62,8 @@ function initDatabaseSchema(PDO $pdo): void {
             name TEXT,
             icon TEXT,
             image TEXT,
-            display_order INTEGER DEFAULT 0
+            display_order INTEGER DEFAULT 0,
+            type TEXT DEFAULT 'restaurant'
         );
 
         CREATE TABLE IF NOT EXISTS restaurants (
@@ -214,6 +215,7 @@ function migrateSchemaUpdates(PDO $pdo): void {
     $helper('users', 'address', "TEXT DEFAULT ''");
     $helper('users', 'banned', "INTEGER DEFAULT 0");
 
+    $helper('categories', 'type', "TEXT DEFAULT 'restaurant'");
     $helper('banners', 'sub_admin_id', "TEXT DEFAULT ''");
     $helper('banners', 'discountPercent', "INTEGER DEFAULT 0");
     $helper('food_items', 'sub_admin_id', "TEXT DEFAULT ''");

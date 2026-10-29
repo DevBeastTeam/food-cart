@@ -1356,8 +1356,8 @@ $adminUser = $_SESSION['admin_user'];
                                             class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500] placeholder-zinc-500">
                                     </div>
 
-                                    <!-- Custom Dish Category Dropdown -->
-                                    <div class="relative" x-data="{ openListingCat: false, categories: ['Biryani', 'Karahi & Handi', 'BBQ & Grill', 'Burgers & Fast Food', 'Desi Gravy', 'Chinese & Continental', 'Desserts', 'Beverages'] }">
+                                    <!-- Custom Dish Category Dropdown (Filtered to Admin Allowed Categories) -->
+                                    <div class="relative" x-data="{ openListingCat: false }">
                                         <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Dish Category *</label>
                                         <button type="button" @click="openListingCat = !openListingCat; $nextTick(() => lucide.createIcons())"
                                             class="w-full px-3 py-2 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
@@ -1366,7 +1366,7 @@ $adminUser = $_SESSION['admin_user'];
                                         </button>
                                         <div x-show="openListingCat" @click.outside="openListingCat = false" x-cloak
                                             class="absolute left-0 mt-1 w-full max-h-52 overflow-y-auto cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
-                                            <template x-for="cat in categories" :key="cat">
+                                            <template x-for="cat in allowedFoodCategories" :key="cat">
                                                 <button type="button" @click="newListingForm.category = cat; openListingCat = false"
                                                     class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors hover:bg-orange-500/20"
                                                     :class="newListingForm.category === cat ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
@@ -2729,8 +2729,8 @@ $adminUser = $_SESSION['admin_user'];
                             class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
                     </div>
 
-                    <div class="relative" x-data="{ openCategory: false, categories: ['Biryani', 'Karahi & Handi', 'BBQ & Grill', 'Burgers', 'Desi Gravy', 'Desserts', 'Beverages'] }">
-                        <label class="block text-[11px] font-semibold text-zinc-400 mb-0.5">Category</label>
+                    <div class="relative" x-data="{ openCategory: false }">
+                        <label class="block text-[11px] font-semibold text-zinc-400 mb-0.5">Category *</label>
                         <button type="button" @click="openCategory = !openCategory; $nextTick(() => lucide.createIcons())"
                             class="w-full px-2.5 py-1.5 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
                             <span x-text="foodForm.category || 'Select Category'"></span>
@@ -2738,7 +2738,7 @@ $adminUser = $_SESSION['admin_user'];
                         </button>
                         <div x-show="openCategory" @click.outside="openCategory = false" x-cloak
                             class="absolute left-0 mt-1 w-full max-h-48 overflow-y-auto cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
-                            <template x-for="cat in categories" :key="cat">
+                            <template x-for="cat in allowedFoodCategories" :key="cat">
                                 <button type="button" @click="foodForm.category = cat; openCategory = false"
                                     class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
                                     :class="foodForm.category === cat ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
@@ -2870,6 +2870,27 @@ $adminUser = $_SESSION['admin_user'];
                         <label class="block text-[11px] font-semibold text-zinc-400 mb-0.5">6KG Half Daig Price (Rs.) *</label>
                         <input type="number" x-model.number="daigForm.halfDaigPrice" required min="100" placeholder="9500"
                             class="w-full px-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-[#FF9500]">
+                    </div>
+                </div>
+
+                <!-- Daig Category Selector -->
+                <div class="relative" x-data="{ openDaigCat: false }">
+                    <label class="block text-[11px] font-semibold text-zinc-400 mb-0.5">Daig Category *</label>
+                    <button type="button" @click="openDaigCat = !openDaigCat; $nextTick(() => lucide.createIcons())"
+                        class="w-full px-2.5 py-1.5 bg-zinc-900 border border-white/10 hover:border-orange-500/40 rounded-xl text-xs text-white flex items-center justify-between transition-colors focus:outline-none focus:border-[#FF9500]">
+                        <span x-text="daigForm.category || 'Select Category'"></span>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-[#FF9500] transition-transform" :class="openDaigCat ? 'rotate-180' : ''"></i>
+                    </button>
+                    <div x-show="openDaigCat" @click.outside="openDaigCat = false" x-cloak
+                        class="absolute left-0 mt-1 w-full max-h-48 overflow-y-auto cupertino-glass rounded-xl p-1 shadow-2xl border border-white/10 z-50 space-y-0.5 text-xs">
+                        <template x-for="cat in allowedDaigCategories" :key="cat">
+                            <button type="button" @click="daigForm.category = cat; openDaigCat = false"
+                                class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors hover:bg-orange-500/20"
+                                :class="daigForm.category === cat ? 'text-orange-400 font-bold bg-orange-500/10' : 'text-zinc-300'">
+                                <span x-text="cat"></span>
+                                <i data-lucide="check" class="w-3 h-3 text-orange-400" x-show="daigForm.category === cat"></i>
+                            </button>
+                        </template>
                     </div>
                 </div>
 
@@ -3252,7 +3273,30 @@ $adminUser = $_SESSION['admin_user'];
                 riderForm: { name: '', phone: '', email: '', password: '123456', city: 'Lahore' },
                 editingRider: {},
                 foodForm: { id: '', name: '', category: 'Biryani', price: 0, calories: 500, isDiscounted: false, discountPercent: 50, discountPrice: 0, promoBadge: '🔥 50% OFF', description: '', imageUrl: '' },
-                daigForm: { id: '', name: '', urduName: '', fullDaigPrice: 15000, halfDaigPrice: 8000, promoBadge: '', deliveryNotice: '3-4 hours notice', imageUrl: '' },
+                daigForm: { id: '', name: '', urduName: '', category: 'Biryani & Pulao', fullDaigPrice: 15000, halfDaigPrice: 8000, promoBadge: '', deliveryNotice: '3-4 hours notice', imageUrl: '' },
+                allCategories: [],
+                get allowedFoodCategories() {
+                    const bType = this.subAdmin?.businessType || 'restaurant';
+                    const list = this.allCategories.filter(c => {
+                        if (c.name === 'All') return false;
+                        if (bType === 'both') return true;
+                        return c.type === bType || c.type === 'both';
+                    });
+                    if (list.length === 0) {
+                        return ['Biryani', 'Karahi & Handi', 'BBQ & Grill', 'Burgers', 'Pulao', 'Desi Gravy', 'Desserts', 'Beverages'];
+                    }
+                    return list.map(c => c.name);
+                },
+                get allowedDaigCategories() {
+                    const list = this.allCategories.filter(c => {
+                        if (c.name === 'All') return false;
+                        return c.type === 'pakwan' || c.type === 'both';
+                    });
+                    if (list.length === 0) {
+                        return ['Biryani & Pulao', 'Qorma & Karahi', 'Haleem & Nihari', 'Sweet & Desserts', 'Shahi Daig Catering'];
+                    }
+                    return list.map(c => c.name);
+                },
                 profileForm: {
                     businessName: '<?= addslashes($adminUser['businessName'] ?? '') ?>',
                     name: '<?= addslashes($adminUser['name'] ?? '') ?>',
@@ -3795,14 +3839,15 @@ $adminUser = $_SESSION['admin_user'];
                     this.loading = true;
                     try {
                         const sid = this.subAdmin.id;
-                        const [statsRes, custRes, ordRes, ridRes, foodRes, daigRes, banRes] = await Promise.all([
+                        const [statsRes, custRes, ordRes, ridRes, foodRes, daigRes, banRes, catRes] = await Promise.all([
                             fetch(`../api/vendor/stats?sub_admin_id=${sid}`).then(r => r.json()).catch(() => ({ data: {} })),
                             fetch(`../api/vendor/customers?sub_admin_id=${sid}`).then(r => r.json()).catch(() => ({ data: [] })),
                             fetch(`../api/orders?sub_admin_id=${sid}`).then(r => r.json()).catch(() => ({ data: [] })),
                             fetch(`../api/users?role=rider`).then(r => r.json()).catch(() => ({ data: [] })),
                             fetch(`../api/food-items`).then(r => r.json()).catch(() => ({ data: [] })),
                             fetch(`../api/daig-items`).then(r => r.json()).catch(() => ({ data: [] })),
-                            fetch(`../api/banners?sub_admin_id=${sid}`).then(r => r.json()).catch(() => ({ data: [] }))
+                            fetch(`../api/banners?sub_admin_id=${sid}`).then(r => r.json()).catch(() => ({ data: [] })),
+                            fetch(`../api/categories`).then(r => r.json()).catch(() => ({ data: [] }))
                         ]);
 
                         if (statsRes?.data) this.vendorStats = statsRes.data;
@@ -3812,6 +3857,7 @@ $adminUser = $_SESSION['admin_user'];
                         if (foodRes?.data) this.foodItems = foodRes.data;
                         if (daigRes?.data) this.daigItems = daigRes.data;
                         if (banRes?.data) this.vendorBanners = banRes.data;
+                        if (catRes?.data) this.allCategories = catRes.data;
                     } catch (e) {
                         this.showToast('Sync error: ' + e.message, 'error');
                     } finally {
@@ -4447,7 +4493,7 @@ $adminUser = $_SESSION['admin_user'];
 
                 // Daig Items CRUD
                 openCreateDaigModal() {
-                    this.daigForm = { id: '', name: '', urduName: '', fullDaigPrice: 16000, halfDaigPrice: 8500, promoBadge: 'SPECIAL SHAHI DEG', deliveryNotice: 'Order 3-4 hours in advance', imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80' };
+                    this.daigForm = { id: '', name: '', urduName: '', category: this.allowedDaigCategories[0] || 'Biryani & Pulao', fullDaigPrice: 16000, halfDaigPrice: 8500, promoBadge: 'SPECIAL SHAHI DEG', deliveryNotice: 'Order 3-4 hours in advance', imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80' };
                     this.modal.daig = true;
                     this.$nextTick(() => lucide.createIcons());
                 },

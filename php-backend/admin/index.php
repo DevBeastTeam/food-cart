@@ -2006,6 +2006,101 @@ if ($liveSuper) {
             </div>
 
             <!-- =============================================================== -->
+            <!-- TAB: CATEGORIES MANAGER (RESTAURANT & SHAHI PAKWAN) -->
+            <!-- =============================================================== -->
+            <div x-show="activeTab === 'categories'" class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i data-lucide="layers" class="w-4 h-4 text-[#FF9500]"></i>
+                            <span>Food &amp; Daig Categories Manager</span>
+                        </h3>
+                        <p class="text-[11px] text-zinc-400">Manage official menu categories for Restaurants and Shahi Pakwan. Vendors can only assign allowed categories to dishes.</p>
+                    </div>
+                    <button type="button" @click="openCatModal()"
+                        class="px-3.5 py-2 bg-[#FF9500] hover:bg-orange-500 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-orange-500/20 shrink-0">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                        <span>Add Category</span>
+                    </button>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                        <button type="button" @click="catFilter = 'all'"
+                            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                            :class="catFilter === 'all' ? 'bg-[#FF9500] text-black shadow-md' : 'bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white'">
+                            All (<span x-text="categories.length"></span>)
+                        </button>
+                        <button type="button" @click="catFilter = 'restaurant'"
+                            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                            :class="catFilter === 'restaurant' ? 'bg-indigo-600 text-white shadow-md' : 'bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white'">
+                            🍽️ Restaurant (<span x-text="categories.filter(c => c.type === 'restaurant' || c.type === 'both').length"></span>)
+                        </button>
+                        <button type="button" @click="catFilter = 'pakwan'"
+                            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                            :class="catFilter === 'pakwan' ? 'bg-amber-600 text-white shadow-md' : 'bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white'">
+                            👑 Shahi Pakwan (<span x-text="categories.filter(c => c.type === 'pakwan' || c.type === 'both').length"></span>)
+                        </button>
+                    </div>
+
+                    <div class="relative w-full sm:w-60">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" x-model="catSearch" placeholder="Search categories..."
+                            class="w-full pl-8 pr-3 py-1.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9500]">
+                    </div>
+                </div>
+
+                <!-- Categories Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <template x-for="cat in filteredCategories" :key="cat.id">
+                        <div class="cupertino-glass rounded-2xl p-3 border border-white/10 flex flex-col justify-between hover:border-orange-500/30 transition-all group">
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-lg shrink-0 overflow-hidden">
+                                        <template x-if="cat.image">
+                                            <img :src="cat.image" class="w-full h-full object-cover">
+                                        </template>
+                                        <template x-if="!cat.image">
+                                            <span x-text="cat.icon || '🍽️'"></span>
+                                        </template>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-white leading-tight line-clamp-1" x-text="cat.name"></h4>
+                                        <span class="text-[10px] text-zinc-500 font-mono" x-text="'Order #' + (cat.display_order || 0)"></span>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider shrink-0"
+                                    :class="{
+                                        'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30': cat.type === 'restaurant',
+                                        'bg-amber-500/20 text-amber-300 border border-amber-500/30': cat.type === 'pakwan',
+                                        'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30': cat.type === 'both'
+                                    }"
+                                    x-text="cat.type === 'pakwan' ? 'Pakwan' : (cat.type === 'restaurant' ? 'Restaurant' : 'Both')"></span>
+                            </div>
+
+                            <div class="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
+                                <button type="button" @click="openCatModal(cat)"
+                                    class="text-[11px] font-semibold text-zinc-400 hover:text-white flex items-center gap-1 transition-colors">
+                                    <i data-lucide="edit-2" class="w-3 h-3 text-orange-400"></i>
+                                    <span>Edit</span>
+                                </button>
+                                <button type="button" @click="deleteCategoryItem(cat)"
+                                    class="text-[11px] font-semibold text-red-400/70 hover:text-red-400 flex items-center gap-1 transition-colors">
+                                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                    <span>Delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div x-show="filteredCategories.length === 0" class="p-8 text-center cupertino-glass rounded-2xl border border-white/5 text-zinc-400 text-xs">
+                    No categories found matching your filter or search query.
+                </div>
+            </div>
+
+            <!-- =============================================================== -->
             <!-- TAB 5: SUPER ADMIN PROFILE & SECURITY -->
             <!-- =============================================================== -->
             <div x-show="activeTab === 'profile'" class="space-y-3.5">
@@ -2628,6 +2723,66 @@ if ($liveSuper) {
     </div>
 
     <!-- ======================================================================= -->
+    <!-- MODAL: ADD / EDIT CATEGORY -->
+    <!-- ======================================================================= -->
+    <div x-show="modal.category" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md" x-cloak>
+        <div class="w-full max-w-md cupertino-glass rounded-3xl p-5 border border-white/10 shadow-2xl space-y-4" @click.away="modal.category = false">
+            <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i data-lucide="layers" class="w-4 h-4 text-[#FF9500]"></i>
+                    <span x-text="catForm.id ? 'Edit Category' : 'Create New Category'"></span>
+                </h3>
+                <button type="button" @click="modal.category = false" class="text-zinc-400 hover:text-white">✕</button>
+            </div>
+
+            <form @submit.prevent="saveCategoryForm()" class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Category Name *</label>
+                    <input type="text" x-model="catForm.name" required placeholder="e.g. Mutton Karahi &amp; Handi"
+                        class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Applies To *</label>
+                        <select x-model="catForm.type"
+                            class="w-full px-2.5 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
+                            <option value="restaurant">🍽️ Restaurant Dishes</option>
+                            <option value="pakwan">👑 Shahi Pakwan (Daigs)</option>
+                            <option value="both">✨ Both Outlets</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Emoji / Icon</label>
+                        <input type="text" x-model="catForm.icon" placeholder="🍲, 🍚, 🥘"
+                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Display Order</label>
+                        <input type="number" x-model.number="catForm.display_order" min="0" placeholder="1"
+                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-[#FF9500]">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-semibold text-zinc-300 mb-1">Image URL (Optional)</label>
+                        <input type="url" x-model="catForm.image" placeholder="https://images.unsplash..."
+                            class="w-full px-3 py-2 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-[#FF9500]">
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-white/5">
+                    <button type="button" @click="modal.category = false" class="px-3.5 py-1.5 bg-zinc-800 text-zinc-300 rounded-xl text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 bg-[#FF9500] hover:bg-orange-500 text-white font-bold rounded-xl text-xs shadow-md">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ======================================================================= -->
     <!-- SLIDE-OVER SHEET: DISH & DAIG DETAILS (RIGHT-SIDE DRAWER) -->
     <!-- 90% width on mobile (w-[90vw]), max-w-lg on desktop, smooth slide-in -->
     <!-- ======================================================================= -->
@@ -2850,7 +3005,7 @@ if ($liveSuper) {
                 desktopNotificationPermission: (typeof Notification !== 'undefined') ? Notification.permission : 'default',
 
                 toast: { visible: false, message: '', type: 'success' },
-                modal: { createSubAdmin: false, editSubAdmin: false, createRider: false, deleteConfirm: false, notifySheet: false, dishDetail: false },
+                modal: { createSubAdmin: false, editSubAdmin: false, createRider: false, deleteConfirm: false, notifySheet: false, dishDetail: false, category: false },
                 selectedDish: null,
                 selectedDishType: 'pakwan',
 
@@ -2898,6 +3053,7 @@ if ($liveSuper) {
                 tabs: [
                     { id: 'analytics', label: 'Platform Analytics', icon: 'line-chart' },
                     { id: 'vendors', label: 'Vendors', icon: 'store' },
+                    { id: 'categories', label: 'Categories Manager', icon: 'layers' },
                     { id: 'banners', label: 'Vendor Offers', icon: 'tag' },
                     { id: 'all-orders', label: 'Global Orders Hub', icon: 'shopping-bag' },
                     { id: 'settings-db', label: 'Database & Seeding Hub', icon: 'database' },
@@ -2905,6 +3061,17 @@ if ($liveSuper) {
                 ],
 
                 banners: [],
+                categories: [],
+                catFilter: 'all',
+                catSearch: '',
+                catForm: {
+                    id: '',
+                    name: '',
+                    type: 'restaurant',
+                    icon: '🍽️',
+                    image: '',
+                    display_order: 1
+                },
 
                 superProfile: <?= json_encode($superUser) ?>,
                 adminProfileForm: {
@@ -3501,13 +3668,14 @@ if ($liveSuper) {
                 async refreshAll(silent = false) {
                     if (!silent) this.loading = true;
                     try {
-                        const [saRes, sRes, oRes, accRes, ridRes, banRes] = await Promise.all([
+                        const [saRes, sRes, oRes, accRes, ridRes, banRes, catRes] = await Promise.all([
                             fetch('../api/sub-admins').then(r => r.json()),
                             fetch('../api/dashboard/stats').then(r => r.json()),
                             fetch('../api/orders').then(r => r.json()),
                             fetch('../api/database/accounts').then(r => r.json()).catch(() => ({ data: [] })),
                             fetch('../api/users?role=rider').then(r => r.json()).catch(() => ({ data: [] })),
-                            fetch('../api/banners').then(r => r.json()).catch(() => ({ data: [] }))
+                            fetch('../api/banners').then(r => r.json()).catch(() => ({ data: [] })),
+                            fetch('../api/categories').then(r => r.json()).catch(() => ({ data: [] }))
                         ]);
 
                         if (saRes?.data) this.subAdmins = saRes.data;
@@ -3516,11 +3684,90 @@ if ($liveSuper) {
                         if (accRes?.data) this.allAccounts = accRes.data;
                         if (ridRes?.data) this.riders = ridRes.data;
                         if (banRes?.data) this.banners = banRes.data;
+                        if (catRes?.data) this.categories = catRes.data;
                     } catch (e) {
                         if (!silent) this.showToast('Failed to sync live data: ' + e.message, 'error');
                     } finally {
                         if (!silent) this.loading = false;
                         this.$nextTick(() => lucide.createIcons());
+                    }
+                },
+
+                get filteredCategories() {
+                    return this.categories.filter(c => {
+                        if (this.catFilter !== 'all' && c.type !== this.catFilter && c.type !== 'both') return false;
+                        if (this.catSearch.trim()) {
+                            const q = this.catSearch.toLowerCase();
+                            return (c.name || '').toLowerCase().includes(q) || (c.type || '').toLowerCase().includes(q);
+                        }
+                        return true;
+                    });
+                },
+
+                openCatModal(cat = null) {
+                    if (cat) {
+                        this.catForm = {
+                            id: cat.id,
+                            name: cat.name,
+                            type: cat.type || 'restaurant',
+                            icon: cat.icon || '🍽️',
+                            image: cat.image || '',
+                            display_order: parseInt(cat.display_order) || 0
+                        };
+                    } else {
+                        this.catForm = {
+                            id: '',
+                            name: '',
+                            type: this.catFilter === 'pakwan' ? 'pakwan' : 'restaurant',
+                            icon: '🍽️',
+                            image: '',
+                            display_order: this.categories.length + 1
+                        };
+                    }
+                    this.modal.category = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                async saveCategoryForm() {
+                    if (!this.catForm.name.trim()) {
+                        this.showToast('Please enter category name', 'error');
+                        return;
+                    }
+                    try {
+                        const isEdit = !!this.catForm.id;
+                        const url = isEdit ? `../api/categories/${this.catForm.id}` : '../api/categories';
+                        const method = isEdit ? 'PUT' : 'POST';
+                        const res = await fetch(url, {
+                            method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.catForm)
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.showToast(`✅ Category ${isEdit ? 'updated' : 'created'} successfully!`);
+                            this.modal.category = false;
+                            await this.refreshAll(true);
+                        } else {
+                            this.showToast(data.message || 'Failed to save category', 'error');
+                        }
+                    } catch (e) {
+                        this.showToast('Error saving category: ' + e.message, 'error');
+                    }
+                },
+
+                async deleteCategoryItem(cat) {
+                    if (!confirm(`Are you sure you want to delete category "${cat.name}"?`)) return;
+                    try {
+                        const res = await fetch(`../api/categories/${cat.id}`, { method: 'DELETE' });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.showToast(`🗑️ Category "${cat.name}" deleted!`);
+                            await this.refreshAll(true);
+                        } else {
+                            this.showToast(data.message || 'Failed to delete category', 'error');
+                        }
+                    } catch (e) {
+                        this.showToast('Error deleting category: ' + e.message, 'error');
                     }
                 },
 

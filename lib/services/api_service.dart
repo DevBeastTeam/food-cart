@@ -43,6 +43,9 @@ class ApiService {
   List<Map<String, dynamic>> _promoBanners = [];
   List<Map<String, dynamic>> get promoBanners => _promoBanners;
 
+  List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> get categories => _categories;
+
   // Initialize and sync data from backend on app launch
   Future<void> syncWithBackend({UserState? userState}) async {
     try {
@@ -180,6 +183,13 @@ class ApiService {
         final decoded = _safeJsonDecode(settingsRes.body);
         if (decoded != null && decoded['data'] is Map<String, dynamic>) {
           _appSettings = decoded['data'] as Map<String, dynamic>;
+        }
+      }
+      final catRes = await http.get(Uri.parse('$baseUrl/categories')).timeout(const Duration(seconds: 3));
+      if (catRes.statusCode == 200) {
+        final decoded = _safeJsonDecode(catRes.body);
+        if (decoded != null && decoded['data'] is List) {
+          _categories = List<Map<String, dynamic>>.from(decoded['data']);
         }
       }
     } catch (e) {

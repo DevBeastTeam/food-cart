@@ -48,25 +48,30 @@ INSERT OR REPLACE INTO "content" ("key", "value") VALUES ('addresses', '["Home \
 INSERT OR REPLACE INTO "content" ("key", "value") VALUES ('quickFilters', '[{"id":"qf_1","name":"All","icon":"all","isVisible":true},{"id":"qf_2","name":"Top Rated","icon":"star","isVisible":true},{"id":"qf_3","name":"Fast Delivery","icon":"bolt","isVisible":true},{"id":"qf_4","name":"Free Delivery","icon":"delivery","isVisible":true}]');
 
 -- -----------------------------------------------------------------------------
--- Table: categories (17 records)
+-- Table: categories (22 records)
 -- -----------------------------------------------------------------------------
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_all', 'All', '🍽️', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&q=80', 0);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_pulao', 'Pulao', '🍲', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80', 1);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_biryani', 'Biryani', '🍚', 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80', 2);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_beef', 'Bara Gosht (Beef)', '🥩', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80', 3);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_mutton', 'Chota Gosht (Mutton)', '🍖', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=200&q=80', 4);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_mutton_karahi', 'Mutton Karahi', '🥘', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=200&q=80', 5);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_qorma', 'Shahi Qorma', '🥣', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80', 6);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_kabab', 'Tikka & Kabab', '🍢', 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=200&q=80', 7);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_rice_daal', 'Rice & Daal', '🌾', 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80', 8);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_meetha', 'Zarda & Meetha', '🍮', 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=200&q=80', 9);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_roti', 'Naan & Roti', '🫓', 'https://images.unsplash.com/photo-1626074353765-517a681e40be?w=200&q=80', 10);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_1', 'Biryani & Rice', '🍚', 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80', 1);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_2', 'Shahi Daig Catering', '👑', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80', 2);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_3', 'Karahi & Handi', '🥘', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=300&q=80', 3);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_4', 'BBQ & Grills', '🍢', 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300&q=80', 4);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_5', 'Desserts & Sweets', '🍮', 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=300&q=80', 5);
-INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order") VALUES ('cat_6', 'Beverages & Chai', '🥤', 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300&q=80', 6);
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_all', 'All', '🍽️', 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&q=80', 0, 'both');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_pulao', 'Pulao', '🍲', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80', 1, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_biryani', 'Biryani', '🍚', 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80', 2, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_beef', 'Bara Gosht (Beef)', '🥩', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80', 3, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_mutton', 'Chota Gosht (Mutton)', '🍖', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=200&q=80', 4, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_mutton_karahi', 'Mutton Karahi', '🥘', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=200&q=80', 5, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_qorma', 'Shahi Qorma', '🥣', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80', 6, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_kabab', 'Tikka & Kabab', '🍢', 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=200&q=80', 7, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_rice_daal', 'Rice & Daal', '🌾', 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80', 8, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_meetha', 'Zarda & Meetha', '🍮', 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=200&q=80', 9, 'both');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_roti', 'Naan & Roti', '🫓', 'https://images.unsplash.com/photo-1626074353765-517a681e40be?w=200&q=80', 10, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_1', 'Biryani & Rice', '🍚', 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80', 1, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_2', 'Shahi Daig Catering', '👑', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80', 2, 'pakwan');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_3', 'Karahi & Handi', '🥘', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=300&q=80', 3, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_4', 'BBQ & Grills', '🍢', 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300&q=80', 4, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_5', 'Desserts & Sweets', '🍮', 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=300&q=80', 5, 'both');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_6', 'Beverages & Chai', '🥤', 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300&q=80', 6, 'restaurant');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_pkw_1', 'Biryani & Pulao', '🍲', 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=200&q=80', 1, 'pakwan');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_pkw_2', 'Qorma & Karahi', '🥘', 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=200&q=80', 2, 'pakwan');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_pkw_3', 'Haleem & Nihari', '🥣', 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=200&q=80', 3, 'pakwan');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_pkw_4', 'Sweet & Desserts', '🍮', 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=200&q=80', 4, 'pakwan');
+INSERT OR REPLACE INTO "categories" ("id", "name", "icon", "image", "display_order", "type") VALUES ('cat_pkw_5', 'Shahi Daig Catering', '👑', 'https://images.unsplash.com/photo-1544025162-d76694265947?w=200&q=80', 5, 'pakwan');
 
 -- -----------------------------------------------------------------------------
 -- Table: restaurants (5 records)

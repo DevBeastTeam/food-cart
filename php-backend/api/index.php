@@ -626,9 +626,69 @@ switch ($resource) {
     // 8. CATEGORIES
     // -------------------------------------------------------------------------
     case 'categories':
-        $stmt = $pdo->query("SELECT * FROM categories ORDER BY display_order ASC");
-        $rows = $stmt->fetchAll();
-        jsonResponse(['success' => true, 'count' => count($rows), 'data' => $rows]);
+        if ($method === 'GET') {
+            $type = $_GET['type'] ?? '';
+            if (!empty($type) && $type !== 'all') {
+                $stmt = $pdo->prepare("SELECT * FROM categories WHERE type = ? OR type = 'both' ORDER BY display_order ASC");
+                $stmt->execute([$type]);
+            } else {
+                $stmt = $pdo->query("SELECT * FROM categories ORDER BY display_order ASC");
+            }
+            $rows = $stmt->fetchAll();
+            jsonResponse(['success' => true, 'count' => count($rows), 'data' => $rows]);
+        } elseif ($method === 'POST') {
+            $b = getJsonInput();
+            $id = $b['id'] ?? ('cat_' . time());
+            $name = trim($b['name'] ?? '');
+            if (empty($name)) {
+                jsonResponse(['success' => false, 'message' => 'Category name is required'], 400);
+            }
+            $type = $b['type'] ?? 'restaurant';
+            $icon = $b['icon'] ?? '🍽️';
+            $image = $b['image'] ?? '';
+            $order = (int)($b['display_order'] ?? 0);
+
+            $stmt = $pdo->prepare("INSERT OR REPLACE INTO categories (id, name, icon, image, display_order, type) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$id, $name, $icon, $image, $order, $type]);
+            jsonResponse(['success' => true, 'message' => 'Category saved successfully', 'id' => $id]);
+        } elseif ($method === 'PUT' || $method === 'PATCH') {
+            $catId = $subId;
+            $b = getJsonInput();
+            if (empty($catId)) $catId = $b['id'] ?? '';
+            if (empty($catId)) {
+                jsonResponse(['success' => false, 'message' => 'Category ID required'], 400);
+            }
+            $stmt = $pdo->prepare("
+                UPDATE categories 
+                SET name = COALESCE(?, name),
+                    type = COALESCE(?, type),
+                    icon = COALESCE(?, icon),
+                    image = COALESCE(?, image),
+                    display_order = COALESCE(?, display_order)
+                WHERE id = ?
+            ");
+            $stmt->execute([
+                $b['name'] ?? null,
+                $b['type'] ?? null,
+                $b['icon'] ?? null,
+                $b['image'] ?? null,
+                isset($b['display_order']) ? (int)$b['display_order'] : null,
+                $catId
+            ]);
+            jsonResponse(['success' => true, 'message' => 'Category updated successfully']);
+        } elseif ($method === 'DELETE') {
+            $catId = $subId;
+            if (empty($catId)) {
+                $b = getJsonInput();
+                $catId = $b['id'] ?? $_GET['id'] ?? '';
+            }
+            if (empty($catId)) {
+                jsonResponse(['success' => false, 'message' => 'Category ID required'], 400);
+            }
+            $stmt = $pdo->prepare("DELETE FROM categories WHERE id = ?");
+            $stmt->execute([$catId]);
+            jsonResponse(['success' => true, 'message' => 'Category deleted successfully']);
+        }
         break;
 
     // -------------------------------------------------------------------------
