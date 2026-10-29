@@ -959,17 +959,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   const Icon(Icons.location_on, size: 15, color: AppTheme.primary),
                   const SizedBox(width: 6),
-                  const Text(
-                    'Deliver to: ',
+                  Text(
+                    'Location: ',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textSecondary,
+                      color: Colors.grey.shade500,
                     ),
                   ),
                   Expanded(
                     child: Text(
-                      'Location: ${_selectedVendorId == "all" ? "All" : _selectedVendorName}',
+                      _selectedVendorId == "all" ? "All" : _selectedVendorName,
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
