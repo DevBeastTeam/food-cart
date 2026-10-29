@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 class PromoBanner extends StatefulWidget {
   final VoidCallback? onApplyPromo;
   final VoidCallback? onOrderNow;
+  final void Function(Map<String, dynamic> banner)? onOrderBanner;
   final VoidCallback? onDismiss;
   final String? tagText;
   final String? title;
@@ -19,6 +20,7 @@ class PromoBanner extends StatefulWidget {
     super.key,
     this.onApplyPromo,
     this.onOrderNow,
+    this.onOrderBanner,
     this.onDismiss,
     this.tagText,
     this.title,
@@ -49,42 +51,107 @@ class _PromoBannerState extends State<PromoBanner> {
     }
   }
 
-  // Fallback demo banners if backend has not loaded
+  // Fallback demo banners for vendors offering promotions
   static final List<Map<String, dynamic>> _fallbackBanners = [
     {
-      'id': 'ban_1',
-      'tagText': 'SHAHI PAKWAN SPECIAL',
-      'title': '25% OFF Shahi Daig Feast',
-      'dishesText': 'Wood-Fire Shahi Daig Booking • Biryani, Pulao, Haleem & Kheer',
-      'buttonText': 'Order Daig Now',
-      'imageUrl': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80',
-      'bgGradient': ['#EA580C', '#C2410C'],
-      'sub_admin_id': 'sub_admin_2',
-      'discountPercent': 25,
-    },
-    {
       'id': 'ban_2',
-      'tagText': 'SPECIAL BANNU OFFER',
-      'title': '40% OFF Bannu Beef Pulao',
-      'dishesText': 'Rich bone marrow stock & slow simmered meat • Free Naan & Raita',
-      'buttonText': 'Order Pulao',
+      'shop_name': 'Bannu Beef Pulao',
+      'offerText': '40% OFF',
+      'tagText': 'BANNU BEEF PULAO',
+      'title': 'Bannu Beef Pulao Feast',
+      'dishesText': 'Rich bone marrow stock & slow simmered beef • Free Naan & Raita',
+      'buttonText': 'Order Now',
       'imageUrl': 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=700&q=80',
-      'bgGradient': ['#D97706', '#B45309'],
+      'bgGradient': ['#D97706', '#92400E'],
       'sub_admin_id': 'sub_admin_1',
       'discountPercent': 40,
     },
     {
+      'id': 'ban_1',
+      'shop_name': 'Shahi Pakwan Center',
+      'offerText': '25% OFF',
+      'tagText': 'SHAHI PAKWAN CENTER',
+      'title': 'Wood-Fire Shahi Daig Booking',
+      'dishesText': 'Biryani, Pulao, Zarda, Haleem & Kheer Cauldrons • Dum Cooked',
+      'buttonText': 'Order Now',
+      'imageUrl': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80',
+      'bgGradient': ['#EA580C', '#9A3412'],
+      'sub_admin_id': 'sub_admin_2',
+      'discountPercent': 25,
+    },
+    {
       'id': 'ban_3',
-      'tagText': 'HERITAGE SHINWARI DEAL',
-      'title': '30% OFF Mutton Shinwari',
+      'shop_name': 'Shinwari Karahi',
+      'offerText': '30% OFF',
+      'tagText': 'SHINWARI KARAHI',
+      'title': 'Shinwari Mutton Karahi',
       'dishesText': 'Cooked fresh in tomatoes & traditional desi ghee • Hot Roghani Naan',
-      'buttonText': 'Order Karahi',
+      'buttonText': 'Order Now',
       'imageUrl': 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=700&q=80',
-      'bgGradient': ['#6C3CE9', '#8B5CF6'],
+      'bgGradient': ['#DC2626', '#7F1D1D'],
       'sub_admin_id': 'sub_admin_3',
       'discountPercent': 30,
     },
+    {
+      'id': 'ban_4',
+      'shop_name': 'Madina Pakwan',
+      'offerText': '20% OFF',
+      'tagText': 'MADINA PAKWAN',
+      'title': 'Special Degi Biryani & Daig',
+      'dishesText': 'Authentic Lahore wedding feast & fresh cauldrons for all events',
+      'buttonText': 'Order Now',
+      'imageUrl': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=700&q=80',
+      'bgGradient': ['#059669', '#065F46'],
+      'sub_admin_id': 'sub_admin_4',
+      'discountPercent': 20,
+    },
   ];
+
+  static String _resolveShopName(Map<String, dynamic> banner) {
+    final rawShop = banner['shop_name'];
+    if (rawShop != null && rawShop.toString().trim().isNotEmpty && rawShop.toString() != 'Food Court Hub') {
+      return rawShop.toString().trim();
+    }
+    final sid = (banner['sub_admin_id'] ?? '').toString();
+    switch (sid) {
+      case 'sub_admin_1':
+        return 'Bannu Beef Pulao';
+      case 'sub_admin_2':
+        return 'Shahi Pakwan Center';
+      case 'sub_admin_3':
+        return 'Shinwari Karahi';
+      case 'sub_admin_4':
+        return 'Madina Pakwan';
+      default:
+        final tag = (banner['tagText'] ?? '').toString();
+        if (tag.isNotEmpty && !tag.toUpperCase().contains('OFFER') && !tag.toUpperCase().contains('DEAL')) {
+          return tag;
+        }
+        return 'Food Court Special';
+    }
+  }
+
+  static String _resolveOfferText(Map<String, dynamic> banner) {
+    if (banner['offerText'] != null && banner['offerText'].toString().trim().isNotEmpty) {
+      return banner['offerText'].toString().trim();
+    }
+    final disc = banner['discountPercent'];
+    if (disc != null) {
+      final d = int.tryParse(disc.toString()) ?? 0;
+      if (d > 0) return '$d% OFF';
+    }
+    final title = (banner['title'] ?? '').toString();
+    final offMatch = RegExp(r'(\d+%\s*OFF)', caseSensitive: false).firstMatch(title);
+    if (offMatch != null) {
+      return offMatch.group(1)!.toUpperCase();
+    }
+    final tag = (banner['tagText'] ?? '').toString();
+    final tagMatch = RegExp(r'(\d+%\s*OFF)', caseSensitive: false).firstMatch(tag);
+    if (tagMatch != null) {
+      return tagMatch.group(1)!.toUpperCase();
+    }
+    return 'HOT OFFER';
+  }
 
   @override
   void initState() {
@@ -107,20 +174,18 @@ class _PromoBannerState extends State<PromoBanner> {
 
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
-    // Only auto-scroll when in 'all' mode and multiple banners exist
-    if (widget.selectedVendorId == 'all') {
-      _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-        if (!mounted || !_pageController.hasClients) return;
-        final list = _getEffectiveBanners();
-        if (list.length <= 1) return;
-        final nextPage = (_currentPage + 1) % list.length;
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOutCubic,
-        );
-      });
-    }
+    // Auto-scroll when multiple banners exist
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (!mounted || !_pageController.hasClients) return;
+      final list = _getEffectiveBanners();
+      if (list.length <= 1) return;
+      final nextPage = (_currentPage + 1) % list.length;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOutCubic,
+      );
+    });
   }
 
   @override
@@ -149,12 +214,15 @@ class _PromoBannerState extends State<PromoBanner> {
       return vendorList;
     }
 
-    // If specific vendor has no banner yet, provide dynamic branded banner
+    // Dynamic branded banner for the selected vendor
+    final shopName = _resolveShopName({'sub_admin_id': widget.selectedVendorId});
     return [
       {
         'id': 'vendor_banner_${widget.selectedVendorId}',
-        'tagText': 'EXCLUSIVE VENDOR DEAL',
-        'title': 'Special Outlet Offer',
+        'shop_name': shopName,
+        'offerText': 'SPECIAL DEAL',
+        'tagText': shopName.toUpperCase(),
+        'title': '$shopName Exclusive Offer',
         'dishesText': 'Order fresh specialty dishes & catering from this certified kitchen.',
         'buttonText': 'Order Now',
         'imageUrl': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80',
@@ -168,13 +236,13 @@ class _PromoBannerState extends State<PromoBanner> {
   @override
   Widget build(BuildContext context) {
     final banners = _getEffectiveBanners();
-    final isMultiple = banners.length > 1 && widget.selectedVendorId == 'all';
+    final isMultiple = banners.length > 1;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: 175,
+          height: 180,
           child: PageView.builder(
             controller: _pageController,
             itemCount: banners.length,
@@ -213,27 +281,29 @@ class _PromoBannerState extends State<PromoBanner> {
   }
 
   Widget _buildBannerCard(Map<String, dynamic> banner) {
-    final effectiveTag = widget.tagText ?? banner['tagText'] ?? 'SPECIAL OFFER';
-    final effectiveTitle = widget.title ?? banner['title'] ?? '40% OFF';
+    final shopName = _resolveShopName(banner);
+    final offerText = _resolveOfferText(banner);
+    final effectiveTitle = widget.title ?? banner['title'] ?? 'Special Feast';
     final effectiveDishes = widget.dishesText ??
         banner['dishesText'] ??
-        'Shahi Qorma, Beef Kabab, Degi Biryani, Mutton Karahi, Zarda';
+        banner['description'] ??
+        'Freshly prepared specialty dishes & catering deals';
     final effectiveButton = widget.buttonText ?? banner['buttonText'] ?? 'Order Now';
     final effectiveImage = widget.imageUrl ??
         banner['imageUrl'] ??
-        'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=300&q=80';
+        'https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80';
 
     List<Color> effectiveColors = const [
-      Color(0xFF6C3CE9),
-      Color(0xFF8B5CF6),
-      Color(0xFFA855F7),
+      Color(0xFFEA580C),
+      Color(0xFF9A3412),
+      Color(0xFF1E1E2D),
     ];
 
     if (banner['bgGradient'] is List) {
       final gradList = banner['bgGradient'] as List;
       if (gradList.length >= 2) {
         effectiveColors = gradList
-            .map((c) => _parseHex(c, const Color(0xFF6C3CE9)))
+            .map((c) => _parseHex(c, const Color(0xFFEA580C)))
             .toList();
       }
     } else if (widget.bgGradientColors != null) {
@@ -244,182 +314,347 @@ class _PromoBannerState extends State<PromoBanner> {
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: effectiveColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: effectiveColors.first.withAlpha(80),
+            color: effectiveColors.first.withValues(alpha: 0.35),
             blurRadius: 14,
             offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          // Background decorative illustration / image
-          Positioned(
-            right: -15,
-            bottom: -15,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(50),
-              child: Opacity(
-                opacity: 0.28,
-                child: Image.network(
-                  effectiveImage,
-                  width: 150,
-                  height: 150,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            // 1. Background Image covering card
+            Positioned.fill(
+              child: Image.network(
+                effectiveImage,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: const Color(0xFF1E293B),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            right: 50,
-            top: -25,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withAlpha(20),
-              ),
-            ),
-          ),
-          if (widget.onDismiss != null)
-            Positioned(
-              top: 10,
-              right: 10,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: widget.onDismiss,
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.25),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.close_rounded,
-                      color: Colors.white,
-                      size: 15,
-                    ),
+
+            // 2. Gradient with transparent overlay colors
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      effectiveColors.first.withValues(alpha: 0.88),
+                      effectiveColors.last.withValues(alpha: 0.72),
+                      Colors.black.withValues(alpha: 0.78),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    stops: const [0.0, 0.55, 1.0],
                   ),
                 ),
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Tag
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(45),
-                    borderRadius: BorderRadius.circular(6),
+
+            // Subtle dark left vignette for sharp text contrast
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withValues(alpha: 0.40),
+                      Colors.transparent,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                ),
+              ),
+            ),
+
+            if (widget.onDismiss != null)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: widget.onDismiss,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.40),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            // 3. Card Content
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top Row: Shop Name & Offer
+                  Row(
                     children: [
-                      const Icon(Icons.campaign_rounded, color: Colors.amberAccent, size: 14),
-                      const SizedBox(width: 5),
-                      Text(
-                        effectiveTag,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
+                      // Shop Name Tag
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.38),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.storefront_rounded,
+                                color: Colors.amberAccent,
+                                size: 13,
+                              ),
+                              const SizedBox(width: 5),
+                              Flexible(
+                                child: Text(
+                                  shopName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.2,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Offer Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF3D00), Color(0xFFFF6D00)],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFFF3D00).withValues(alpha: 0.45),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.local_offer_rounded,
+                              color: Colors.white,
+                              size: 11,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              offerText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 6),
+                  const SizedBox(height: 7),
 
-                // 2. Title
-                Text(
-                  effectiveTitle,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                    height: 1.15,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-
-                // 3. Subtitle / Dishes
-                Expanded(
-                  child: Text(
-                    effectiveDishes,
+                  // Title
+                  Text(
+                    effectiveTitle,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w500,
-                      height: 1.25,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.3,
+                      height: 1.15,
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
+                  const SizedBox(height: 3),
 
-                // 4. Action Button
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: InkWell(
-                    onTap: widget.onOrderNow ?? widget.onApplyPromo,
-                    borderRadius: BorderRadius.circular(18),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6.5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                  // Description
+                  Expanded(
+                    child: Text(
+                      effectiveDishes,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.92),
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        height: 1.25,
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            effectiveButton,
-                            style: const TextStyle(
-                              color: AppTheme.primary,
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w800,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+
+                  // Bottom Right: Order Now button with shimmer effect
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: ShimmerOrderButton(
+                      text: effectiveButton,
+                      onTap: () {
+                        if (widget.onOrderBanner != null) {
+                          widget.onOrderBanner!(banner);
+                        } else if (widget.onOrderNow != null) {
+                          widget.onOrderNow!();
+                        } else if (widget.onApplyPromo != null) {
+                          widget.onApplyPromo!();
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Order Now Button with a continuous light shimmer sweep effect
+class ShimmerOrderButton extends StatefulWidget {
+  final VoidCallback? onTap;
+  final String text;
+
+  const ShimmerOrderButton({
+    super.key,
+    this.onTap,
+    this.text = 'Order Now',
+  });
+
+  @override
+  State<ShimmerOrderButton> createState() => _ShimmerOrderButtonState();
+}
+
+class _ShimmerOrderButtonState extends State<ShimmerOrderButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Container(
+              clipBehavior: Clip.antiAlias,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7.5),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.28),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Text & Arrow Icon
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.text,
+                        style: const TextStyle(
+                          color: AppTheme.primary,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      const Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 14,
+                        color: AppTheme.primary,
+                      ),
+                    ],
+                  ),
+
+                  // Diagonal Shimmer Sheen sweeping across the button
+                  Positioned.fill(
+                    child: Transform.translate(
+                      offset: Offset(-100.0 + _controller.value * 260.0, 0),
+                      child: Transform.rotate(
+                        angle: 0.45,
+                        child: Container(
+                          width: 32,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withValues(alpha: 0.0),
+                                Colors.amberAccent.withValues(alpha: 0.55),
+                                Colors.white.withValues(alpha: 0.95),
+                                Colors.amberAccent.withValues(alpha: 0.55),
+                                Colors.white.withValues(alpha: 0.0),
+                              ],
+                              stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            size: 13,
-                            color: AppTheme.primary,
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

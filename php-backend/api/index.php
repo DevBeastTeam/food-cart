@@ -480,10 +480,21 @@ switch ($resource) {
         if ($method === 'GET') {
             $vendorId = $_GET['sub_admin_id'] ?? $_GET['vendor_id'] ?? '';
             if (!empty($vendorId) && $vendorId !== 'all') {
-                $stmt = $pdo->prepare("SELECT * FROM banners WHERE sub_admin_id = ? OR sub_admin_id = '' ORDER BY id DESC");
+                $stmt = $pdo->prepare("
+                    SELECT b.*, COALESCE(NULLIF(u.businessName, ''), NULLIF(u.outlet_name, ''), 'Partnered Kitchen') AS shop_name 
+                    FROM banners b 
+                    LEFT JOIN users u ON b.sub_admin_id = u.id 
+                    WHERE b.sub_admin_id = ? OR b.sub_admin_id = '' 
+                    ORDER BY b.id DESC
+                ");
                 $stmt->execute([$vendorId]);
             } else {
-                $stmt = $pdo->query("SELECT * FROM banners ORDER BY id DESC");
+                $stmt = $pdo->query("
+                    SELECT b.*, COALESCE(NULLIF(u.businessName, ''), NULLIF(u.outlet_name, ''), 'Food Court Hub') AS shop_name 
+                    FROM banners b 
+                    LEFT JOIN users u ON b.sub_admin_id = u.id 
+                    ORDER BY b.id DESC
+                ");
             }
             $rows = $stmt->fetchAll();
             $list = [];

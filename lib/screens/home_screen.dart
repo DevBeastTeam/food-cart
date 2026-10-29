@@ -1042,9 +1042,15 @@ class _HomeScreenState extends State<HomeScreen> {
             if (appContent['showPromoBanner'] != false) ...[
               PromoBanner(
                 selectedVendorId: _selectedVendorId,
-                onOrderNow: () {
+                onOrderBanner: (banner) {
+                  final linkCat = (banner['linkCategory'] ?? '').toString();
+                  final title = (banner['title'] ?? '').toString().toLowerCase();
                   setState(() {
-                    _selectedCategory = 'Biryani';
+                    if (linkCat.contains('Daig') || title.contains('daig')) {
+                      _activeListingTab = 'pakwan';
+                    } else {
+                      _activeListingTab = 'restaurant';
+                    }
                   });
                 },
               ),
