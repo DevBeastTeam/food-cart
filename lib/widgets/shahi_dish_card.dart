@@ -122,7 +122,7 @@ class ShahiDishCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        // Navy blue for restaurant, Deep orange with slight black gradient for shahi pakwan
+        // Vibrant royal blue gradient for restaurant, Deep orange with slight black gradient for shahi pakwan
         gradient: isShahi
             ? const LinearGradient(
                 colors: [
@@ -136,25 +136,25 @@ class ShahiDishCard extends StatelessWidget {
               )
             : const LinearGradient(
                 colors: [
-                  Color(0xFF0F172A), // Slate 900
-                  Color(0xFF1E293B), // Slate 800
-                  Color(0xFF0B132B), // Deep Navy
+                  Color(0xFF230E4E), // Royal Deep Blue / Navy
+                  Color(0xFF38106A), // Rich Midnight Navy Blue
+                  Color(0xFF4C1D95), // Vibrant Royal Indigo Blue
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                stops: [0.0, 0.55, 1.0],
+                stops: [0.0, 0.50, 1.0],
               ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: Colors.white.withValues(alpha: 0.18),
           width: 1.1,
         ),
         boxShadow: [
           BoxShadow(
             color: isShahi
                 ? const Color(0xFF7C2D12).withValues(alpha: 0.40)
-                : const Color(0xFF0F172A).withValues(alpha: 0.45),
-            blurRadius: 12,
+                : const Color(0xFF2E1065).withValues(alpha: 0.45),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
