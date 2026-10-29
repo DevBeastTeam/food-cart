@@ -288,7 +288,6 @@ class _PromoBannerState extends State<PromoBanner> {
         banner['dishesText'] ??
         banner['description'] ??
         'Freshly prepared specialty dishes & catering deals';
-    final effectiveButton = widget.buttonText ?? banner['buttonText'] ?? 'Order Now';
     final effectiveImage = widget.imageUrl ??
         banner['imageUrl'] ??
         'https://images.unsplash.com/photo-1544025162-d76694265947?w=700&q=80';
@@ -403,10 +402,9 @@ class _PromoBannerState extends State<PromoBanner> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Row: Shop Name & Offer
+                  // Top Row: Shop Name Tag
                   Row(
                     children: [
-                      // Shop Name Tag
                       Flexible(
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
@@ -423,7 +421,7 @@ class _PromoBannerState extends State<PromoBanner> {
                             children: [
                               const Icon(
                                 Icons.storefront_rounded,
-                                color: Colors.amberAccent,
+                                color: Colors.white70,
                                 size: 13,
                               ),
                               const SizedBox(width: 5),
@@ -442,45 +440,6 @@ class _PromoBannerState extends State<PromoBanner> {
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-
-                      // Offer Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFF3D00), Color(0xFFFF6D00)],
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFF3D00).withValues(alpha: 0.45),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.local_offer_rounded,
-                              color: Colors.white,
-                              size: 11,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              offerText,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
                         ),
                       ),
                     ],
@@ -517,20 +476,29 @@ class _PromoBannerState extends State<PromoBanner> {
                     ),
                   ),
 
-                  // Bottom Right: Order Now button with shimmer effect
+                  // Bottom Right: Percentage Off outlined with silver shimmer + Order Now button
                   Align(
                     alignment: Alignment.bottomRight,
-                    child: ShimmerOrderButton(
-                      text: effectiveButton,
-                      onTap: () {
-                        if (widget.onOrderBanner != null) {
-                          widget.onOrderBanner!(banner);
-                        } else if (widget.onOrderNow != null) {
-                          widget.onOrderNow!();
-                        } else if (widget.onApplyPromo != null) {
-                          widget.onApplyPromo!();
-                        }
-                      },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (offerText.isNotEmpty) ...[
+                          ShimmerOutlinedOfferTag(text: offerText),
+                          const SizedBox(width: 8),
+                        ],
+                        ShimmerOrderButton(
+                          text: 'Order Now',
+                          onTap: () {
+                            if (widget.onOrderBanner != null) {
+                              widget.onOrderBanner!(banner);
+                            } else if (widget.onOrderNow != null) {
+                              widget.onOrderNow!();
+                            } else if (widget.onApplyPromo != null) {
+                              widget.onApplyPromo!();
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -543,7 +511,109 @@ class _PromoBannerState extends State<PromoBanner> {
   }
 }
 
-/// Order Now Button with a continuous light shimmer sweep effect
+/// Outlined discount percentage tag with a continuous silver text & border shimmer
+class ShimmerOutlinedOfferTag extends StatefulWidget {
+  final String text;
+
+  const ShimmerOutlinedOfferTag({super.key, required this.text});
+
+  @override
+  State<ShimmerOutlinedOfferTag> createState() => _ShimmerOutlinedOfferTagState();
+}
+
+class _ShimmerOutlinedOfferTagState extends State<ShimmerOutlinedOfferTag>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Container(
+          clipBehavior: Clip.antiAlias,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.28),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.75),
+              width: 1.1,
+            ),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Content: local offer icon + offer percentage
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.local_offer_rounded,
+                    color: Colors.white,
+                    size: 11,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    widget.text,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ],
+              ),
+
+              // Diagonal Silver Sheen sweeping across the outline badge
+              Positioned.fill(
+                child: Transform.translate(
+                  offset: Offset(-80.0 + _controller.value * 200.0, 0),
+                  child: Transform.rotate(
+                    angle: 0.45,
+                    child: Container(
+                      width: 24,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0.0),
+                            const Color(0xFFCBD5E1).withValues(alpha: 0.45),
+                            Colors.white.withValues(alpha: 0.95),
+                            const Color(0xFFE2E8F0).withValues(alpha: 0.6),
+                            Colors.white.withValues(alpha: 0.0),
+                          ],
+                          stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Order Now Button with a continuous light silver shimmer sweep effect
 class ShimmerOrderButton extends StatefulWidget {
   final VoidCallback? onTap;
   final String text;
@@ -605,20 +675,20 @@ class _ShimmerOrderButtonState extends State<ShimmerOrderButton>
                 alignment: Alignment.center,
                 children: [
                   // Text & Arrow Icon
-                  Row(
+                  const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        widget.text,
-                        style: const TextStyle(
+                        'Order Now',
+                        style: TextStyle(
                           color: AppTheme.primary,
                           fontSize: 12.5,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.2,
                         ),
                       ),
-                      const SizedBox(width: 5),
-                      const Icon(
+                      SizedBox(width: 5),
+                      Icon(
                         Icons.arrow_forward_rounded,
                         size: 14,
                         color: AppTheme.primary,
@@ -626,7 +696,7 @@ class _ShimmerOrderButtonState extends State<ShimmerOrderButton>
                     ],
                   ),
 
-                  // Diagonal Shimmer Sheen sweeping across the button
+                  // Diagonal Pure Silver Shimmer Sheen sweeping across the button
                   Positioned.fill(
                     child: Transform.translate(
                       offset: Offset(-100.0 + _controller.value * 260.0, 0),
@@ -638,9 +708,9 @@ class _ShimmerOrderButtonState extends State<ShimmerOrderButton>
                             gradient: LinearGradient(
                               colors: [
                                 Colors.white.withValues(alpha: 0.0),
-                                Colors.amberAccent.withValues(alpha: 0.55),
+                                const Color(0xFFCBD5E1).withValues(alpha: 0.5),
                                 Colors.white.withValues(alpha: 0.95),
-                                Colors.amberAccent.withValues(alpha: 0.55),
+                                const Color(0xFFE2E8F0).withValues(alpha: 0.65),
                                 Colors.white.withValues(alpha: 0.0),
                               ],
                               stops: const [0.0, 0.35, 0.5, 0.65, 1.0],
