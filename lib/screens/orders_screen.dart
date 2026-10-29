@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../data/sample_data.dart';
+import '../models/daig_item.dart';
+import '../models/food_item.dart';
 import '../services/api_service.dart';
 import '../state/cart_state.dart';
 import '../state/user_state.dart';
 import '../theme/app_theme.dart';
 import '../widgets/custom_image.dart';
+import 'food_detail_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   final UserState userState;
@@ -218,24 +221,116 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
+  Map<String, String> _resolveShopInfoForOrder(UserOrder order) {
+    String name = order.restaurantName;
+    String address = '14-C Gulberg III, Lahore';
+    String image = '';
+
+    final rList = SampleData.restaurants.where((r) =>
+        r.name.toLowerCase().trim() == name.toLowerCase().trim() ||
+        name.toLowerCase().contains(r.name.toLowerCase()));
+    if (rList.isNotEmpty) {
+      final r = rList.first;
+      name = r.name;
+      if (r.address.isNotEmpty) address = r.address;
+      image = r.imageUrl;
+    }
+
+    if (image.isEmpty) {
+      final pList = SampleData.pakwanCenters.where((p) =>
+          p.name.toLowerCase().trim() == name.toLowerCase().trim() ||
+          name.toLowerCase().contains(p.name.toLowerCase()));
+      if (pList.isNotEmpty) {
+        final p = pList.first;
+        name = p.name;
+        if (p.address.isNotEmpty) address = p.address;
+        image = p.imageUrl;
+      }
+    }
+
+    if (image.isEmpty) {
+      image = order.restaurantImage;
+    }
+
+    return {
+      'name': name,
+      'address': address,
+      'image': image,
+    };
+  }
+
+  void _openItemDetailForOrder(UserOrder order) {
+    FoodItem? matchedFood;
+    DaigItem? matchedDaig;
+
+    if (order.foodItemId != null && order.foodItemId!.isNotEmpty) {
+      final fMatches = SampleData.allTrendingFoodItems.where((f) => f.id == order.foodItemId);
+      if (fMatches.isNotEmpty) matchedFood = fMatches.first;
+
+      final dMatches = SampleData.daigDishes.where((d) => d.id == order.foodItemId);
+      if (dMatches.isNotEmpty) matchedDaig = dMatches.first;
+    }
+
+    if (matchedFood == null && matchedDaig == null && order.items.isNotEmpty) {
+      final rawItem = order.items.first;
+      final cleanName = rawItem.replaceFirst(RegExp(r'^\d+\s*x\s*', caseSensitive: false), '').trim().toLowerCase();
+
+      final dMatches = SampleData.daigDishes.where((d) =>
+          cleanName.contains(d.name.toLowerCase()) ||
+          d.name.toLowerCase().contains(cleanName) ||
+          (d.urduName.isNotEmpty && cleanName.contains(d.urduName)));
+      if (dMatches.isNotEmpty) {
+        matchedDaig = dMatches.first;
+      } else {
+        final fMatches = SampleData.allTrendingFoodItems.where((f) =>
+            cleanName.contains(f.name.toLowerCase()) ||
+            f.name.toLowerCase().contains(cleanName));
+        if (fMatches.isNotEmpty) {
+          matchedFood = fMatches.first;
+        }
+      }
+    }
+
+    if (matchedFood == null && matchedDaig == null) {
+      if (order.isPakwan) {
+        matchedDaig = SampleData.daigDishes.first;
+      } else {
+        matchedFood = SampleData.allTrendingFoodItems.first;
+      }
+    }
+
+    if (widget.cartState != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => FoodDetailScreen(
+            foodItem: matchedFood,
+            daigItem: matchedDaig,
+            cartState: widget.cartState!,
+          ),
+        ),
+      );
+    }
+  }
+
   Widget _buildOrderCard(UserOrder order) {
-    final isDelivered = order.status == 'Delivered';
-    final isPending = order.status == 'Pending';
-    final isAccepted = order.status == 'Accepted';
-    final isPreparing = order.status == 'Preparing';
+    final isPakwan = order.isPakwan;
+    final isAccepted = order.status.trim().toLowerCase() == 'accepted';
+    final shop = _resolveShopInfoForOrder(order);
+    final itemName = order.items.isNotEmpty
+        ? order.items.first.replaceFirst(RegExp(r'^\d+\s*x\s*', caseSensitive: false), '')
+        : order.restaurantName;
+    final hasImage = order.restaurantImage.isNotEmpty && !order.restaurantImage.contains('null');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDelivered ? AppTheme.border : AppTheme.primary.withAlpha(80),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(6),
+            color: Colors.black.withAlpha(8),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -244,91 +339,124 @@ class _OrdersScreenState extends State<OrdersScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Restaurant Name, Badge, Order ID, Date & Status
+          // 1. TOP ROW: Food Thumbnail + Dish Title + Type Badges Row (Restaurant vs Pakwan) + Status Badge (Right)
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: order.isPakwan ? Colors.amber.shade100 : AppTheme.primaryLight,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    order.isPakwan ? Icons.outdoor_grill_rounded : Icons.storefront_rounded,
-                    color: order.isPakwan ? Colors.amber.shade900 : AppTheme.primary,
-                    size: 16,
+                // Food Image Thumbnail
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: CustomImage(
+                    imageUrl: hasImage ? order.restaurantImage : 'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&q=80',
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(width: 10),
+
+                // Center Column: Dish Title + Row of 2 Type Badges + Date & Time
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        itemName,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                          letterSpacing: -0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Row containing BOTH Badges (Restaurant & Pakwan)
                       Row(
                         children: [
-                          Expanded(
-                            child: Text(
-                              order.restaurantName,
-                              style: const TextStyle(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textPrimary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
+                          // 🍽️ ریسٹورنٹ Badge
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: order.isPakwan ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
+                              color: !isPakwan ? const Color(0xFFEFF6FF) : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(5),
                               border: Border.all(
-                                color: order.isPakwan ? const Color(0xFFFDE68A) : const Color(0xFFBFDBFE),
+                                color: !isPakwan ? const Color(0xFFBFDBFE) : const Color(0xFFE2E8F0),
                               ),
                             ),
                             child: Text(
-                              order.isPakwan ? '🍲 شاہی پکوان' : '🍽️ ریسٹورنٹ',
+                              '🍽️ ریسٹورنٹ',
                               style: TextStyle(
                                 fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                color: order.isPakwan ? const Color(0xFF92400E) : const Color(0xFF1E40AF),
+                                fontWeight: !isPakwan ? FontWeight.w800 : FontWeight.w500,
+                                color: !isPakwan ? const Color(0xFF1E40AF) : const Color(0xFF94A3B8),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+
+                          // 🍲 شاہی پکوان Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isPakwan ? const Color(0xFFFEF3C7) : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: isPakwan ? const Color(0xFFFDE68A) : const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: Text(
+                              '🍲 شاہی پکوان',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: isPakwan ? FontWeight.w800 : FontWeight.w500,
+                                color: isPakwan ? const Color(0xFF92400E) : const Color(0xFF94A3B8),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '#${order.id} • ${_formatOrderTime(order.orderDate)}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppTheme.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      const SizedBox(height: 4),
+
+                      // Order Date & Time + Order ID
+                      Row(
+                        children: [
+                          const Icon(Icons.schedule_rounded, size: 11, color: Color(0xFF94A3B8)),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${_formatOrderTime(order.orderDate)} • #${order.id}',
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              color: Color(0xFF94A3B8),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8),
+
+                // Right side: Status Badge (Accepted, Rejected, Preparing, etc.)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _getStatusBadgeColor(order.status).withAlpha(25),
+                    color: _getStatusBadgeColor(order.status).withAlpha(20),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: _getStatusBadgeColor(order.status).withAlpha(80)),
                   ),
                   child: Text(
-                    order.status.toUpperCase(),
+                    order.status.toLowerCase() == 'cancelled' ? 'REJECTED' : order.status.toUpperCase(),
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       color: _getStatusBadgeColor(order.status),
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.4,
                     ),
                   ),
                 ),
@@ -336,103 +464,66 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ),
           ),
 
-          const Divider(height: 1, color: AppTheme.border),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
 
-          // Dish Items & Thumbnail
-          InkWell(
-            onTap: () => _showItemDetailsSheet(order),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
+          // 2. ORDER FROM SECTION (Shop Name, Shop Icon, Location Pin, Location Name)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: CustomImage(
-                      imageUrl: order.restaurantImage,
-                      width: 64,
-                      height: 64,
-                      fit: BoxFit.cover,
-                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    child: (shop['image'] != null && shop['image']!.isNotEmpty)
+                        ? CustomImage(
+                            imageUrl: shop['image']!,
+                            width: 36,
+                            height: 36,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: 36,
+                            height: 36,
+                            color: Colors.amber.shade100,
+                            child: const Icon(Icons.storefront_rounded, size: 18, color: Color(0xFFD97706)),
+                          ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...order.items.map(
-                          (itemText) => Padding(
-                            padding: const EdgeInsets.only(bottom: 3),
-                            child: Text(
-                              '• $itemText',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                        Text(
+                          'ORDER FROM: ${shop['name']}',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1E293B),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (order.eventDate != null && order.eventDate!.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF3C7),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFFDE68A)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.event_available_rounded, size: 14, color: Color(0xFFD97706)),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'شیڈول: ${order.eventDate}${order.eventTime != null && order.eventTime!.isNotEmpty ? " @ ${order.eventTime}" : ""}${order.occasion != null && order.occasion!.isNotEmpty ? " • ${order.occasion}" : ""}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF92400E),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        if (order.notes != null && order.notes!.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            'Special Note: "${order.notes}"',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontStyle: FontStyle.italic,
-                              color: AppTheme.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
+                            const Icon(Icons.location_on_rounded, size: 11.5, color: Color(0xFF94A3B8)),
+                            const SizedBox(width: 3),
                             Expanded(
                               child: Text(
-                                'Total: Rs. ${order.totalAmount.toInt()}',
+                                shop['address']!,
                                 style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppTheme.primary,
+                                  fontSize: 10.5,
+                                  color: Color(0xFF94A3B8),
+                                  fontWeight: FontWeight.w500,
                                 ),
-                              ),
-                            ),
-                            const Text(
-                              'View details ›',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.primary,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -445,82 +536,64 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ),
           ),
 
-          // Delivery Address Row
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            color: const Color(0xFFF9FAFB),
-            child: Row(
-              children: [
-                const Icon(Icons.location_on_rounded, size: 14, color: Color(0xFF94A3B8)),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Deliver to: ${order.deliveryAddress}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppTheme.textSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
+          // 3. STEPPER (Accepted -> Preparing -> On the Way -> Delivered)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+            child: _buildTimelineStepper(order),
           ),
 
-          const Divider(height: 1, color: AppTheme.border),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
 
-          // Progress Timeline & Action Buttons
+          // 4. BOTTOM ACTION ROW: Price on Left, Cancel Order & View Item on Right
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+            child: Row(
               children: [
-                _buildTimelineStepper(order),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (isPending) ...[
-                      OutlinedButton.icon(
-                        onPressed: () => _confirmCancelOrder(order),
-                        icon: const Icon(Icons.cancel_outlined, size: 14, color: Colors.red),
-                        label: const Text('Cancel Order (کینسل کریں)'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red.shade700,
-                          side: BorderSide(color: Colors.red.shade300),
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    if (isAccepted || isPreparing) ...[
-                      OutlinedButton.icon(
-                        onPressed: () => _showUpdateNotesDialog(order),
-                        icon: const Icon(Icons.edit_note_rounded, size: 15),
-                        label: const Text('Add Note'),
-                        style: OutlinedButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    ElevatedButton.icon(
-                      onPressed: () => _showItemDetailsSheet(order),
-                      icon: const Icon(Icons.visibility_outlined, size: 14),
-                      label: const Text('View Details'),
-                      style: ElevatedButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                // Price (Poore Left mein)
+                Text(
+                  'Rs. ${order.totalAmount.toInt()}',
+                  style: const TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.primary,
+                  ),
+                ),
+                const Spacer(),
+
+                // Cancel Order Button (Sirf us waqt agar order accepted ho)
+                if (isAccepted) ...[
+                  TextButton(
+                    onPressed: () => _confirmCancelOrder(order),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red.shade700,
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    ),
+                    child: const Text(
+                      'Cancel Order',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.redAccent,
                       ),
                     ),
-                  ],
+                  ),
+                  const SizedBox(width: 6),
+                ],
+
+                // View Item Button (opens FoodDetailScreen for that item)
+                ElevatedButton.icon(
+                  onPressed: () => _openItemDetailForOrder(order),
+                  icon: const Icon(Icons.visibility_outlined, size: 14),
+                  label: const Text('View Item'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    textStyle: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                  ),
                 ),
               ],
             ),
@@ -694,556 +767,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
           ),
         );
       }),
-    );
-  }
-
-  void _showItemDetailsSheet(UserOrder order) {
-    final hasRider = order.riderName != null && order.riderName!.trim().isNotEmpty;
-    final riderPhone = order.riderPhone ?? '+92 300 0000000';
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.88,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            // Drag handle
-            Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 6),
-              width: 44,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                children: [
-                  // HERO SECTION: Vendor cover, category badge & physical location
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(20),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Stack(
-                        children: [
-                          CustomImage(
-                            imageUrl: order.restaurantImage,
-                            width: double.infinity,
-                            height: 180,
-                            fit: BoxFit.cover,
-                          ),
-                          // Dark gradient overlay
-                          Positioned.fill(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.black.withAlpha(40),
-                                    Colors.black.withAlpha(220),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Top Category Badge
-                          Positioned(
-                            top: 12,
-                            left: 12,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: order.isPakwan ? Colors.amber.shade700 : AppTheme.primary,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    order.isPakwan ? Icons.outdoor_grill_rounded : Icons.restaurant_rounded,
-                                    color: Colors.white,
-                                    size: 13,
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    order.isPakwan ? 'شاہی پکوان سینٹر' : 'فوڈ ریسٹورنٹ',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          // Top Order ID
-                          Positioned(
-                            top: 12,
-                            right: 12,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withAlpha(160),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white24),
-                              ),
-                              child: Text(
-                                '#${order.id}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 11.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Bottom Info
-                          Positioned(
-                            bottom: 12,
-                            left: 14,
-                            right: 14,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  order.restaurantName,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 3),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on_rounded, size: 14, color: Colors.amberAccent),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        'Kitchen / Shop: Gulberg III / Central Plaza, Lahore',
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // RIDER ASSIGNMENT & STATUS SECTION
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: hasRider ? const Color(0xFFF0FDF4) : const Color(0xFFFFFBEB),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: hasRider ? const Color(0xFF86EFAC) : const Color(0xFFFDE68A),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: hasRider ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            hasRider ? Icons.two_wheeler_rounded : Icons.hourglass_top_rounded,
-                            color: hasRider ? const Color(0xFF16A34A) : Colors.amber.shade800,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                hasRider ? 'ڈیڈیکیٹڈ رائیڈر تفویض شدہ' : 'رائیڈر تفویض کے انتظار میں',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: hasRider ? const Color(0xFF15803D) : Colors.amber.shade900,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                hasRider ? order.riderName! : 'Kitchen is preparing your food freshly',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.textPrimary,
-                                ),
-                              ),
-                              if (hasRider)
-                                Text(
-                                  '📞 $riderPhone • Status: ${order.status}',
-                                  style: const TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textSecondary,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        if (hasRider) ...[
-                          // Just 2 Icons Button:
-                          // 1. Call Button
-                          IconButton(
-                            onPressed: () => _launchRiderCall(riderPhone),
-                            icon: const Icon(Icons.phone_in_talk_rounded),
-                            color: const Color(0xFF2563EB),
-                            tooltip: 'Call Rider',
-                            style: IconButton.styleFrom(
-                              backgroundColor: const Color(0xFFDBEAFE),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          // 2. WhatsApp Button
-                          IconButton(
-                            onPressed: () => _launchRiderWhatsApp(riderPhone, order.riderName ?? 'Rider', order.id),
-                            icon: const Icon(Icons.chat_bubble_rounded),
-                            color: const Color(0xFF16A34A),
-                            tooltip: 'WhatsApp Rider',
-                            style: IconButton.styleFrom(
-                              backgroundColor: const Color(0xFFDCFCE7),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // ORDER TRACKING TIMELINE
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Order Status Progression (آرڈر ٹریکنگ)',
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTimelineStepper(order),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // FOOD ITEMS LIST WITH THUMBNAIL, PRICE & CUT PRICE
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Ordered Food Items',
-                              style: TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textPrimary,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryLight,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '${order.items.length} Items',
-                                style: const TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Divider(height: 20, color: AppTheme.border),
-                        ...order.items.map((itemText) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: CustomImage(
-                                  imageUrl: order.restaurantImage,
-                                  width: 44,
-                                  height: 44,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      itemText,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppTheme.textPrimary,
-                                      ),
-                                    ),
-                                    Text(
-                                      order.isPakwan ? '🍲 Authentic Dum Deg' : '🍽️ Fresh Kitchen Dish',
-                                      style: const TextStyle(
-                                        fontSize: 10.5,
-                                        color: AppTheme.textSecondary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 18),
-                            ],
-                          ),
-                        )),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // PAYMENT & COD INFO
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Payment Mode:',
-                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDCFCE7),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Text(
-                                '💵 کیش آن ڈیلیوری (COD)',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF15803D),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Total Amount Payable:',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                            ),
-                            Row(
-                              children: [
-                                if (order.originalAmount != null && order.originalAmount! > order.totalAmount) ...[
-                                  Text(
-                                    'Rs. ${order.originalAmount!.toInt()}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                      decoration: TextDecoration.lineThrough,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                ],
-                                Text(
-                                  'Rs. ${order.totalAmount.toInt()}',
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppTheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        if (order.discountInfo != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            '🎉 ${order.discountInfo}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF15803D),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  if (order.status == 'Pending') ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(ctx);
-                          _confirmCancelOrder(order);
-                        },
-                        icon: const Icon(Icons.cancel_rounded, color: Colors.red),
-                        label: const Text(
-                          'آرڈر کینسل کریں (Cancel Order)',
-                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.red),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.red.shade400, width: 1.5),
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      ),
-                      child: const Text('بند کریں (Close)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showUpdateNotesDialog(UserOrder order) {
-    final controller = TextEditingController(text: order.notes ?? '');
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Update Order Instructions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Add kitchen notes while your food is being prepared:',
-              style: TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: controller,
-              maxLines: 2,
-              decoration: const InputDecoration(
-                hintText: 'e.g. Less spicy, pack extra salad & raita...',
-                isDense: true,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              widget.userState.updateOrderNotes(order.id, controller.text.trim());
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Kitchen instructions updated successfully!'),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: AppTheme.primary,
-                ),
-              );
-            },
-            child: const Text('Save Note'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1431,62 +954,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
         ),
       ),
     );
-  }
-
-  String _formatWhatsAppPhone(String phone) {
-    String clean = phone.replaceAll(RegExp(r'[^0-9]'), '');
-    if (clean.startsWith('03')) {
-      clean = '92${clean.substring(1)}';
-    } else if (clean.startsWith('3') && clean.length == 10) {
-      clean = '92$clean';
-    }
-    return clean;
-  }
-
-  Future<void> _launchRiderWhatsApp(String phone, String riderName, String orderId) async {
-    try {
-      final clean = _formatWhatsAppPhone(phone);
-      final text = Uri.encodeComponent(
-        'Assalam-o-Alaikum $riderName bhai, main FoodCourt order #$orderId ke hawalay se rabta kar raha hoon.',
-      );
-      final uri = Uri.parse('https://wa.me/$clean?text=$text');
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('WhatsApp: $phone'),
-              backgroundColor: const Color(0xFF25D366),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('[OrdersScreen] Error launching rider WhatsApp: $e');
-    }
-  }
-
-  Future<void> _launchRiderCall(String phone) async {
-    try {
-      final uri = Uri.parse('tel:$phone');
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Calling Rider: $phone'),
-              backgroundColor: Colors.blueAccent,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      debugPrint('[OrdersScreen] Error launching rider call: $e');
-    }
   }
 
   Color _getStatusBadgeColor(String status) {
