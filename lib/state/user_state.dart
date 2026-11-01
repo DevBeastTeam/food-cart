@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 import '../services/notification_service.dart';
 
@@ -181,6 +182,7 @@ class UserState extends ChangeNotifier {
   final Map<String, String> _lastKnownOrderStatuses = {};
 
   UserState({bool enablePeriodicSync = true}) {
+    _restoreSession();
     _initOrderTracking(enablePeriodicSync: enablePeriodicSync);
   }
 
@@ -738,6 +740,7 @@ class UserState extends ChangeNotifier {
         loyaltyCoins: (u['loyaltyCoins'] as num?)?.toInt() ?? 580,
       );
       _isLoggedIn = true;
+      _saveSession();
       notifyListeners();
       return true;
     }
@@ -765,6 +768,7 @@ class UserState extends ChangeNotifier {
       loyaltyCoins: 580,
     );
     _isLoggedIn = true;
+    _saveSession();
     notifyListeners();
     return true;
   }
@@ -799,12 +803,16 @@ class UserState extends ChangeNotifier {
       loyaltyCoins: 100,
     );
     _isLoggedIn = true;
+    _saveSession();
     notifyListeners();
     return apiRes != null;
   }
 
   void logout() {
     _isLoggedIn = false;
+    _user = null;
+    _currentRole = UserRole.client;
+    _clearSession();
     notifyListeners();
   }
 
@@ -817,13 +825,107 @@ class UserState extends ChangeNotifier {
     if (name != null && name.trim().isNotEmpty) _user!.name = name.trim();
     if (phone != null && phone.trim().isNotEmpty) _user!.phone = phone.trim();
     if (city != null && city.trim().isNotEmpty) _user!.city = city.trim();
+    _saveSession();
     notifyListeners();
   }
 
   void addFunds(double amount) {
     if (_user == null) return;
     _user!.walletBalance += amount;
+    _saveSession();
     notifyListeners();
+  }
+
+  // =========================================================================
+  // PERSISTENT LOCAL SESSION STORAGE (SharedPreferences)
+  // =========================================================================
+  Future<void> _restoreSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool('session_is_logged_in') ?? false;
+      if (!isLoggedIn) return;
+
+      final email = prefs.getString('session_user_email');
+      if (email == null || email.trim().isEmpty) return;
+
+      final name = prefs.getString('session_user_name') ?? 'Foodie Member';
+      final phone = prefs.getString('session_user_phone') ?? '+92 300 1234567';
+      final city = prefs.getString('session_user_city') ?? 'Lahore';
+      final tier = prefs.getString('session_user_tier') ?? 'Valued Member';
+      final roleStr = prefs.getString('session_user_role') ?? 'client';
+      final wallet = prefs.getDouble('session_user_wallet') ?? 2450.0;
+      final coins = prefs.getInt('session_user_coins') ?? 580;
+
+      if (roleStr == 'admin') {
+        _currentRole = UserRole.admin;
+      } else if (roleStr == 'rider') {
+        _currentRole = UserRole.rider;
+      } else {
+        _currentRole = UserRole.client;
+      }
+
+      _user = UserProfile(
+        name: name,
+        email: email,
+        phone: phone,
+        city: city,
+        membershipTier: tier,
+        walletBalance: wallet,
+        loyaltyCoins: coins,
+      );
+      _isLoggedIn = true;
+      notifyListeners();
+
+      // Trigger background sync with backend for the restored user session
+      ApiService.instance.syncWithBackend(userState: this);
+    } catch (e) {
+      debugPrint('[UserState] Error restoring user session from local storage: $e');
+    }
+  }
+
+  Future<void> _saveSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!_isLoggedIn || _user == null) {
+        await _clearSession();
+        return;
+      }
+      await prefs.setBool('session_is_logged_in', true);
+      await prefs.setString('session_user_email', _user!.email);
+      await prefs.setString('session_user_name', _user!.name);
+      await prefs.setString('session_user_phone', _user!.phone);
+      await prefs.setString('session_user_city', _user!.city);
+      await prefs.setString('session_user_tier', _user!.membershipTier);
+      await prefs.setString(
+        'session_user_role',
+        _currentRole == UserRole.admin
+            ? 'admin'
+            : (_currentRole == UserRole.rider ? 'rider' : 'client'),
+      );
+      await prefs.setDouble('session_user_wallet', _user!.walletBalance);
+      await prefs.setInt('session_user_coins', _user!.loyaltyCoins);
+      await prefs.setInt('session_last_active', DateTime.now().millisecondsSinceEpoch);
+    } catch (e) {
+      debugPrint('[UserState] Error saving user session to local storage: $e');
+    }
+  }
+
+  Future<void> _clearSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('session_is_logged_in');
+      await prefs.remove('session_user_email');
+      await prefs.remove('session_user_name');
+      await prefs.remove('session_user_phone');
+      await prefs.remove('session_user_city');
+      await prefs.remove('session_user_tier');
+      await prefs.remove('session_user_role');
+      await prefs.remove('session_user_wallet');
+      await prefs.remove('session_user_coins');
+      await prefs.remove('session_last_active');
+    } catch (e) {
+      debugPrint('[UserState] Error clearing user session from local storage: $e');
+    }
   }
 
   void addAddress(UserAddress newAddress) {

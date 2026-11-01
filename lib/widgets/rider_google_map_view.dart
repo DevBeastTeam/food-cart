@@ -154,174 +154,140 @@ class _RiderGoogleMapViewState extends State<RiderGoogleMapView>
               ),
             ),
 
-            // 3. Top Turn-by-Turn Guidance Banner (When order is active)
+            // 3. Top Turn-by-Turn Guidance Banner (Compact, Transparent with Outline so Map stays visible)
             Positioned(
-              top: widget.isFullScreen ? 48 : 12,
-              left: 12,
-              right: 12,
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1B2A4A),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(40),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+              top: widget.isFullScreen ? 46 : 8,
+              left: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A).withAlpha(92),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.white.withAlpha(122),
+                    width: 0.85,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(46),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade600,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.turn_right_rounded, color: Colors.white, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(3.5),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade600.withAlpha(217),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.turn_right_rounded, color: Colors.white, size: 13),
+                    ),
+                    const SizedBox(width: 7),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
                             children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    _isNavigating ? 'In 180m • Turn Right' : 'Route to Customer',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.amber.shade400,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: const Text(
-                                      'LIVE GPS',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 9.5,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
                               Text(
-                                destination,
+                                _isNavigating ? 'In 180m • Turn Right' : 'Route to Customer',
                                 style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 11,
+                                  color: Colors.white,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
+                                  shadows: [
+                                    Shadow(color: Colors.black87, blurRadius: 2),
+                                  ],
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(width: 5),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade400.withAlpha(230),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: const Text(
+                                  'LIVE GPS',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        if (widget.onClose != null) ...[
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: widget.onClose,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withAlpha(30),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.close, color: Colors.white, size: 18),
+                          const SizedBox(height: 1),
+                          Text(
+                            destination,
+                            style: TextStyle(
+                              color: Colors.white.withAlpha(235),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w500,
+                              shadows: const [
+                                Shadow(color: Colors.black87, blurRadius: 2),
+                              ],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withAlpha(89),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.white.withAlpha(89), width: 0.6),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.directions_bike_rounded, size: 10, color: Colors.lightBlueAccent),
+                          SizedBox(width: 3),
+                          Text(
+                            '3.2km',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
-                      ],
-                    ),
-                  ),
-
-                  // Distance & ETA quick pills
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(20),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.directions_bike_rounded, size: 14, color: Colors.blue.shade700),
-                            const SizedBox(width: 5),
-                            const Text(
-                              '11 mins (3.2 km)',
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.green.shade300),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 7,
-                              height: 7,
-                              decoration: BoxDecoration(
-                                color: Colors.green.shade600,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Fast Route • Low Traffic',
-                              style: TextStyle(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.green.shade800,
-                              ),
-                            ),
-                          ],
+                    ),
+                    if (widget.onClose != null) ...[
+                      const SizedBox(width: 5),
+                      InkWell(
+                        onTap: widget.onClose,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(64),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, color: Colors.white, size: 13),
                         ),
                       ),
                     ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
             // 4. Floating Google Map Controls (Right side)
             Positioned(
               right: 12,
-              top: widget.isFullScreen ? 150 : 100,
+              top: widget.isFullScreen ? 150 : 48,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

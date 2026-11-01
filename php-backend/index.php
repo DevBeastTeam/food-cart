@@ -13,7 +13,7 @@ if (php_sapi_name() === 'cli-server') {
     }
 }
 
-// Static Image Uploads serving fallback
+// Static Image & APK Uploads serving fallback
 if (strpos($uri, '/uploads/') !== false) {
     $rel = substr($uri, strpos($uri, '/uploads/'));
     $targetFile = __DIR__ . $rel;
@@ -22,14 +22,36 @@ if (strpos($uri, '/uploads/') !== false) {
         $mimes = [
             'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
             'png' => 'image/png', 'webp' => 'image/webp',
-            'gif' => 'image/gif', 'svg' => 'image/svg+xml'
+            'gif' => 'image/gif', 'svg' => 'image/svg+xml',
+            'apk' => 'application/vnd.android.package-archive'
         ];
         header('Content-Type: ' . ($mimes[$ext] ?? 'application/octet-stream'));
         header('Content-Length: ' . filesize($targetFile));
-        header('Cache-Control: public, max-age=86400');
+        if ($ext === 'apk') {
+            header('Content-Disposition: attachment; filename="' . basename($targetFile) . '"');
+        } else {
+            header('Cache-Control: public, max-age=86400');
+        }
         readfile($targetFile);
         exit;
     }
+}
+
+// Direct APK Downloads & Download Landing Portal
+if ($uri === '/app.apk' || $uri === '/foodcourt.apk') {
+    $apkFile = __DIR__ . '/uploads/foodcourt-app.apk';
+    if (file_exists($apkFile)) {
+        header('Content-Type: application/vnd.android.package-archive');
+        header('Content-Length: ' . filesize($apkFile));
+        header('Content-Disposition: attachment; filename="foodcourt-app.apk"');
+        readfile($apkFile);
+        exit;
+    }
+}
+
+if ($uri === '/download' || $uri === '/download/' || $uri === '/apk' || $uri === '/apk/') {
+    require_once __DIR__ . '/download.php';
+    exit;
 }
 
 // 2. API Routes (/api/...)

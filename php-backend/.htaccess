@@ -27,7 +27,13 @@ RewriteRule ^vendor/logout/?$ vendor/logout.php [L]
 # 4. Database Seeding Tool Clean URLs (/seeding -> seeding/index.php)
 RewriteRule ^seeding/?$ seeding/index.php [L]
 
-# 4. Backward Compatibility: /super redirects to /admin
+# 4.1 APK Download Landing Page & Direct Shortcuts
+RewriteRule ^download/?$ download.php [L]
+RewriteRule ^apk/?$ download.php [L]
+RewriteRule ^app\.apk$ uploads/foodcourt-app.apk [L]
+RewriteRule ^foodcourt\.apk$ uploads/foodcourt-app.apk [L]
+
+# 4.2 Backward Compatibility: /super redirects to /admin
 RewriteRule ^super(/.*)?$ /admin$1 [R=301,L]
 
 # 5. Root redirect to /vendor/login.php

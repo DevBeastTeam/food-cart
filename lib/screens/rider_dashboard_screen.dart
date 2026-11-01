@@ -643,41 +643,69 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
 
           const SizedBox(height: 22),
 
-          // 5. Live Google Map Radar Preview Section
+          // 5. Live Google Map Radar Preview Section (Overflow-safe header + 30% increased height)
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.location_on_rounded, size: 18, color: Color(0xFF1A73E8)),
-                  SizedBox(width: 6),
-                  Text(
-                    'Live Google Map Radar',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textPrimary,
+              const Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.location_on_rounded, size: 18, color: Color(0xFF1A73E8)),
+                    SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        'Live Google Map Radar',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              TextButton.icon(
-                onPressed: () {
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: () {
                   _showFullScreenMapModal(
                     context,
                     order: pendingOrders.isNotEmpty ? pendingOrders.first : null,
                   );
                 },
-                icon: const Icon(Icons.fullscreen, size: 16),
-                label: const Text('Full Screen Map', style: TextStyle(fontSize: 12)),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFBFDBFE), width: 0.9),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.fullscreen_rounded, size: 16, color: Color(0xFF1D4ED8)),
+                      SizedBox(width: 4),
+                      Text(
+                        'Full Screen',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1D4ED8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          // Map Preview Widget
+          // Map Preview Widget (Height increased by an additional 30% to 360)
           SizedBox(
-            height: 210,
+            height: 360,
             child: RiderGoogleMapView(
               order: pendingOrders.isNotEmpty ? pendingOrders.first : null,
               isFullScreen: false,
@@ -1137,83 +1165,121 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Order Bar
+          // Cupertino / iOS style Order Header Bar (Fully Responsive & Overflow-Safe)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: statusColor.withAlpha(18),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              color: statusColor.withAlpha(14),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             ),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    order.status.toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
+                // Top Row: Status badge + Order ID on Left | Price on Right
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Status Badge (iOS Pill Style)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        order.status.toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Order #${order.id}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: order.isPakwan ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(
-                      color: order.isPakwan ? const Color(0xFFFDE68A) : const Color(0xFFBFDBFE),
+                    const SizedBox(width: 8),
+
+                    // Order ID
+                    Expanded(
+                      child: Text(
+                        'Order #${order.id}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    order.isPakwan ? '🍲 شاہی پکوان' : '🍽️ ریسٹورنٹ',
-                    style: TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w800,
-                      color: order.isPakwan ? const Color(0xFF92400E) : const Color(0xFF1E40AF),
+
+                    const SizedBox(width: 8),
+
+                    // Total Amount on Top Right
+                    Text(
+                      'Rs. ${order.totalAmount.toInt()}',
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w900,
+                        color: statusColor,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    '💵 COD',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF15803D),
+
+                const SizedBox(height: 6),
+
+                // Bottom Sub-Row: Dish/Category tag + Payment Type (COD)
+                Row(
+                  children: [
+                    // Dish / Category Tag
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: order.isPakwan ? const Color(0xFFFEF3C7) : const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: order.isPakwan ? const Color(0xFFFDE68A) : const Color(0xFFBFDBFE),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Text(
+                        order.isPakwan ? '🍲 شاہی پکوان' : '🍽️ ریسٹورنٹ',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: order.isPakwan ? const Color(0xFF92400E) : const Color(0xFF1E40AF),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Rs. ${order.totalAmount.toInt()}',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w900,
-                    color: statusColor,
-                  ),
+
+                    const Spacer(),
+
+                    // Payment Type (COD)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFF86EFAC), width: 0.8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('💵', style: TextStyle(fontSize: 10)),
+                          SizedBox(width: 3),
+                          Text(
+                            'Cash on Delivery',
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF15803D),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1691,16 +1757,23 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
   // COMPLETED ORDER CARD
   // ----------------------------------------------------
   Widget _buildCompletedOrderCard(UserOrder order) {
+    final isDelivered = order.status == 'Delivered';
+    final headerBgColor = isDelivered ? Colors.green.shade50 : Colors.red.shade50;
+    final headerBorderColor = isDelivered ? Colors.green.shade200 : Colors.red.shade200;
+    final badgeColor = isDelivered ? Colors.green.shade700 : Colors.red.shade700;
+    final badgeText = isDelivered ? 'DELIVERED' : 'CANCELLED';
+    final priceColor = isDelivered ? Colors.green.shade800 : Colors.red.shade700;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.green.shade200),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: headerBorderColor, width: 1.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(8),
-            blurRadius: 6,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -1708,38 +1781,44 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Green Header
+          // Cupertino / iOS Header Bar
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(
-              color: Colors.green.shade50,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
+              color: headerBgColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
             ),
             child: Row(
               children: [
-                Icon(Icons.check_circle_rounded, color: Colors.green.shade700, size: 16),
+                Icon(
+                  isDelivered ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                  color: badgeColor,
+                  size: 16,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   'Order #${order.id}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
-                    fontSize: 12.5,
+                    fontSize: 13,
                     color: AppTheme.textPrimary,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade700,
-                    borderRadius: BorderRadius.circular(4),
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
-                    'DELIVERED',
-                    style: TextStyle(
+                  child: Text(
+                    badgeText,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 9.5,
                       fontWeight: FontWeight.w900,
+                      letterSpacing: 0.4,
                     ),
                   ),
                 ),
@@ -1748,60 +1827,130 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
           ),
 
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(13),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Top section: Customer Name on Left | Total Price & Rider Fee on Right
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          order.customerName,
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                        ),
-                        Text(
-                          order.address,
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                        ),
-                      ],
+                    // Customer Name
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(Icons.person_rounded, size: 15, color: Color(0xFF64748B)),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              order.customerName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13.5,
+                                color: AppTheme.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+
+                    const SizedBox(width: 8),
+
+                    // Amount & Fee
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
                           'Rs. ${order.totalAmount.toInt()}',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 14.5,
                             fontWeight: FontWeight.w900,
-                            color: Colors.green.shade800,
+                            color: priceColor,
                           ),
                         ),
+                        const SizedBox(height: 1),
                         const Text(
                           'Rider Fee: Rs. 180',
-                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Colors.blue),
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF2563EB),
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 8),
+
+                // Dedicated Address / Location Section (Clean New Line, Multi-line Safe)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(Icons.location_on_rounded, size: 14, color: Color(0xFFEF4444)),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          order.address.trim().isNotEmpty ? order.address : 'Delivery Address Not Specified',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF334155),
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
                 const Divider(height: 1, color: AppTheme.border),
                 const SizedBox(height: 8),
+
+                // Bottom Footer: Rating / Payment Detail
                 Row(
                   children: [
-                    const Icon(Icons.star, size: 14, color: Colors.amber),
-                    const SizedBox(width: 4),
+                    const Icon(Icons.star_rounded, size: 15, color: Colors.amber),
+                    const SizedBox(width: 3),
                     const Text(
                       'Customer Rating: 5.0 ⭐',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
                     const Spacer(),
-                    Text(
-                      'Paid via Cash on Delivery',
-                      style: TextStyle(fontSize: 10.5, color: Colors.grey.shade600),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Paid via COD',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
                     ),
                   ],
                 ),

@@ -742,56 +742,70 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
                           const SizedBox(width: 6),
 
-                          // Action Buttons: Just Call Icon & Just WhatsApp Icon
+                          // Action Buttons: Small, Light-Colored, Outlined Call & WhatsApp
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Call Action Button (Just Call Icon)
+                              // Call Action Button (Small Light Outlined)
                               InkWell(
                                 onTap: () => _callPhone(rPhone),
-                                borderRadius: BorderRadius.circular(18),
+                                borderRadius: BorderRadius.circular(14),
                                 child: Container(
-                                  width: 34,
-                                  height: 34,
+                                  width: 27,
+                                  height: 27,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF2563EB),
+                                    color: const Color(0xFFF0F9FF), // Soft light blue tint
                                     shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFF2563EB).withValues(alpha: 0.35),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
+                                    border: Border.all(
+                                      color: const Color(0xFFBAE6FD), // Delicate sky blue outline
+                                      width: 1.0,
+                                    ),
                                   ),
-                                  child: const Icon(Icons.call_rounded, size: 17, color: Colors.white),
+                                  alignment: Alignment.center,
+                                  child: const Icon(
+                                    Icons.call_rounded,
+                                    size: 14,
+                                    color: Color(0xFF0284C7), // Clean light blue icon
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 7),
 
-                              // WhatsApp Action Button (Just WhatsApp Icon)
+                              // WhatsApp Action Button (Small Light Outlined with Official WhatsApp Logo)
                               InkWell(
                                 onTap: () => _openWhatsApp(
                                   phone: rPhone,
                                   riderName: rName,
                                   order: order,
                                 ),
-                                borderRadius: BorderRadius.circular(18),
+                                borderRadius: BorderRadius.circular(14),
                                 child: Container(
-                                  width: 34,
-                                  height: 34,
+                                  width: 27,
+                                  height: 27,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF25D366),
+                                    color: const Color(0xFFF0FDF4), // Soft light mint tint
                                     shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFF25D366).withValues(alpha: 0.38),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
+                                    border: Border.all(
+                                      color: const Color(0xFFBBF7D0), // Delicate mint outline
+                                      width: 1.0,
+                                    ),
                                   ),
-                                  child: const Icon(Icons.chat_bubble_rounded, size: 17, color: Colors.white),
+                                  alignment: Alignment.center,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(13),
+                                    child: Image.asset(
+                                      'assets/images/whatsapp_logo.png',
+                                      width: 16,
+                                      height: 16,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (_, __, ___) => Image.network(
+                                        'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/120px-WhatsApp.svg.png',
+                                        width: 16,
+                                        height: 16,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],

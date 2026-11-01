@@ -567,7 +567,7 @@ class _PromoBannerState extends State<PromoBanner> {
   }
 }
 
-/// Outlined discount percentage tag with dynamic outline color, white text shadow, and white background shadow
+/// Outlined discount percentage tag with crisp outline border and sharp, clear text
 class ShimmerOutlinedOfferTag extends StatelessWidget {
   final String text;
   final Color color;
@@ -583,21 +583,12 @@ class ShimmerOutlinedOfferTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.28), // subtle dark backing for outline
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.black.withValues(alpha: 0.35), // clean dark tint so text pops sharply
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: color,
           width: 1.2,
         ),
-        boxShadow: [
-          // Background soft white glow shadow so the badge stands out on dark banners
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.28),
-            blurRadius: 7,
-            spreadRadius: 0.8,
-            offset: const Offset(0, 0),
-          ),
-        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -606,43 +597,37 @@ class ShimmerOutlinedOfferTag extends StatelessWidget {
             Icons.local_offer_rounded,
             color: color,
             size: 10,
-            shadows: [
-              Shadow(
-                color: Colors.white.withValues(alpha: 0.90),
-                blurRadius: 4,
+          ),
+          const SizedBox(width: 3.5),
+          Stack(
+            children: [
+              // Sharp thin outline around text letters (no blur/smog)
+              Text(
+                text,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.3,
+                  foreground: Paint()
+                    ..style = PaintingStyle.stroke
+                    ..strokeWidth = 1.4
+                    ..color = Colors.black.withValues(alpha: 0.75),
+                ),
+              ),
+              // Crisp foreground text
+              Text(
+                text,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.3,
+                ),
               ),
             ],
           ),
-          const SizedBox(width: 3.5),
-          Text(
-            text,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.3,
-              // Soft white glow shadow around text for crystal clear readability
-              shadows: [
-                Shadow(
-                  color: Colors.white.withValues(alpha: 0.95),
-                  blurRadius: 4,
-                  offset: const Offset(0, 0),
-                ),
-                Shadow(
-                  color: Colors.white.withValues(alpha: 0.70),
-                  blurRadius: 7,
-                  offset: const Offset(0, 0),
-                ),
-              ],
-            ),
-          ),
         ],
-      )
-          .animate(onPlay: (controller) => controller.repeat(period: const Duration(seconds: 2)))
-          .shimmer(
-            duration: 1200.ms,
-            color: Colors.white.withValues(alpha: 0.75),
-          ),
+      ),
     );
   }
 }
